@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A股行情联动看板 · 2026-10-08</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#232a33; --txt:#d7dde5; --sub:#8b95a1; --accent:#e3b341; --red:#ff5d5d; --green:#3fb950; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; padding:28px 20px 60px; }
+  .wrap { max-width:1280px; margin:0 auto; }
+  header h1 { font-size:22px; font-weight:600; } header h1 span { color:var(--accent); }
+  .meta { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 4px; }
+  .chip { font-size:12px; color:var(--sub); border:1px solid var(--border); border-radius:999px; padding:3px 12px; background:var(--card); }
+  .chip b { color:var(--txt); font-weight:500; }
+  .legend { font-size:12px; color:var(--sub); margin:8px 0 20px; }
+  .legend .red { color:var(--red); } .legend .green { color:var(--green); }
+  .grid-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:16px; }
+  .stat { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
+  .stat .k { font-size:12px; color:var(--sub); margin-bottom:6px; }
+  .stat .v { font-size:18px; font-weight:600; } .stat .v small { font-size:12px; font-weight:400; color:var(--sub); margin-left:6px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:16px; }
+  .card h2 { font-size:15px; font-weight:600; margin-bottom:4px; }
+  .card .desc { font-size:12px; color:var(--sub); margin-bottom:12px; }
+  #chartGraph { height:470px; } #chartTheme { height:300px; } #chartKline { height:360px; }
+  .tri { display:grid; grid-template-columns:260px 1fr 340px; gap:16px; }
+  @media (max-width:1080px){ .tri { grid-template-columns:1fr; } }
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; }
+  .panel h3 { font-size:13px; font-weight:600; color:var(--sub); margin-bottom:10px; letter-spacing:1px; }
+  .theme-item { border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; transition:all .15s; }
+  .theme-item:hover { border-color:var(--accent); }
+  .theme-item.active { border-color:var(--accent); background:rgba(227,179,65,.08); }
+  .theme-item .t { font-size:14px; font-weight:600; }
+  .theme-item .n { font-size:11px; color:var(--sub); margin-top:3px; }
+  .news-ref { display:inline-block; font-size:10px; color:var(--accent); border:1px solid rgba(227,179,65,.4); border-radius:4px; padding:0 5px; margin-left:6px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { text-align:left; color:var(--sub); font-weight:500; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  td { padding:7px 8px; border-bottom:1px solid rgba(35,42,51,.5); white-space:nowrap; }
+  tr.stock-row { cursor:pointer; transition:background .15s; }
+  tr.stock-row:hover { background:rgba(255,255,255,.03); }
+  tr.stock-row.active { background:rgba(227,179,65,.1); }
+  tr.dim { opacity:.28; }
+  .up { color:var(--red); font-weight:600; } .down { color:var(--green); font-weight:600; }
+  .pool-tag { font-size:10px; border-radius:4px; padding:1px 6px; margin-right:6px; }
+  .pool-lb { color:#ff9f43; border:1px solid rgba(255,159,67,.4); }
+  .pool-m9 { color:#6ea8fe; border:1px solid rgba(110,168,254,.4); }
+  .news-item { border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; transition:all .15s; }
+  .news-item:hover { border-color:var(--accent); }
+  .news-item.active { border-color:var(--accent); background:rgba(227,179,65,.08); }
+  .news-item.dim { opacity:.3; }
+  .news-item .id { color:var(--accent); font-weight:700; margin-right:6px; }
+  .news-item .t { font-size:12.5px; line-height:1.5; }
+  .news-item .m { font-size:11px; color:var(--sub); margin-top:4px; display:flex; gap:8px; flex-wrap:wrap; }
+  .news-item a { color:#6ea8fe; text-decoration:none; } .news-item a:hover { text-decoration:underline; }
+  .bull { color:var(--red); } .bear { color:var(--green); }
+  .toolbar { margin:4px 0 14px; }
+  .toolbar button { background:transparent; color:var(--sub); border:1px solid var(--border); border-radius:8px; padding:5px 14px; font-size:12px; cursor:pointer; }
+  .toolbar button:hover { color:var(--txt); border-color:var(--sub); }
+  .kline-head { display:flex; align-items:baseline; gap:12px; margin-bottom:4px; }
+  .kline-head .nm { font-size:16px; font-weight:600; }
+  .kline-head .sub { font-size:12px; color:var(--sub); }
+  footer { font-size:11.5px; color:var(--sub); line-height:1.8; border-top:1px solid var(--border); padding-top:14px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>A股行情联动看板 <span>· 题材 × 个股 × 要闻 时序联动</span></h1>
+    <div class="meta">
+      <div class="chip">日期：<b>2026-10-08（周四·节后首日）</b></div>
+      <div class="chip">数据口径：<b>东方财富（选股器条件直连）+ 日线（新浪）</b></div>
+      <div class="chip">快照：<b>13:41 盘中</b></div>
+      <div class="chip">连板情绪 <b>4 只</b> ｜ 九月强势(辅助) <b>5 只</b> ｜ 题材 <b>6 组</b></div>
+    </div>
+    <div class="legend">图例：<span style="color:var(--txt);font-weight:600">加粗=股池内标的</span> ｜ <span class="red">红=涨</span> / <span class="green">绿=跌</span> ｜ 点击题材簇节点 / 个股行 / 要闻卡三方联动；点击个股加载其日线与启动节点</div>
+  </header>
+
+  <div class="grid-stats">
+    <div class="stat"><div class="k">当日情绪主线</div><div class="v">固态电池<small>连板池 3/4，2 只二连板</small></div></div>
+    <div class="stat"><div class="k">九月强势股节后表现</div><div class="v"><span class="down">3/5 跌停</span><small>高位集体兑现</small></div></div>
+    <div class="stat"><div class="k">双池交叉（情绪∩趋势）</div><div class="v">0 只<small>资金弃高就低</small></div></div>
+    <div class="stat"><div class="k">典型启动链</div><div class="v">9/29规划 → 9/30首板 → 10/8二连板<small>兴业股份（固态电池）</small></div></div>
+  </div>
+
+  <div class="card">
+    <h2>题材分区联动图</h2>
+    <div class="desc">六个题材各自成簇（金色菱形=题材中心，圆点=个股，红涨绿跌、大小≈今日涨跌幅）；连板池橙边、九月池蓝边。点击任意节点联动下方三栏与时序区。</div>
+    <div id="chartGraph"></div>
+  </div>
+
+  <div class="card">
+    <h2>题材时序 × 事件联动</h2>
+    <div class="desc">题材等权累计涨幅（2026-09-01 起，成分股日收益等权累计；连板题材自成分上市/复牌日起）。三条竖带=关键事件日。</div>
+    <div id="chartTheme"></div>
+  </div>
+
+  <div class="card">
+    <div class="kline-head"><span class="nm" id="klineName">兴业股份</span><span class="sub" id="klineSub">603928 · 连板情绪 · 固态电池链</span></div>
+    <div class="desc">日线（10-08 为盘中合成K线）＋启动节点标注；右轴虚线=所属题材等权累计涨幅，观察"个股行情 × 题材节奏"的共振。</div>
+    <div id="chartKline"></div>
+  </div>
+
+  <div class="toolbar"><button id="btnClear">清除联动选择</button></div>
+
+  <div class="tri">
+    <div class="panel"><h3>题 材</h3><div id="themeList"></div></div>
+    <div class="panel"><h3>个 股（双方向股池）</h3>
+      <table id="stockTable">
+        <thead><tr><th>名称</th><th>题材/行业</th><th>连板</th><th>竞价</th><th>换手</th><th>今日</th><th>9月区间</th><th>消息面</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="panel"><h3>要 闻（8 条）</h3><div id="newsList"></div></div>
+  </div>
+
+  <footer>
+    口径：股池=东财选股器条件直连接口（方向一：连板=2 且换手&gt;5% 且竞价&gt;-5%，或 2 板断板且涨幅&gt;0；九月辅助：2026.09.01–09.30 区间涨幅前十且&gt;20%；均剔 ST/退市/北交所/创/科板）。日线=新浪财经K线接口（9/01–9/30 实际交易日），10-08 为昨收×盘中涨幅的合成K线；新华传媒 9/16 前无数据（停牌，复牌节点以*标注推断）。题材等权线由成分股日收益计算。<br>
+    要闻渠道：东方财富 / 财联社 / 新浪财经，跨渠道去重后 8 条；启动节点均来自当日采集的真实新闻与行情。盘中快照，仅供参考，不构成投资建议。
+  </footer>
+</div>
+
+<script>
+/* ===================== 数据注入区（技能运行时替换本区） ===================== */
+const STOCKS = [
+  {code:"603928", name:"兴业股份", pool:"lb", theme:"固态电池", lb:"2连板", jj:2.75, hs:7.41, pct:10.02, sep:null, news:["D"],
+   sub:"603928 · 连板情绪 · 固态电池链*",
+   marks:[{d:"09-29", t:"七部门电池规划发布", side:"news"},{d:"09-30", t:"首板涨停", side:"up"},{d:"10-08", t:"二连板", side:"up"}]},
+  {code:"603906", name:"龙蟠科技", pool:"lb", theme:"固态电池", lb:"2连板", jj:1.37, hs:13.02, pct:9.98, sep:null, news:["D"],
+   sub:"603906 · 连板情绪 · 电池材料*",
+   marks:[{d:"09-30", t:"首板涨停", side:"up"},{d:"10-08", t:"二连板", side:"up"}]},
+  {code:"603200", name:"上海洗霸", pool:"lb", theme:"固态电池", lb:"断板回封", jj:-0.56, hs:16.75, pct:9.32, sep:null, news:["D"],
+   sub:"603200 · 连板情绪 · 固态电池链*",
+   marks:[{d:"09-29", t:"首板涨停", side:"up"},{d:"09-30", t:"+7.9% 加速", side:"up"},{d:"10-08", t:"断板回封 +9.3%", side:"up"}]},
+  {code:"000011", name:"深物业A", pool:"lb", theme:"房地产", lb:"断板开板", jj:-0.41, hs:17.92, pct:4.82, sep:null, news:["F"],
+   sub:"000011 · 连板情绪 · 房地产（深圳）*",
+   marks:[{d:"09-28", t:"首板（地产预期）", side:"up"},{d:"09-29", t:"贴息公布·连板", side:"news"},{d:"09-30", t:"三连板（新闻称四连板）", side:"up"},{d:"10-08", t:"冲高开板 +4.8%", side:"flat"}]},
+  {code:"600825", name:"新华传媒", pool:"m9", theme:"出版", lb:"", jj:null, hs:0.47, pct:10.05, sep:100.19, news:[],
+   sub:"600825 · 九月强势#1 · 出版（并购重组）",
+   marks:[{d:"09-21", t:"复牌一字涨停（9/7-9/18停牌）", side:"news"},{d:"09-30", t:"连续一字板", side:"up"},{d:"10-08", t:"再涨停·月内近翻倍", side:"up"}]},
+  {code:"601579", name:"会稽山", pool:"m9", theme:"非白酒", lb:"", jj:null, hs:10.68, pct:7.37, sep:92.76, news:[],
+   sub:"601579 · 九月强势#2 · 非白酒",
+   marks:[{d:"09-22", t:"见顶37.46（9/16-22连板潮）", side:"down"},{d:"09-29", t:"近跌停·高位分歧", side:"down"},{d:"10-08", t:"反弹 +7.4%", side:"up"}]},
+  {code:"601811", name:"新华文轩", pool:"m9", theme:"出版", lb:"", jj:null, hs:4.96, pct:-9.99, sep:89.59, news:[],
+   sub:"601811 · 九月强势#3 · 出版",
+   marks:[{d:"09-22", t:"一字连板·出版主线", side:"up"},{d:"10-08", t:"跌停（高位兑现）", side:"down"}]},
+  {code:"605058", name:"澳弘电子", pool:"m9", theme:"元件", lb:"", jj:null, hs:11.69, pct:-9.99, sep:88.81, news:["E"],
+   sub:"605058 · 九月强势#4 · 元件/PCB",
+   marks:[{d:"09-11", t:"启动·连续涨停（K线）", side:"up"},{d:"09-28", t:"高位巨震跌停", side:"down"},{d:"10-08", t:"跌停·光芯片降价传闻", side:"down"}]},
+  {code:"001216", name:"华瓷股份", pool:"m9", theme:"家居用品", lb:"", jj:null, hs:6.98, pct:-10.01, sep:76.53, news:[],
+   sub:"001216 · 九月强势#5 · 家居用品",
+   marks:[{d:"09-15", t:"启动·连续涨停（K线）", side:"up"},{d:"09-30", t:"跌停", side:"down"},{d:"10-08", t:"再跌停", side:"down"}]},
+];
+const THEMES = [
+  {name:"固态电池", desc:"当日情绪主线：逆势大涨+融资客抢筹", news:["D"]},
+  {name:"房地产",   desc:"黄金周回暖+贴息首周落地", news:["F"]},
+  {name:"出版",     desc:"九月最强主线，节后内部剧烈分化", news:[]},
+  {name:"非白酒",   desc:"会稽山高位分歧后反弹", news:[]},
+  {name:"元件",     desc:"光芯片跌停传闻波及，澳弘跌停", news:["E"]},
+  {name:"家居用品", desc:"华瓷股份连续跌停兑现", news:[]},
+];
+const NEWS = [
+  {id:"A", t:"央行今日开展12000亿元3个月买断式逆回购，节后呵护流动性", time:"早间", link:["财联社","https://www.cls.cn/detail/2498774"], bull:"流动性/基建", bear:""},
+  {id:"B", t:"全球紧缩共振：美联储纪要年内或再加息；日本央行加息25bp至1.25%创31年最高", time:"13:11", link:["东方财富","https://finance.eastmoney.com/a/202610083889045517.html"], bull:"黄金避险", bear:"高估值成长"},
+  {id:"C", t:"节后首日午盘收跌、风格切换：工行/中行/杭州银行历史新高 vs 半导体/光芯片领跌", time:"11:30-13:41", link:["东方财富","https://finance.eastmoney.com/a/202610083889462824.html"], bull:"银行/高股息", bear:"半导体/光芯片"},
+  {id:"D", t:"重磅利好+技术突破：固态电池板块逆势大涨、集体拉升，融资客抢筹（前传：9/29七部门新型电池产业规划）", time:"盘中", link:["东方财富","https://finance.eastmoney.com/a/202610083889406887.html"], bull:"固态电池链", bear:""},
+  {id:"E", t:"光芯片巨头集体跌停（降价研报传闻），公司回应未获悉；港股半导体走低", time:"12:26", link:["东方财富","https://finance.eastmoney.com/a/202610083889426557.html"], bull:"", bear:"光模块/光芯片"},
+  {id:"F", t:"政策+黄金周楼市回暖：内房股大涨（世茂月内近七成）、北京售楼处排号；贴息首周落地（前传：9/29贴息政策公布）", time:"早间", link:["财联社","https://www.cls.cn/detail/2499042"], bull:"房地产开发", bear:""},
+  {id:"G", t:"存储利好与AI泡沫警告对峙：美光目标价3000美元/SK海力士IPO vs 达利欧临界点警告", time:"早间", link:["财联社","https://www.cls.cn/detail/2499033"], bull:"存储芯片", bear:"AI硬件情绪"},
+  {id:"H", t:"中东升温：美军被报准备再次打击伊朗；IEA加快释放1亿桶石油储备", time:"盘中", link:["东方财富","https://finance.eastmoney.com/a/202610083889434464.html"], bull:"油气/油运", bear:"航空"},
+];
+/* 日线：[MM-DD, open, high, low, close]，9/01-9/30 实际值；10-08 合成 */
+const KLINES = {"603928":[["09-01",12.25,12.29,11.91,12.05],["09-02",11.9,11.96,11.69,11.8],["09-03",11.98,11.99,11.5,11.59],["09-04",11.7,11.86,11.26,11.35],["09-07",11.38,11.6,11.31,11.48],["09-08",11.42,11.58,11.35,11.49],["09-09",11.47,12.15,11.47,11.68],["09-10",11.51,11.56,11.28,11.3],["09-11",11.11,11.3,10.84,11.12],["09-14",10.98,11.38,10.96,11.35],["09-15",11.35,11.89,11.23,11.68],["09-16",11.69,12.34,11.5,12.25],["09-17",12.25,12.4,11.85,12.23],["09-18",12.32,12.36,12.14,12.17],["09-21",12.09,12.28,12.06,12.21],["09-22",12.3,12.3,12.02,12.05],["09-23",11.97,12.46,11.97,12.32],["09-24",12.21,12.62,12.18,12.32],["09-28",12.21,12.39,11.9,11.93],["09-29",11.98,12.13,11.86,11.88],["09-30",11.88,13.07,11.87,13.07],["10-08",13.07,14.38,13.07,14.38]],"603906":[["09-01",19.38,19.6,19.02,19.03],["09-02",18.9,18.9,18.37,18.62],["09-03",18.77,20.2,18.72,19.54],["09-04",19.69,19.69,18.61,18.7],["09-07",18.65,18.9,18.38,18.59],["09-08",18.6,18.71,18.28,18.41],["09-09",18.38,18.65,18.25,18.46],["09-10",18.38,18.4,18.04,18.06],["09-11",17.9,17.9,17.23,17.53],["09-14",17.5,18.06,17.42,17.84],["09-15",17.77,18.3,17.74,18.02],["09-16",17.91,18.59,17.72,18.36],["09-17",18.26,18.44,18.11,18.19],["09-18",18.37,18.43,18.2,18.29],["09-21",18.29,18.39,18.13,18.23],["09-22",18.3,18.4,18.12,18.18],["09-23",18.17,18.18,17.85,18.02],["09-24",18.02,18.05,17.62,17.62],["09-28",17.65,17.8,16.73,16.85],["09-29",16.85,17.98,16.85,17.31],["09-30",17.52,19.04,17.15,19.04],["10-08",19.04,20.94,19.04,20.94]],"603200":[["09-01",42.08,44.0,41.74,42.82],["09-02",42.01,42.5,40.73,41.62],["09-03",42.41,44.25,41.68,43.48],["09-04",43.3,43.47,40.7,41.1],["09-07",40.79,41.0,40.09,40.3],["09-08",40.0,41.2,39.07,40.89],["09-09",40.25,40.62,39.5,40.35],["09-10",39.7,39.98,38.29,38.3],["09-11",37.24,37.7,34.52,35.14],["09-14",34.64,36.7,34.13,36.19],["09-15",37.98,39.81,37.5,39.81],["09-16",41.16,41.99,39.2,40.52],["09-17",40.26,40.4,39.01,39.9],["09-18",39.98,40.82,39.76,40.13],["09-21",39.57,40.72,39.57,39.88],["09-22",39.93,40.59,39.31,39.42],["09-23",39.18,39.9,38.8,39.58],["09-24",39.45,39.5,38.27,38.32],["09-28",38.1,38.44,36.54,36.97],["09-29",39.14,40.67,38.97,40.67],["09-30",41.48,44.74,41.48,44.74],["10-08",44.74,48.91,44.74,48.91]],"000011":[["09-01",9.29,9.66,9.06,9.16],["09-02",8.81,9.12,8.39,8.69],["09-03",8.77,8.78,8.25,8.35],["09-04",8.33,8.76,8.26,8.5],["09-07",8.46,8.66,8.33,8.63],["09-08",8.74,9.49,8.73,9.49],["09-09",9.44,9.6,9.11,9.18],["09-10",9.19,9.27,9.08,9.11],["09-11",9.06,9.23,8.77,8.82],["09-14",8.88,8.94,8.58,8.58],["09-15",8.77,8.79,8.26,8.27],["09-16",8.37,8.53,8.19,8.39],["09-17",8.4,9.03,8.28,8.93],["09-18",8.89,9.17,8.83,9.14],["09-21",9.08,9.8,9.08,9.66],["09-22",9.68,9.69,9.41,9.62],["09-23",9.59,9.92,9.52,9.59],["09-24",9.52,9.56,9.09,9.2],["09-28",9.4,10.12,9.28,10.12],["09-29",11.13,11.13,10.67,11.13],["09-30",10.1,12.24,10.02,12.24],["10-08",12.24,12.83,12.24,12.83]],"600825":[["09-01",5.16,5.32,5.14,5.3],["09-02",5.25,5.3,5.19,5.25],["09-03",5.44,5.53,5.18,5.18],["09-04",5.25,5.42,5.18,5.31],["09-21",5.84,5.84,5.84,5.84],["09-22",6.42,6.42,6.42,6.42],["09-23",7.06,7.06,7.06,7.06],["09-24",7.77,7.77,7.77,7.77],["09-28",8.55,8.55,8.55,8.55],["09-29",9.41,9.41,9.41,9.41],["09-30",10.35,10.35,10.35,10.35],["10-08",10.35,11.39,10.35,11.39]],"601579":[["09-01",19.35,20.99,19.3,20.7],["09-02",20.9,22.26,20.8,20.9],["09-03",20.92,22.6,20.69,21.88],["09-04",22.5,24.07,22.5,24.07],["09-07",24.49,25.68,23.2,23.7],["09-08",23.99,24.66,22.6,23.0],["09-09",23.47,25.3,23.01,25.3],["09-10",26.26,26.98,24.08,24.24],["09-11",24.2,24.51,23.4,23.6],["09-14",23.81,23.97,23.0,23.41],["09-15",23.88,25.75,23.68,25.75],["09-16",25.91,28.33,25.17,28.33],["09-17",28.36,30.74,27.67,29.85],["09-18",30.11,32.84,30.11,32.84],["09-21",33.5,36.12,32.26,36.12],["09-22",36.51,39.33,36.1,37.46],["09-23",37.83,41.21,35.56,36.75],["09-24",37.64,39.5,37.3,38.04],["09-28",40.46,41.84,40.19,41.84],["09-29",41.43,41.43,37.66,37.66],["09-30",37.66,40.2,37.3,37.3],["10-08",37.3,40.05,37.3,40.05]],"601811":[["09-01",11.1,11.49,11.07,11.39],["09-02",11.38,11.51,11.21,11.43],["09-03",11.51,11.67,11.36,11.51],["09-04",11.47,11.7,11.43,11.49],["09-07",11.49,11.83,11.43,11.8],["09-08",11.8,12.18,11.78,12.0],["09-09",11.76,11.82,11.58,11.63],["09-10",11.72,11.74,11.56,11.69],["09-11",11.63,11.91,11.48,11.69],["09-14",11.62,12.17,11.61,12.03],["09-15",12.08,12.14,11.73,11.79],["09-16",11.71,12.1,11.55,12.05],["09-17",12.3,12.98,12.08,12.64],["09-18",12.38,13.9,12.37,13.9],["09-21",14.5,15.29,14.36,15.29],["09-22",16.82,16.82,16.82,16.82],["09-23",18.46,18.5,18.01,18.5],["09-24",20.35,20.35,19.93,20.35],["09-28",22.0,22.39,18.33,18.52],["09-29",18.7,20.37,18.7,20.37],["09-30",20.0,22.3,19.58,21.12],["10-08",21.12,21.12,19.01,19.01]],"605058":[["09-01",28.25,28.39,27.53,27.69],["09-02",27.41,27.78,27.19,27.61],["09-03",27.88,28.16,27.37,27.93],["09-04",28.01,28.5,27.3,27.47],["09-07",27.53,28.65,27.53,28.54],["09-08",28.39,29.2,28.39,28.73],["09-09",28.85,30.1,28.77,29.64],["09-10",29.5,30.39,29.03,30.28],["09-11",30.0,33.31,29.8,33.31],["09-14",32.68,36.64,31.82,36.64],["09-15",36.3,40.3,36.3,40.3],["09-16",40.5,44.33,40.16,44.33],["09-17",47.0,48.76,45.0,48.76],["09-18",49.0,50.62,46.68,47.4],["09-21",48.0,49.99,45.0,48.43],["09-22",48.5,53.27,47.7,53.27],["09-23",52.63,58.6,52.47,58.6],["09-24",58.0,60.45,56.7,60.2],["09-28",60.25,60.25,54.18,54.18],["09-29",51.01,59.6,51.01,59.6],["09-30",59.6,60.0,53.64,53.64],["10-08",53.64,53.64,48.28,48.28]],"001216":[["09-01",14.86,14.95,14.79,14.84],["09-02",14.82,15.05,14.66,15.0],["09-03",15.04,15.23,14.78,14.85],["09-04",14.83,15.38,14.83,14.97],["09-07",14.97,15.19,14.83,15.06],["09-08",15.08,15.29,15.0,15.14],["09-09",15.08,15.18,14.81,14.84],["09-10",14.81,14.81,14.55,14.59],["09-11",14.51,14.6,14.25,14.56],["09-14",14.56,15.08,14.36,14.94],["09-15",15.23,16.43,15.23,16.43],["09-16",18.07,18.07,18.07,18.07],["09-17",19.49,19.88,19.1,19.88],["09-18",20.98,21.87,20.96,21.87],["09-21",24.06,24.06,24.06,24.06],["09-22",26.47,26.47,26.47,26.47],["09-23",27.66,29.12,27.66,28.31],["09-24",28.05,29.5,27.8,28.4],["09-28",28.4,28.46,25.84,28.04],["09-29",26.0,29.18,25.24,29.09],["09-30",28.8,28.99,26.18,26.18],["10-08",26.18,26.18,23.56,23.56]]};
+const EVENTS = [
+  {d:"09-29", t:"9/29 七部门电池规划 · 贴息政策公布"},
+  {d:"09-30", t:"9/30 贴息落地 · PCB/固态电池涨停潮"},
+  {d:"10-08", t:"10/8 固态电池大涨 · 光芯片跌停 · 银行新高"},
+];
+/* ===================== 数据注入区结束 ===================== */
+
+const pctCls = v => v > 0 ? "up" : (v < 0 ? "down" : "");
+const pctTxt = (v, suf) => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + (suf || "%");
+const THEME_COLORS = {"固态电池":"#e3b341","房地产":"#ff9f43","出版":"#6ea8fe","非白酒":"#c792ea","元件":"#4dd0e1","家居用品":"#9ccc65"};
+
+/* ---------- 统一交易日轴 ---------- */
+const dateSet = new Set();
+Object.values(KLINES).forEach(bars => bars.forEach(b => dateSet.add(b[0])));
+const DATES = [...dateSet].sort();
+
+/* ---------- 题材等权累计涨幅 ---------- */
+function themeSeries(theme) {
+  const members = STOCKS.filter(s => s.theme === theme);
+  let cum = 0, prevClose = {};
+  const out = DATES.map(d => {
+    let chgs = [];
+    members.forEach(m => {
+      const bar = (KLINES[m.code] || []).find(b => b[0] === d);
+      if (bar) {
+        const pc = prevClose[m.code];
+        if (pc) chgs.push(bar[4] / pc - 1);
+        prevClose[m.code] = bar[4];
+      }
+    });
+    if (chgs.length) cum += chgs.reduce((a, b) => a + b, 0) / chgs.length;
+    return chgs.length || Object.keys(prevClose).length ? +(cum * 100).toFixed(1) : null;
+  });
+  return out;
+}
+
+/* ---------- 三栏渲染 ---------- */
+const themeListEl = document.getElementById("themeList");
+THEMES.forEach(th => {
+  const cnt = STOCKS.filter(s => s.theme === th.name).length;
+  const el = document.createElement("div");
+  el.className = "theme-item"; el.dataset.theme = th.name;
+  el.innerHTML = `<div class="t"><span style="color:${THEME_COLORS[th.name]}">◆</span> ${th.name} <span style="color:var(--sub);font-size:11px">×${cnt}</span>${th.news.map(n => `<span class="news-ref">${n}</span>`).join("")}</div><div class="n">${th.desc}</div>`;
+  el.onclick = () => select({theme: th.name});
+  themeListEl.appendChild(el);
+});
+const tbody = document.querySelector("#stockTable tbody");
+STOCKS.forEach(s => {
+  const tr = document.createElement("tr");
+  tr.className = "stock-row"; tr.dataset.code = s.code; tr.dataset.theme = s.theme;
+  tr.innerHTML = `
+    <td><span class="pool-tag ${s.pool === "lb" ? "pool-lb" : "pool-m9"}">${s.pool === "lb" ? "连板" : "九月"}</span><b>${s.name}</b><br><span style="color:var(--sub);font-size:10px">${s.code}</span></td>
+    <td><span style="color:${THEME_COLORS[s.theme]}">◆</span>${s.theme}${s.pool === "lb" ? "*" : ""}</td>
+    <td>${s.lb || "—"}</td>
+    <td class="${pctCls(s.jj)}">${pctTxt(s.jj)}</td>
+    <td>${s.hs == null ? "—" : s.hs.toFixed(2) + "%"}</td>
+    <td class="${pctCls(s.pct)}">${pctTxt(s.pct)}${Math.abs(s.pct) >= 9.9 ? (s.pct > 0 ? " 涨停" : " 跌停") : ""}</td>
+    <td class="${s.sep == null ? "" : "up"}">${s.sep == null ? "—" : "+" + s.sep.toFixed(2) + "%"}</td>
+    <td>${s.news.map(n => `<span class="news-ref">${n}</span>`).join(" ") || "—"}</td>`;
+  tr.onclick = () => select({code: s.code});
+  tbody.appendChild(tr);
+});
+const newsListEl = document.getElementById("newsList");
+NEWS.forEach(n => {
+  const el = document.createElement("div");
+  el.className = "news-item"; el.dataset.id = n.id;
+  el.innerHTML = `<div class="t"><span class="id">${n.id}</span>${n.t}</div>
+    <div class="m"><span>${n.time}</span>${n.bull ? `<span class="bull">利好：${n.bull}</span>` : ""}${n.bear ? `<span class="bear">利空：${n.bear}</span>` : ""}<a href="${n.link[1]}" target="_blank" onclick="event.stopPropagation()">${n.link[0]}原文 ↗</a></div>`;
+  el.onclick = () => select({news: n.id});
+  newsListEl.appendChild(el);
+});
+
+/* ---------- 图1：题材分区联动图（layout:none 网格分簇） ---------- */
+const graph = echarts.init(document.getElementById("chartGraph"));
+const gNodes = [], gLinks = [];
+const centers = [[210,120],[640,120],[1070,120],[210,360],[640,360],[1070,360]];
+THEMES.forEach((th, i) => {
+  const [cx, cy] = centers[i];
+  gNodes.push({id: "T:" + th.name, name: th.name, x: cx, y: cy, symbol: "diamond", symbolSize: 46,
+    itemStyle: {color: THEME_COLORS[th.name]},
+    label: {color: THEME_COLORS[th.name], fontWeight: "bold", fontSize: 13, position: "top", distance: 8, textBorderColor: "#0d1117", textBorderWidth: 3}});
+  const stocks = STOCKS.filter(s => s.theme === th.name);
+  stocks.forEach((s, k) => {
+    const ang = -Math.PI / 2 + (k - (stocks.length - 1) / 2) * (Math.PI / 3.2);
+    const sx = cx + Math.cos(ang) * 95, sy = cy + Math.sin(ang) * 95 + 18;
+    gNodes.push({id: "S:" + s.code, name: s.name, x: sx, y: sy, symbolSize: 20 + Math.min(Math.abs(s.pct), 10) * 2.4,
+      itemStyle: {color: s.pct > 0 ? "#ff5d5d" : "#3fb950", borderColor: s.pool === "lb" ? "#ff9f43" : "#6ea8fe", borderWidth: 2},
+      label: {color: "#d7dde5", fontSize: 11, textBorderColor: "#0d1117", textBorderWidth: 3}, value: s.pct});
+    gLinks.push({source: "T:" + th.name, target: "S:" + s.code, lineStyle: {color: THEME_COLORS[th.name], width: 1.4, opacity: .5}});
+  });
+});
+graph.setOption({
+  backgroundColor: "transparent",
+  tooltip: {formatter: p => p.dataType === "node" && p.data.value != null ? `${p.name}　今日 ${pctTxt(p.data.value)}` : (p.dataType === "node" ? p.name : "")},
+  series: [{type: "graph", layout: "none", roam: true, draggable: true, z: 3,
+    data: gNodes, links: gLinks,
+    label: {show: true, position: "bottom", distance: 4},
+    emphasis: {focus: "adjacency", lineStyle: {width: 3}}}]
+});
+graph.on("click", p => {
+  if (p.dataType !== "node") return;
+  if (p.data.id.startsWith("T:")) select({theme: p.data.id.slice(2)});
+  else select({code: p.data.id.slice(2)});
+});
+
+/* ---------- 图2：题材时序 × 事件 ---------- */
+const themeChart = echarts.init(document.getElementById("chartTheme"));
+const evMarkAreas = EVENTS.map(ev => [{xAxis: ev.d, itemStyle: {color: "rgba(227,179,65,.07)"}, label: {show: true, position: "insideTop", color: "#e3b341", fontSize: 10, formatter: ev.t}}, {xAxis: ev.d}]);
+themeChart.setOption({
+  backgroundColor: "transparent",
+  tooltip: {trigger: "axis", valueFormatter: v => v + "%"},
+  legend: {textStyle: {color: "#8b95a1"}, top: 0, itemWidth: 14},
+  grid: {left: 50, right: 20, top: 34, bottom: 46},
+  xAxis: {type: "category", data: DATES, axisLine: {lineStyle: {color: "#3a4450"}}, axisLabel: {color: "#8b95a1", interval: 2}},
+  yAxis: {type: "value", axisLine: {show: false}, splitLine: {lineStyle: {color: "#1c232c"}}, axisLabel: {color: "#8b95a1", formatter: "{value}%"}},
+  series: THEMES.map(th => ({
+    name: th.name, type: "line", data: themeSeries(th.name), smooth: true, symbol: "circle", symbolSize: 5,
+    lineStyle: {width: 2, color: THEME_COLORS[th.name]}, itemStyle: {color: THEME_COLORS[th.name]},
+    markArea: th.name === "固态电池" ? {silent: true, data: evMarkAreas} : undefined
+  }))
+});
+
+/* ---------- 图3：个股K线 + 启动节点 + 题材线 ---------- */
+const klineChart = echarts.init(document.getElementById("chartKline"));
+function renderKline(code) {
+  const s = STOCKS.find(v => v.code === code);
+  document.getElementById("klineName").textContent = s.name;
+  document.getElementById("klineSub").textContent = s.sub;
+  const bars = KLINES[code] || [];
+  const barMap = {}; bars.forEach(b => barMap[b[0]] = b);
+  const kdata = DATES.map(d => barMap[d] ? [barMap[d][1], barMap[d][4], barMap[d][3], barMap[d][2]] : "-");
+  const themeLine = themeSeries(s.theme);
+  const markPts = s.marks.map(m => {
+    const b = barMap[m.d];
+    if (!b) return null;
+    const color = m.side === "up" ? "#ff5d5d" : (m.side === "down" ? "#3fb950" : "#e3b341");
+    return {coord: [m.d, b[2]], value: m.t, symbol: "pin", symbolSize: 46,
+      itemStyle: {color: color}, label: {color: "#0d1117", fontSize: 9, formatter: p => p.value.slice(0, 8)}};
+  }).filter(Boolean);
+  klineChart.setOption({
+    backgroundColor: "transparent",
+    tooltip: {trigger: "axis", axisPointer: {type: "cross"}},
+    legend: {data: ["日K", s.theme + "等权累计"], textStyle: {color: "#8b95a1"}, top: 0},
+    grid: {left: 56, right: 56, top: 30, bottom: 42},
+    xAxis: {type: "category", data: DATES, axisLine: {lineStyle: {color: "#3a4450"}}, axisLabel: {color: "#8b95a1", interval: 2}},
+    yAxis: [
+      {scale: true, axisLine: {show: false}, splitLine: {lineStyle: {color: "#1c232c"}}, axisLabel: {color: "#8b95a1"}},
+      {scale: true, axisLine: {show: false}, splitLine: {show: false}, axisLabel: {color: "#8b95a1", formatter: "{value}%"}}
+    ],
+    series: [
+      {name: "日K", type: "candlestick", data: kdata,
+        itemStyle: {color: "#ff5d5d", color0: "#3fb950", borderColor: "#ff5d5d", borderColor0: "#3fb950"},
+        markPoint: {data: markPts, animation: false},
+        markArea: {silent: true, data: evMarkAreas}},
+      {name: s.theme + "等权累计", type: "line", yAxisIndex: 1, data: themeLine, smooth: true, symbol: "none",
+        lineStyle: {width: 1.6, type: "dashed", color: THEME_COLORS[s.theme]}, itemStyle: {color: THEME_COLORS[s.theme]}}
+    ]
+  }, true);
+}
+renderKline("603928");
+
+/* ---------- 联动选择 ---------- */
+let sel = {};
+function select(x) {
+  sel = {};
+  if (x.theme != null) sel = {type: "theme", theme: x.theme};
+  else if (x.code != null) { const s = STOCKS.find(v => v.code === x.code); sel = {type: "stock", code: x.code, theme: s.theme, news: s.news}; renderKline(x.code); }
+  else if (x.news != null) {
+    const stocks = STOCKS.filter(s => s.news.includes(x.news));
+    sel = {type: "news", news: x.news, themes: [...new Set(stocks.map(s => s.theme))]};
+  }
+  render();
+}
+function render() {
+  const t = sel.type;
+  document.querySelectorAll(".theme-item").forEach(el => {
+    const active = (t === "theme" && el.dataset.theme === sel.theme) || (t === "stock" && el.dataset.theme === sel.theme) || (t === "news" && sel.themes.includes(el.dataset.theme));
+    el.classList.toggle("active", active);
+  });
+  document.querySelectorAll("tr.stock-row").forEach(tr => {
+    const s = STOCKS.find(v => v.code === tr.dataset.code);
+    let hit = true;
+    if (t === "theme") hit = s.theme === sel.theme;
+    if (t === "stock") hit = s.code === sel.code;
+    if (t === "news") hit = s.news.includes(sel.news);
+    tr.classList.toggle("active", t && hit);
+    tr.classList.toggle("dim", !!t && !hit);
+  });
+  document.querySelectorAll(".news-item").forEach(el => {
+    let hit = true;
+    if (t === "theme") hit = THEMES.find(th => th.name === sel.theme)?.news.includes(el.dataset.id);
+    if (t === "stock") hit = sel.news.includes(el.dataset.id);
+    if (t === "news") hit = el.dataset.id === sel.news;
+    el.classList.toggle("active", t && hit);
+    el.classList.toggle("dim", !!t && !hit);
+  });
+  /* 时序图高亮：选中题材加粗，其他淡化 */
+  themeChart.setOption({series: THEMES.map(th => ({
+    name: th.name,
+    lineStyle: {width: (!t || sel.theme === th.name || (t === "news" && sel.themes.includes(th.name))) ? 2.6 : 1, opacity: (!t || sel.theme === th.name || (t === "news" && sel.themes.includes(th.name))) ? 1 : .25},
+    itemStyle: {opacity: (!t || sel.theme === th.name) ? 1 : .25}
+  }))});
+}
+document.getElementById("btnClear").onclick = () => { sel = {}; render(); };
+window.addEventListener("resize", () => { graph.resize(); themeChart.resize(); klineChart.resize(); });
+</script>
+</body>
+</html>
