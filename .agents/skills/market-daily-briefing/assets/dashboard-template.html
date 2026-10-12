@@ -60,6 +60,7 @@
   .st-hot { color:var(--red); background:var(--red-bg); }
   .st-mid { color:var(--accent); background:rgba(232,182,76,.12); }
   .st-cool { color:var(--green); background:var(--green-bg); }
+  .st-risk { color:#ff6b6b; background:rgba(255,107,107,.12); border:1px solid rgba(255,107,107,.35); }
 
 
   .tb-body { display:grid; grid-template-columns:400px 1fr; border-top:1px solid var(--border); }
@@ -77,6 +78,7 @@
   .pool { font-size:9.5px; border-radius:4px; padding:0 4px; margin-right:5px; vertical-align:1px; }
   .pool-lb { color:#ff9f43; border:1px solid rgba(255,159,67,.45); }
   .pool-m9 { color:#7aa2f7; border:1px solid rgba(122,162,247,.45); }
+  .risk-chip { display:inline-block; font-size:9.5px; font-weight:600; color:#ff6b6b; border:1px solid rgba(255,107,107,.45); background:rgba(255,107,107,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
   .s-pct { font-size:13px; font-weight:700; text-align:right; min-width:120px; }
   .s-pct .lbinfo { display:block; font-size:10px; font-weight:400; color:var(--faint); }
   .s-sep { font-size:10.5px; color:var(--faint); }
@@ -92,6 +94,7 @@
   .msg .m a:hover { text-decoration:underline; }
   .msg .tagchip { color:var(--accent); border:1px solid rgba(232,182,76,.35); border-radius:4px; padding:0 5px; font-size:10px; }
   .msg .tagchip.bear { color:var(--green); border-color:rgba(46,189,133,.35); }
+  .msg .tagchip.risk { color:#ff6b6b; border-color:rgba(255,107,107,.45); }
   .msg-empty { font-size:12px; color:var(--faint); padding:10px; }
 
 
@@ -138,6 +141,7 @@
       <span class="badge">题材 <b>4 组</b></span>
       <span class="badge">方向一·连板 <b>4 只</b> ｜ 方向二·月度 <b>0 只</b></span>
       <span class="badge">消息 <b>8+7 条</b></span>
+      <span class="badge">抢跑警示 <b>1 组</b></span>
     </div>
   </div>
 
@@ -146,13 +150,15 @@
     <div class="stat"><div class="k">方向二·月度强势（本月前十且&gt;20%）</div><div class="v num">0 只<small>10 月窗口仅 10/08 一个交易日、主板单日上限 10%，如实留空</small></div></div>
     <div class="stat"><div class="k">双池交叉（情绪 ∩ 趋势）</div><div class="v num">0 只<small>资金弃高就低</small></div></div>
     <div class="stat"><div class="k">首发确认</div><div class="v" style="font-size:15px">固态电池 9/29 · 房地产 9/29<small>均为窗口内最早报道</small></div></div>
+    <div class="stat"><div class="k">先涨停后消息（抢跑警示）</div><div class="v" style="color:#ff6b6b;font-size:15px">房地产 · 深物业A<small>首板 9/28 早于贴息首发 9/29 18:07 · 兑现风险高，谨慎追高</small></div></div>
   </div>
 
   <div id="blocks"></div>
 
   <footer>
     <b>口径</b>：股池=东财选股器条件直连接口（方向一：连板=2 且换手&gt;5% 且竞价&gt;-5%，或 2 板断板且涨幅&gt;0；方向二：本月涨幅前十且&gt;20%——本月 total=0 如实留空，不以历史区间数据替代；均剔 ST/退市/北交所/创/科板）。<br>
-    <b>首发口径</b>：★首发=本次要闻窗口（9/29 起）内可核实的最早报道并附原文地址；窗口外启动的题材（元件 9/11、非白酒 9/16、家居 9/15、出版为个股重组事件）以行情节点呈现并标注“首发溯源待补”。行业信息来自东方财富 F10「核心题材」接口（个股行显示三级行业；主营要点仅用于题材归组与梯队悬停依据，不在正文展开）；深物业A 连板数以 K 线核实为准。消息时间为原文地址页/接口的真实发布时间（财联社精确到秒，东财/新浪文章页精确到分；六大行 15:31 为采集时列表时刻）。盘中快照，仅供参考，不构成投资建议。
+    <b>首发口径</b>：★首发=本次要闻窗口（9/29 起）内可核实的最早报道并附原文地址；窗口外启动的题材（元件 9/11、非白酒 9/16、家居 9/15、出版为个股重组事件）以行情节点呈现并标注“首发溯源待补”。行业信息来自东方财富 F10「核心题材」接口（个股行显示三级行业；主营要点仅用于题材归组与梯队悬停依据，不在正文展开）；深物业A 连板数以 K 线核实为准。消息时间为原文地址页/接口的真实发布时间（财联社精确到秒，东财/新浪文章页精确到分；六大行 15:31 为采集时列表时刻）。盘中快照，仅供参考，不构成投资建议。<br>
+    <b>抢跑警示</b>：题材★首发消息晚于标的首板涨停日的（如房地产：深物业A 9/28 首板 → 贴息政策 9/29 18:07 首发）标 ⚠，疑似消息提前泄露/知情资金抢跑，利好兑现风险高，谨慎追高；判定必须附"首板日 vs 首发时间戳"证据对（悬停查看）。
   </footer>
 </div>
 
@@ -166,6 +172,7 @@ const STOCKS = [
   {code:"603200", name:"上海洗霸", pool:"lb", theme:"固态电池", lb:"断板回封", jj:-0.56, hs:16.75, pct:9.32, sep:null, news:["D"],
    sub:"603200 · 连板情绪 · 固态电池链*"},
   {code:"000011", name:"深物业A", pool:"lb", theme:"房地产", lb:"断板开板", jj:-0.41, hs:17.92, pct:4.82, sep:null, news:["F"],
+   risk:true, riskNote:"9/28 首板早于贴息政策首发（9/29 18:07 财联社），提前 1 个交易日",
    sub:"000011 · 连板情绪 · 房地产（深圳）*"}
 ];
 const THEMES = [
@@ -198,10 +205,10 @@ const TIMELINE = [
      {d:"09-30", kind:"kline", tag:"扩散", t:"兴业股份/龙蟠科技首板，洗霸 +7.9%"},
      {d:"10-08", kind:"news", tag:"发酵", ts:"2026-10-08 11:55", t:"固态电池集体拉升·融资客抢筹", src:"东方财富", url:"https://finance.eastmoney.com/a/202610083889426010.html"},
      {d:"10-08", kind:"kline", tag:"2连板", t:"兴业/龙蟠二连板，洗霸断板回封 +9.3%"}]},
-  {theme:"房地产", status:"高位分歧", st:"mid", span:"9/28 预期 → 10/8 · 7 个交易日",
+  {theme:"房地产", status:"高位分歧", st:"mid", span:"9/28 预期 → 10/8 · 7 个交易日", risk:"消息滞后·资金抢跑", riskNote:"深物业A 9/28 首板早于贴息政策首发（9/29 18:07，财联社）约 1 个交易日",
    nodes:[
-     {d:"09-28", kind:"kline", tag:"首板", t:"深物业A 首板涨停（政策预期抢跑）"},
-     {d:"09-29", kind:"news", first:true, tag:"★首发", ts:"2026-09-29 18:07:38", t:"三部门就居民购房贷款贴息政策答记者问（10/1 实施）", src:"财联社", url:"https://www.cls.cn/detail/2495366"},
+     {d:"09-28", kind:"kline", tag:"首板", risk:true, t:"深物业A 首板涨停（政策预期抢跑）"},
+     {d:"09-29", kind:"news", first:true, tag:"★首发", risk:true, ts:"2026-09-29 18:07:38", t:"三部门就居民购房贷款贴息政策答记者问（10/1 实施）", src:"财联社", url:"https://www.cls.cn/detail/2495366"},
      {d:"09-30", kind:"news", tag:"落地", ts:"2026-09-30 15:31", t:"六大行公告“免申即享”落实贴息", src:"新浪财经", url:"https://finance.sina.com.cn/bank/2026-09-30/doc-initqvcf5809085.shtml"},
      {d:"09-30", kind:"kline", tag:"三连板", t:"深物业A 9/28–9/30 三连板（K线核实）"},
      {d:"10-08", kind:"kline", tag:"开板", t:"深物业A 冲高开板 +4.8%，高位分歧"}]},
@@ -246,11 +253,11 @@ const LADDER = {grabbedAt: "2026-10-08 15:22", rows: [
   {code:"600663", name:"陆家嘴",   lb:2, theme:"房地产",   inPool:true,  via:"连板池·商业地产"},
 ]};
 /* ==== 数据注入区（技能运行时替换本区，共 9 块） ====
-   STOCKS   股池标的                           ← 第3步 fetch_pool_api + 分析
+   STOCKS   股池标的（risk=抢跑警示）          ← 第3步 fetch_pool_api + 分析
    THEMES   题材聚类                           ← 第4步分析
    NEWS     要闻（含原文地址）                 ← 第1/2步采集
    EVENTS   跨题材关键事件日                   ← 第4步分析
-   TIMELINE 题材发酵链（★首发原文+时间戳）     ← 第4步分析
+   TIMELINE 题材发酵链（★首发+时间戳；risk=抢跑警示，判定见 mapping-rules 第7节） ← 第4步分析
    CONCEPTS F10 概念（行业/主营/风格）         ← 第3.7步 fetch_concepts
    MACRO    宏观·市场消息时间线                ← 第4步分析
    LADDER   全市场连板≥2天梯快照+归组          ← 第3步另查 + F10 归组
@@ -303,7 +310,7 @@ TL.forEach((tl, bi) => {
     const zt = Math.abs(s.pct) >= 9.9 ? (s.pct > 0 ? " 涨停" : " 跌停") : "";
     return `<div class="s-row" data-code="${s.code}">
       <div class="s-id">
-        <div class="nm"><span class="pool ${s.pool === "lb" ? "pool-lb" : "pool-m9"}">${s.pool === "lb" ? "连板" : "九月"}</span><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}${s.pool === "lb" ? "*" : ""} ↗</a></div>
+        <div class="nm"><span class="pool ${s.pool === "lb" ? "pool-lb" : "pool-m9"}">${s.pool === "lb" ? "连板" : "九月"}</span><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}${s.pool === "lb" ? "*" : ""} ↗</a>${s.risk ? `<span class="risk-chip" title="${s.riskNote || "首板涨停早于题材首发消息，疑似资金抢跑"}">⚠ 抢跑</span>` : ""}</div>
         <div class="cd num">${s.code} · ${(CONCEPTS[s.code] || {}).industry || ""}</div>
       </div>
       <div class="s-pct num ${pctCls(s.pct)}">${pctTxt(s.pct)}${zt}<span class="lbinfo">${s.pool === "lb" ? "竞价 " + pctTxt(s.jj) + " · 换手 " + s.hs.toFixed(1) + "%" : "换手 " + s.hs.toFixed(1) + "%"}</span></div>
@@ -317,7 +324,7 @@ TL.forEach((tl, bi) => {
       <div class="d num">${(() => { const ts = nd.ts || ("2026-" + nd.d); const pp = ts.split(" "); return `<b>${pp[0]}</b><span>${pp.slice(1).join(" ") || "当日"}</span>`; })()}</div>
       <div class="body">
         <div class="t">${nd.t}</div>
-        <div class="m">${nd.tag ? `<span class="tagchip ${nd.tag === "利空" ? "bear" : ""}">${nd.tag}</span>` : ""}${nd.src ? `<span>${nd.src}</span>` : ""}${nd.url ? `<a href="${nd.url}" target="_blank">原文 ↗</a>` : ""}</div>
+        <div class="m">${nd.risk ? `<span class="tagchip risk" title="${nd.riskNote || "首发消息晚于该题材首板涨停"}">消息晚于首板</span>` : ""}${nd.tag ? `<span class="tagchip ${nd.tag === "利空" ? "bear" : ""}">${nd.tag}</span>` : ""}${nd.src ? `<span>${nd.src}</span>` : ""}${nd.url ? `<a href="${nd.url}" target="_blank">原文 ↗</a>` : ""}</div>
       </div>
     </div>`).join("") || `<div class="msg-empty">窗口内无直接催化报道（题材轮动/资金驱动）</div>`;
 
@@ -327,6 +334,7 @@ TL.forEach((tl, bi) => {
       <span class="tb-name">${tl.theme}</span>
       <span class="tb-span num">${tl.span}</span>
       <span class="st st-${tl.st}">${tl.status}</span>
+      ${tl.risk ? `<span class="st st-risk" title="${tl.riskNote || ""}">⚠ ${tl.risk}</span>` : ""}
     </div>
     ${isMacro ? `
     <div class="tb-ladder" style="border-top:none;padding-top:2px"><div class="h">未归入题材组的连板梯队<span>快照 ${LADDER.grabbedAt}</span></div>${ladderHtml("_other")}</div>
