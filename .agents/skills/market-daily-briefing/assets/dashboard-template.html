@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A股题材发酵看板 · 2026-10-08</title>
+<title>A股题材发酵看板 · 2026-10-14</title>
 <style>
   :root {
-    --bg:#0a0d13; --surface:#10141c; --surface2:#151a24; --surface3:#1a2030;
-    --border:#1d2430; --border2:#263042;
-    --txt:#e2e8f0; --sub:#8a94a6; --faint:#5c6675;
-    --accent:#e8b64c; --red:#f6465d; --red-bg:rgba(246,70,93,.12);
-    --green:#2ebd85; --green-bg:rgba(46,189,133,.12);
+    --bg:#f4f6fa; --surface:#ffffff; --surface2:#eff3f8; --surface3:#e6ebf3;
+    --border:#e2e8f0; --border2:#cfd8e5;
+    --txt:#1c2740; --sub:#5c6675; --faint:#98a2b3;
+    --accent:#b8860b; --red:#d63450; --red-bg:rgba(214,52,80,.09);
+    --green:#0e9668; --green-bg:rgba(14,150,104,.09);
     --radius:14px;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);
+    --shadow:0 1px 2px rgba(20,30,60,.05), 0 8px 24px rgba(20,30,60,.07);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; scroll-padding-top:64px; }
@@ -20,7 +20,7 @@
   .num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
   .up { color:var(--red); } .down { color:var(--green); }
 
-  nav { position:sticky; top:0; z-index:100; background:rgba(10,13,19,.88); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+  nav { position:sticky; top:0; z-index:100; background:rgba(255,255,255,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
   .nav-inner { max-width:1440px; margin:0 auto; display:flex; align-items:center; gap:16px; padding:0 32px; height:52px; }
   .nav-logo { font-size:15px; font-weight:700; white-space:nowrap; }
   .nav-logo em { color:var(--accent); font-style:normal; }
@@ -60,7 +60,7 @@
   .st-hot { color:var(--red); background:var(--red-bg); }
   .st-mid { color:var(--accent); background:rgba(232,182,76,.12); }
   .st-cool { color:var(--green); background:var(--green-bg); }
-  .st-risk { color:#ff6b6b; background:rgba(255,107,107,.12); border:1px solid rgba(255,107,107,.35); }
+  .st-risk { color:#d63450; background:rgba(214,52,80,.08); border:1px solid rgba(214,52,80,.35); }
 
 
   .tb-body { display:grid; grid-template-columns:400px 1fr; border-top:1px solid var(--border); }
@@ -73,12 +73,45 @@
   .s-row.active { background:var(--surface3); outline:1px solid var(--tc); }
   .s-id .nm { font-weight:600; font-size:13.5px; white-space:nowrap; }
   .s-id .nm a, .lad-cell a { color:inherit; text-decoration:none; }
-  .s-id .nm a:hover, .lad-cell a:hover { color:#7aa2f7; text-decoration:underline; }
+  .s-id .nm a:hover, .lad-cell a:hover { color:#3b66d4; text-decoration:underline; }
   .s-id .cd { font-size:10.5px; color:var(--faint); }
   .pool { font-size:9.5px; border-radius:4px; padding:0 4px; margin-right:5px; vertical-align:1px; }
   .pool-lb { color:#ff9f43; border:1px solid rgba(255,159,67,.45); }
   .pool-m9 { color:#7aa2f7; border:1px solid rgba(122,162,247,.45); }
-  .risk-chip { display:inline-block; font-size:9.5px; font-weight:600; color:#ff6b6b; border:1px solid rgba(255,107,107,.45); background:rgba(255,107,107,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .risk-chip { display:inline-block; font-size:9.5px; font-weight:600; color:#d63450; border:1px solid rgba(214,52,80,.4); background:rgba(214,52,80,.06); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .pool-mo { color:#7aa2f7; border:1px solid rgba(122,162,247,.45); }
+  .pool-out { color:var(--sub); border:1px dashed var(--border2); cursor:help; }
+  .pool-d10 { color:#ff9f43; border:1px solid rgba(255,159,67,.45); }
+  .top-chip { display:inline-block; font-size:9.5px; font-weight:700; color:var(--accent); border:1px solid rgba(184,134,11,.45); background:rgba(184,134,11,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .rk-chip { display:inline-block; font-style:normal; font-size:9.5px; font-weight:700; border:1px solid; border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .jjv { font-weight:700; text-decoration:underline dotted rgba(184,134,11,.6); text-underline-offset:3px; }
+  .jj-tag { font-style:normal; font-size:9px; color:var(--accent); border:1px solid rgba(184,134,11,.4); border-radius:4px; padding:0 3px; margin-left:3px; vertical-align:1px; }
+  /* 月度前七全景矩阵 */
+  .mx-block { margin-bottom:26px; }
+  .mx-wrap { overflow-x:auto; padding:6px 18px 14px; }
+  .mx-grid { display:grid; min-width:max-content; }
+  .mx-hc, .mx-hd { font-size:10.5px; color:var(--faint); letter-spacing:.5px; padding:5px 6px 8px; border-bottom:1px solid var(--border); text-align:center; }
+  .mx-hc { position:sticky; left:0; z-index:3; background:var(--surface); }
+  .mx-hd.mx-today { color:var(--accent); font-weight:700; background:rgba(184,134,11,.10); border-bottom-color:rgba(184,134,11,.45); }
+  .mx-rk { position:sticky; left:0; z-index:2; background:var(--surface); font-weight:700; color:var(--sub); display:flex; align-items:center; justify-content:center; border-right:1px solid var(--border); border-bottom:1px dashed rgba(29,36,48,.6); font-size:12px; }
+  .mx-rk-out { color:var(--faint); font-size:10.5px; font-weight:600; }
+  .mx-cell { display:flex; align-items:center; gap:5px; padding:5px 8px 5px 7px; border-bottom:1px dashed rgba(22,32,52,.14); border-right:1px dashed rgba(22,32,52,.10); border-left:3px solid var(--mxc,#e2e8f0); min-height:34px; font-size:12px; min-width:0; }
+  .mx-cell.mx-today { border-right:1px solid rgba(184,134,11,.5); box-shadow:inset 0 0 0 1px rgba(184,134,11,.18); }
+  .mx-cell a { color:inherit; text-decoration:none; font-weight:600; white-space:nowrap; flex:none; }
+  .mx-cell a:hover { color:#3b66d4; text-decoration:underline; }
+  .mx-th { flex:none; max-width:46%; font-size:9.5px; font-weight:600; line-height:1.5; color:#fff; background:var(--mxc); border-radius:4px; padding:0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mx-th-ghost { background:transparent; color:var(--mxc); border:1px solid var(--mxc); padding:0 5px; }
+  .mx-pct { margin-left:auto; flex:none; }
+  .mx-cell[data-code] { cursor:pointer; }
+  .mx-cell { transition:opacity .18s ease, filter .18s ease; }
+  .mx-grid.mx-focus .mx-cell:not(.mx-hit) { opacity:.32; filter:saturate(.2); }
+  .mx-grid.mx-focus .mx-cell.mx-today:not(.mx-hit) { box-shadow:none; }
+  .mx-cell.mx-hit { outline:2px solid var(--mxc); outline-offset:-2px; }
+  .mx-cell.mx-hit a { text-decoration:underline; }
+  .mx-new { font-style:normal; font-size:9px; color:var(--red); border:1px solid rgba(214,52,80,.5); border-radius:4px; padding:0 3px; margin-left:2px; vertical-align:1px; flex:none; }
+  .mx-rem-tag { font-size:10px; color:var(--faint); border:1px dashed var(--border2); border-radius:4px; padding:1px 6px; }
+  .mx-out { opacity:.9; }
+  .mx-pr { font-style:normal; font-size:9.5px; color:var(--faint); margin-left:5px; }
   .s-pct { font-size:13px; font-weight:700; text-align:right; min-width:120px; }
   .s-pct .lbinfo { display:block; font-size:10px; font-weight:400; color:var(--faint); }
   .s-sep { font-size:10.5px; color:var(--faint); }
@@ -90,11 +123,12 @@
   .msg .d { flex:none; width:58px; font-size:11px; color:var(--accent); font-weight:600; padding-top:2px; }
   .msg .body .t { font-size:13px; line-height:1.5; }
   .msg .body .m { font-size:11px; color:var(--sub); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .msg .m a { color:#7aa2f7; text-decoration:none; }
+  .msg .m a { color:#3b66d4; text-decoration:none; }
   .msg .m a:hover { text-decoration:underline; }
   .msg .tagchip { color:var(--accent); border:1px solid rgba(232,182,76,.35); border-radius:4px; padding:0 5px; font-size:10px; }
   .msg .tagchip.bear { color:var(--green); border-color:rgba(46,189,133,.35); }
-  .msg .tagchip.risk { color:#ff6b6b; border-color:rgba(255,107,107,.45); }
+  .msg .tagchip.kline { color:#3b66d4; border-color:rgba(59,102,212,.35); }
+  .msg .tagchip.risk { color:#d63450; border-color:rgba(214,52,80,.4); }
   .msg-empty { font-size:12px; color:var(--faint); padding:10px; }
 
 
@@ -104,7 +138,7 @@
   .tb-ladder .h span { font-weight:400; letter-spacing:0; margin-left:8px; }
   .lad-table { display:flex; flex-direction:column; gap:6px; }
   .lad-trow { display:grid; grid-template-columns:64px minmax(70px, 220px) 1fr; align-items:center; gap:12px; padding:4px 0; }
-  .lad-trow + .lad-trow { border-top:1px dashed rgba(29,36,48,.6); }
+  .lad-trow + .lad-trow { border-top:1px dashed rgba(22,32,52,.14); }
   .lad-lb { font-size:12.5px; font-weight:700; color:var(--red); text-align:center; background:var(--red-bg); border-radius:6px; padding:3px 0; }
   .lad-lb small { display:block; font-size:9px; color:var(--faint); font-weight:400; }
   .lad-bar { height:10px; }
@@ -127,54 +161,63 @@
 <nav><div class="nav-inner">
   <div class="nav-logo">题材发酵看板<em> · Theme Pulse</em></div>
   <div class="nav-chips" id="navChips"></div>
-  <div class="nav-date num">2026-10-08 · 快照 13:41</div>
+  <div class="nav-date num">2026-10-14 · 快照 09:41</div>
 </div></nav>
 
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>题材分组 <span>× 连板天梯 × 消息序列</span></h1>
-      <div class="sub">方向一·连板情绪 4 只 ｜ 方向二·月度强势 0 只（本月窗口无满足条件标的，如实留空）</div>
+      <h1>题材分组 <span>× 连板天梯 × 消息时间链</span></h1>
+      <div class="sub">方向一·月度前七 7 只（彩虹名次色 #1 红→#7 紫）｜ 方向二·近十日三强 3 只（交集 ★最强 2 只）</div>
     </div>
     <div class="badges">
-      <span class="badge live">快照 <b>13:41 盘中</b></span>
+      <span class="badge live">快照 <b>09:41 盘前</b></span>
       <span class="badge">题材 <b>4 组</b></span>
-      <span class="badge">方向一·连板 <b>4 只</b> ｜ 方向二·月度 <b>0 只</b></span>
-      <span class="badge">消息 <b>8+7 条</b></span>
+      <span class="badge">月度前七 <b>7 只</b> ｜ 近十日三强 <b>3 只</b></span>
+      <span class="badge">★最强 <b>2 只</b>（双窗共振）</span>
+      <span class="badge">当月全景 <b>5 日</b> · 新进 <b>3</b>/移除 <b>3</b></span>
       <span class="badge">抢跑警示 <b>1 组</b></span>
     </div>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">当日情绪主线</div><div class="v">固态电池<small>连板池 3/4 · 2 只二连板</small></div></div>
-    <div class="stat"><div class="k">方向二·月度强势（本月前十且&gt;20%）</div><div class="v num">0 只<small>10 月窗口仅 10/08 一个交易日、主板单日上限 10%，如实留空</small></div></div>
-    <div class="stat"><div class="k">双池交叉（情绪 ∩ 趋势）</div><div class="v num">0 只<small>资金弃高就低</small></div></div>
-    <div class="stat"><div class="k">首发确认</div><div class="v" style="font-size:15px">固态电池 9/29 · 房地产 9/29<small>均为窗口内最早报道</small></div></div>
+    <div class="stat"><div class="k">当日情绪主线</div><div class="v">固态电池<small>梯队 4 连板×3 · 天梯快照 10/14</small></div></div>
+    <div class="stat"><div class="k">★最强（月度前十 ∩ 近十日前三）</div><div class="v num" style="color:var(--accent)">2 只<small>新华传媒 · 时代万恒</small></div></div>
+    <div class="stat"><div class="k">月度前七当月全景</div><div class="v num">5 个交易日<small>较昨日新进 3 · 移除 3 · 矩阵列=交易日（MMDD+星期）</small></div></div>
+    <div class="stat"><div class="k">题材首发确认</div><div class="v" style="font-size:15px">固态电池 9/29 · 房地产 9/29<small>历史回溯补抓 ≤5 个交易日</small></div></div>
     <div class="stat"><div class="k">先涨停后消息（抢跑警示）</div><div class="v" style="color:#ff6b6b;font-size:15px">房地产 · 深物业A<small>首板 9/28 早于贴息首发 9/29 18:07 · 兑现风险高，谨慎追高</small></div></div>
   </div>
+
+  <div id="poolchg"></div>
 
   <div id="blocks"></div>
 
   <footer>
-    <b>口径</b>：股池=东财选股器条件直连接口（方向一：连板=2 且换手&gt;5% 且竞价&gt;-5%，或 2 板断板且涨幅&gt;0；方向二：本月涨幅前十且&gt;20%——本月 total=0 如实留空，不以历史区间数据替代；均剔 ST/退市/北交所/创/科板）。<br>
-    <b>首发口径</b>：★首发=本次要闻窗口（9/29 起）内可核实的最早报道并附原文地址；窗口外启动的题材（元件 9/11、非白酒 9/16、家居 9/15、出版为个股重组事件）以行情节点呈现并标注“首发溯源待补”。行业信息来自东方财富 F10「核心题材」接口（个股行显示三级行业；主营要点仅用于题材归组与梯队悬停依据，不在正文展开）；深物业A 连板数以 K 线核实为准。消息时间为原文地址页/接口的真实发布时间（财联社精确到秒，东财/新浪文章页精确到分；六大行 15:31 为采集时列表时刻）。盘中快照，仅供参考，不构成投资建议。<br>
+    <b>口径</b>：股池=东财选股器条件直连接口（方向一·月度前七：本月涨幅前七；方向二·近十日三强：近十日涨幅前三，接口解析为 10 个交易日区间；均剔 ST/退市/北交所/创/科板、不剔新股次新；条件内"竞价涨幅大于-11%"仅带出集合竞价列，不构成过滤）。连板天梯=全市场连板≥2 快照，作题材溯源组件（归组主轴=当日前七的 F10 题材；题材区块以前七为锚梳理标的梯队与消息序列）。<br>
+    <b>最强与异动</b>：★最强=月度涨幅前七 ∩ 近十日涨幅前三（双窗口确认）；竞价异动=|集合竞价涨跌幅|≥3%（阈值见 mapping-rules 第 8 节，悬停角标）。月度前七全景矩阵=列=当月交易日（MMDD+星期）、行=排名、配色三层信号（题材色签+左色条、前七彩虹名次字、历史格/移除行幽灵签），点击格子联动高亮同一标的；表尾灰色行为较昨日移除标的；数据来自逐日快照（历史库 archives/pool-history，同日重跑覆盖；缺失交易日由区间措辞回补，回补快照无当日竞价）。<br>
+    <b>首发口径</b>：★首发=窗口内可核实的最早报道并附原文地址；题材启动日早于当日的按第 3.9 步历史回溯补抓（≤5 个交易日），仍无源的标注"首发溯源待补"。行业信息来自东方财富 F10「核心题材」接口（个股行显示三级行业；主营要点仅用于题材归组与梯队悬停依据，不在正文展开）；连板数以 K 线/天梯核实为准。消息时间为原文地址页/接口的真实发布时间（财联社精确到秒，东财/新浪文章页精确到分）。盘中快照，仅供参考，不构成投资建议。<br>
     <b>抢跑警示</b>：题材★首发消息晚于标的首板涨停日的（如房地产：深物业A 9/28 首板 → 贴息政策 9/29 18:07 首发）标 ⚠，疑似消息提前泄露/知情资金抢跑，利好兑现风险高，谨慎追高；判定必须附"首板日 vs 首发时间戳"证据对（悬停查看）。
   </footer>
 </div>
 
 <script>
 /* ==== 数据注入区开始 ==== */
+/* STOCKS 字段：pool: month(月度前七)|d10(近十日三强)；rk=本月名次1–7（彩虹名次签，矩阵字体同色）；
+   top=★最强（月度前七∩近十日前三）；out=同题材池外梯队员（灰字+池外签，via=悬停归属依据，行情取天梯快照）；
+   jj=集合竞价涨跌幅；hs/pct=换手/今日涨幅；risk/riskNote=抢跑警示 */
 const STOCKS = [
-  {code:"603928", name:"兴业股份", pool:"lb", theme:"固态电池", lb:"2连板", jj:2.75, hs:7.41, pct:10.02, sep:null, news:["D"],
-   sub:"603928 · 连板情绪 · 固态电池链*"},
-  {code:"603906", name:"龙蟠科技", pool:"lb", theme:"固态电池", lb:"2连板", jj:1.37, hs:13.02, pct:9.98, sep:null, news:["D"],
-   sub:"603906 · 连板情绪 · 电池材料*"},
-  {code:"603200", name:"上海洗霸", pool:"lb", theme:"固态电池", lb:"断板回封", jj:-0.56, hs:16.75, pct:9.32, sep:null, news:["D"],
-   sub:"603200 · 连板情绪 · 固态电池链*"},
-  {code:"000011", name:"深物业A", pool:"lb", theme:"房地产", lb:"断板开板", jj:-0.41, hs:17.92, pct:4.82, sep:null, news:["F"],
-   risk:true, riskNote:"9/28 首板早于贴息政策首发（9/29 18:07 财联社），提前 1 个交易日",
-   sub:"000011 · 连板情绪 · 房地产（深圳）*"}
+  {code:"600825", name:"新华传媒", pool:"month", rk:7, top:true, theme:"出版", jj:0.00, hs:null, pct:0.00},
+  {code:"600241", name:"时代万恒", pool:"d10", rk:6, top:true, theme:"固态电池", jj:0.00, hs:9.9, pct:2.72},
+  {code:"603928", name:"兴业股份", pool:"month", rk:2, theme:"固态电池", jj:2.75, hs:7.41, pct:10.02},
+  {code:"603200", name:"上海洗霸", pool:"month", theme:"固态电池", jj:-0.56, hs:16.75, pct:9.32},
+  {code:"002058", name:"紫竹高科", out:true, via:"连板梯队·F10行业=电池化学品（今日2连板）", theme:"固态电池", jj:null, hs:7.3, pct:9.98},
+  {code:"000011", name:"深物业A", pool:"month", theme:"房地产", jj:-0.41, hs:17.92, pct:4.82,
+   risk:true, riskNote:"9/28 首板早于贴息政策首发（9/29 18:07 财联社），提前 1 个交易日"},
+  {code:"605058", name:"澳弘电子", pool:"month", theme:"元件", jj:null, hs:11.2, pct:-10.01},
 ];
+/* POOLCHG 月度前七全景矩阵：track_month_top10.py 产出 top10_changes.json 的 matrix 字段（rankRows 取 rank≤7）；
+   themes（代码→题材）由模型按 F10 回填；removed 的 note 由模型按当日行情页回填 */
+const POOLCHG = {"month":"2026-10","today":"2026-10-14","prevDate":"2026-10-13","baseline":false,"note":"","dates":["2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14"],"labels":{"2026-10-08":"1008周四","2026-10-09":"1009周五","2026-10-12":"1012周一","2026-10-13":"1013周二","2026-10-14":"1014周三"},"themes":{"600825":"出版","002242":"厨房小家电","600241":"锂电池"},"rankRows":[{"rank":1,"cells":{"2026-10-08":{"code":"600825","name":"新华传媒","month_pct":"10.05"},"2026-10-09":{"code":"600812","name":"华北制药","month_pct":"21.08"},"2026-10-12":{"code":"600825","name":"新华传媒","month_pct":"33.14"},"2026-10-13":{"code":"002242","name":"九阳股份","month_pct":"41.36"},"2026-10-14":{"code":"002696","name":"百洋股份","month_pct":"48.18"}}},{"rank":2,"cells":{"2026-10-08":{"code":"600812","name":"华北制药","month_pct":"10.04"},"2026-10-09":{"code":"600825","name":"新华传媒","month_pct":"21.06"},"2026-10-12":{"code":"600812","name":"华北制药","month_pct":"33.13"},"2026-10-13":{"code":"002696","name":"百洋股份","month_pct":"34.65"},"2026-10-14":{"code":"002343","name":"慈文传媒","month_pct":"43.62"}}},{"rank":3,"cells":{"2026-10-08":{"code":"002702","name":"海欣食品","month_pct":"10.04"},"2026-10-09":{"code":"002805","name":"丰元股份","month_pct":"21.05"},"2026-10-12":{"code":"600241","name":"时代万恒","month_pct":"33.13"},"2026-10-13":{"code":"600825","name":"新华传媒","month_pct":"33.14"},"2026-10-14":{"code":"603096","name":"新经典","month_pct":"43.29"}}},{"rank":4,"cells":{"2026-10-08":{"code":"002687","name":"乔治白","month_pct":"10.04"},"2026-10-09":{"code":"001336","name":"楚环科技","month_pct":"21.04"},"2026-10-12":{"code":"002242","name":"九阳股份","month_pct":"33.12"},"2026-10-13":{"code":"600241","name":"时代万恒","month_pct":"32.30"},"2026-10-14":{"code":"002242","name":"九阳股份","month_pct":"41.52"}}},{"rank":5,"cells":{"2026-10-08":{"code":"600400","name":"红豆股份","month_pct":"10.03"},"2026-10-09":{"code":"002242","name":"九阳股份","month_pct":"21.04"},"2026-10-12":{"code":"002058","name":"紫竹高科","month_pct":"25.25"},"2026-10-13":{"code":"600693","name":"东百集团","month_pct":"31.97"},"2026-10-14":{"code":"603968","name":"醋化股份","month_pct":"37.39"}}},{"rank":6,"cells":{"2026-10-08":{"code":"000869","name":"张  裕Ａ","month_pct":"10.03"},"2026-10-09":{"code":"002733","name":"雄韬股份","month_pct":"21.03"},"2026-10-12":{"code":"002692","name":"远程股份","month_pct":"24.17"},"2026-10-13":{"code":"605136","name":"丽人丽妆","month_pct":"31.87"},"2026-10-14":{"code":"600241","name":"时代万恒","month_pct":"35.91"}}},{"rank":7,"cells":{"2026-10-08":{"code":"002805","name":"丰元股份","month_pct":"10.02"},"2026-10-09":{"code":"001300","name":"三柏硕","month_pct":"21.01"},"2026-10-12":{"code":"002733","name":"雄韬股份","month_pct":"23.59"},"2026-10-13":{"code":"002343","name":"慈文传媒","month_pct":"30.50"},"2026-10-14":{"code":"600825","name":"新华传媒","month_pct":"33.14"}}}],"removed":[{"code":"605136","name":"丽人丽妆","prev_rank":6,"prev_month_pct":"31.87","prev_today_pct":"-8.93","prev_auction":null,"note":null,"cells":{"2026-10-13":{"rank":6,"month_pct":"31.87"}}},{"code":"600831","name":"广电网络","prev_rank":9,"prev_month_pct":"26.47","prev_today_pct":"-5.81","prev_auction":null,"note":null,"cells":{"2026-10-13":{"rank":9,"month_pct":"26.47"}}},{"code":"002869","name":"金溢科技","prev_rank":10,"prev_month_pct":"26.15","prev_today_pct":"-8.25","prev_auction":null,"note":null,"cells":{"2026-10-13":{"rank":10,"month_pct":"26.15"}}}]};
 const THEMES = [
   {name:"固态电池", desc:"当日情绪主线：逆势大涨+融资客抢筹", news:["D"]},
   {name:"房地产",   desc:"黄金周回暖+贴息首周落地", news:["F"]},
@@ -204,7 +247,8 @@ const TIMELINE = [
      {d:"09-29", kind:"kline", tag:"首板", t:"上海洗霸首板涨停（行情确认）"},
      {d:"09-30", kind:"kline", tag:"扩散", t:"兴业股份/龙蟠科技首板，洗霸 +7.9%"},
      {d:"10-08", kind:"news", tag:"发酵", ts:"2026-10-08 11:55", t:"固态电池集体拉升·融资客抢筹", src:"东方财富", url:"https://finance.eastmoney.com/a/202610083889426010.html"},
-     {d:"10-08", kind:"kline", tag:"2连板", t:"兴业/龙蟠二连板，洗霸断板回封 +9.3%"}]},
+     {d:"10-08", kind:"kline", tag:"2连板", t:"兴业/龙蟠二连板，洗霸断板回封 +9.3%"},
+     {d:"10-08", kind:"kline", tag:"梯队", t:"题材梯队：池内3只+池外时代万恒/传艺科技/紫竹高科（F10归属），洗霸3板为高度锚"}]},
   {theme:"房地产", status:"高位分歧", st:"mid", span:"9/28 预期 → 10/8 · 7 个交易日", risk:"消息滞后·资金抢跑", riskNote:"深物业A 9/28 首板早于贴息政策首发（9/29 18:07，财联社）约 1 个交易日",
    nodes:[
      {d:"09-28", kind:"kline", tag:"首板", risk:true, t:"深物业A 首板涨停（政策预期抢跑）"},
@@ -253,18 +297,29 @@ const LADDER = {grabbedAt: "2026-10-08 15:22", rows: [
   {code:"600663", name:"陆家嘴",   lb:2, theme:"房地产",   inPool:true,  via:"连板池·商业地产"},
 ]};
 /* ==== 数据注入区（技能运行时替换本区，共 9 块） ====
-   STOCKS   股池标的（risk=抢跑警示）          ← 第3步 fetch_pool_api + 分析
-   THEMES   题材聚类                           ← 第4步分析
-   NEWS     要闻（含原文地址）                 ← 第1/2步采集
-   EVENTS   跨题材关键事件日                   ← 第4步分析
-   TIMELINE 题材发酵链（★首发+时间戳；risk=抢跑警示，判定见 mapping-rules 第7节） ← 第4步分析
-   CONCEPTS F10 概念（行业/主营/风格）         ← 第3.7步 fetch_concepts
-   MACRO    宏观·市场消息时间线                ← 第4步分析
-   LADDER   全市场连板≥2天梯快照+归组          ← 第3步另查 + F10 归组
+   STOCKS   双窗口股池标的（pool:month|d10；top=★最强；jj=竞价；risk=抢跑警示） ← 第3步 fetch_pool_api + 第4步分析
+   POOLCHG  月度十强当月全景矩阵（dates/labels/rankRows/removed；themes/note 模型回填）← 第3.3步 track_month_top10（含当月逐日回补）+ 第4步回填
+   THEMES   题材聚类（主轴=月度十强）                       ← 第4步分析
+   NEWS     要闻（含原文地址；含第3.9步历史回溯补抓）       ← 第1/2/3.9步采集
+   EVENTS   跨题材关键事件日                                 ← 第4步分析
+   TIMELINE 题材行情启动消息时间链（★首发+时间戳；risk=抢跑警示，判定见 mapping-rules 第7节） ← 第3.9/4步
+   CONCEPTS F10 概念（行业/主营/风格）                       ← 第3.7步 fetch_concepts
+   MACRO    宏观·市场消息时间线                              ← 第4步分析
+   LADDER   全市场连板≥2天梯快照（按月度十强题材归组）       ← 第3步另查 + F10 归组
    ==== 数据注入区结束（以下为渲染代码，勿改） ==== */
 
 
 const emQuote = code => "https://quote.eastmoney.com/" + (code.startsWith("6") ? "sh" : "sz") + code + ".html";
+/* 名次彩虹色系（月度前七）：#1 红 → #7 紫；bg=矩阵单元格底色（浅色块），fg=深色字 */
+const RAINBOW = [
+  { bg: "#ffdfe3", fg: "#c9252d" },
+  { bg: "#ffe8cc", fg: "#c46a10" },
+  { bg: "#fdf6d3", fg: "#937011" },
+  { bg: "#d9f2e5", fg: "#16835c" },
+  { bg: "#d6f2f5", fg: "#0d7490" },
+  { bg: "#dde9fc", fg: "#2563c9" },
+  { bg: "#ece1fa", fg: "#6f42c1" }
+];
 const pctCls = v => v > 0 ? "up" : (v < 0 ? "down" : "");
 const pctTxt = (v, suf) => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + (suf || "%");
 const THEME_COLORS = {"固态电池":"#e8b64c","房地产":"#ff9f43","出版":"#7aa2f7","非白酒":"#c792ea","元件":"#4dd0e1","家居用品":"#9ccc65","宏观·市场":"#8a94a6"};
@@ -292,41 +347,143 @@ function ladderHtml(theme) {
   return `<div class="lad-table">${trs}</div>`;
 }
 
+/* ---------- 月度前七 · 当月全景矩阵（POOLCHG） ---------- */
+(function() {
+  const el = document.getElementById("poolchg");
+  if (!el || typeof POOLCHG === "undefined") return;
+  const P = POOLCHG || {};
+  const dates = P.dates || [];
+  const today = P.today, prevDate = P.prevDate;
+  if (!dates.length) { el.innerHTML = ""; return; }
+  const th = c => (P.themes || {})[c] || "—";
+  const pct = v => { const n = parseFloat(v); return isNaN(n) ? "—" : `<span class="mx-pct num ${pctCls(n)}">${(n > 0 ? "+" : "") + n.toFixed(2)}%</span>`; };
+  const prevSet = new Set();
+  (P.rankRows || []).forEach(r => { const c = (r.cells || {})[prevDate]; if (c) prevSet.add(c.code); });
+  let newCnt = 0;
+  (P.rankRows || []).forEach(r => { const c = (r.cells || {})[today]; if (c && prevDate && !prevSet.has(c.code)) newCnt++; });
+
+  /* 配色策略（专业数据面板三层信号：题材=色签+色条，名次=彩虹字，强弱=底色）：
+     题材色：黄金角色相+饱和度/明度交替 → vivid（色签底/色条/联动描边，白字对比≥4.5:1）与 tint（极浅底）；
+     当日前七标的：极浅题材底 + 彩虹名次字 + 实心题材色签（白字）；
+     其余历史格与移除行：白底 + 中性灰字 + 幽灵色签（vivid 描边/文字），题材可辨但不抢焦点 */
+  const NEUTRAL = { fg: "#5c6675" };
+  const themeColor = {};
+  let hi = 0;
+  const SL = [[74, 44], [62, 38], [80, 41], [68, 48]];
+  const themeOf = t => {
+    if (themeColor[t] !== undefined) return themeColor[t];
+    if (t === "—") { themeColor[t] = { vivid: "#8a94a6", tint: "#f2f4f7" }; return themeColor[t]; }
+    const h = Math.round(hi * 137.508) % 360, [s, l] = SL[hi % 4];
+    hi++;
+    return (themeColor[t] = { vivid: `hsl(${h},${s}%,${l}%)`, tint: `hsl(${h},${Math.min(s, 50)}%,96%)` });
+  };
+  /* 标的字体色：仅当日（最新列）前七的标的按今日名次取彩虹色（同一标的跨列同色）；
+     不在当日前七的标的与移除行均为中性灰（不着色） */
+  const fgOfCode = {};
+  (P.rankRows || []).forEach(r => { const c = (r.cells || {})[today]; if (c) fgOfCode[c.code] = (RAINBOW[r.rank - 1] || NEUTRAL).fg; });
+
+  let grid = `<div class="mx-hc">排名</div>` + dates.map(d =>
+    `<div class="mx-hd${d === today ? " mx-today" : ""}">${(P.labels || {})[d] || d.slice(5).replace("-", "")}</div>`).join("");
+  (P.rankRows || []).forEach(r => {
+    grid += `<div class="mx-rk num">#${r.rank}</div>` + dates.map(d => {
+      const c = (r.cells || {})[d];
+      const td = d === today ? " mx-today" : "";
+      if (!c) return `<div class="mx-cell${td}"></div>`;
+      const isNew = d === today && prevDate && !prevSet.has(c.code);
+      const C = themeOf(th(c.code));
+      const cur = c.code in fgOfCode;
+      const fg = cur ? fgOfCode[c.code] : NEUTRAL.fg;
+      return `<div class="mx-cell${td}" data-code="${c.code}" style="--mxc:${C.vivid};color:${fg}${cur ? `;background:${C.tint}` : ""}" title="${c.name} · 本月第${r.rank}名 · ${th(c.code)} · 本月${c.month_pct}% · 点击联动高亮同一标的"><a href="${emQuote(c.code)}" target="_blank" title="打开东方财富行情页">${c.name}</a>${isNew ? '<i class="mx-new">新</i>' : ""}<span class="mx-th${cur ? "" : " mx-th-ghost"}">${th(c.code)}</span>${pct(c.month_pct)}</div>`;
+    }).join("");
+  });
+  (P.removed || []).forEach(s => {
+    grid += `<div class="mx-rk mx-rk-out">移除</div>` + dates.map(d => {
+      if (d === today) return `<div class="mx-cell mx-today" style="display:flex;align-items:center;justify-content:center"><span class="mx-rem-tag">今日移除</span></div>`;
+      const c = (s.cells || {})[d];
+      if (!c) return `<div class="mx-cell"></div>`;
+      const C = themeOf(th(s.code));
+      return `<div class="mx-cell mx-out" data-code="${s.code}" style="--mxc:${C.vivid};color:${NEUTRAL.fg}" title="${s.name} · ${th(s.code)} · 本月（当期）${c.month_pct}% · 点击联动高亮同一标的"><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}</a><span class="mx-th mx-th-ghost">${th(s.code)}</span><span class="mx-pct num">${pct(c.month_pct)}<em class="mx-pr">#${c.rank}</em></span></div>`;
+    }).join("");
+  });
+
+  const remNote = (P.removed || []).map(s =>
+    `${s.name}（昨日#${s.prev_rank}）${s.note ? " · " + s.note : ""}`).join("；");
+  el.innerHTML = `<div class="theme-block mx-block">
+    <div class="tb-head"><span class="tb-dot"></span><span class="tb-name">月度前七 · 当月全景</span>
+      <span class="tb-span num">${dates[0].slice(5).replace("-", "/")} → ${dates[dates.length - 1].slice(5).replace("-", "/")} · ${dates.length} 个交易日</span>
+      ${P.baseline ? `<span class="st st-mid">首次记录 · 无对比基线</span>`
+                   : `<span class="st st-hot">较昨日新进 ${newCnt}</span><span class="st st-cool">移除 ${(P.removed || []).length}</span>`}
+    </div>
+    <div class="mx-wrap"><div class="mx-grid" style="grid-template-columns:52px repeat(${dates.length}, minmax(168px, 1fr))">${grid}</div></div>
+    <div style="padding:2px 18px 14px;font-size:11.5px;color:var(--sub)">配色：题材=色签+左色条（同题材同色系，色签白字）· 当日前七标的=极浅题材底+彩虹名次字（#1 红→#7 紫）· 其余历史格与移除行=白底灰字+幽灵色签 · 点击格子联动高亮同一标的（其余弱化，再次点击取消；点击标的名称跳东财行情页）${remNote ? "<br>较昨日移除：" + remNote : ""}</div>
+  </div>`;
+
+  /* 点击格子联动高亮同一标的（点击名称链接不拦截）；聚焦时未命中单元格弱化，再次点击取消 */
+  el.addEventListener("click", e => {
+    if (e.target.closest("a")) return;
+    const cell = e.target.closest(".mx-cell[data-code]");
+    if (!cell) return;
+    const grid = el.querySelector(".mx-grid");
+    const code = cell.dataset.code;
+    const wasOn = cell.classList.contains("mx-hit");
+    el.querySelectorAll(".mx-cell.mx-hit").forEach(c => c.classList.remove("mx-hit"));
+    if (grid) grid.classList.remove("mx-focus");
+    if (!wasOn) {
+      el.querySelectorAll(`.mx-cell[data-code="${code}"]`).forEach(c => c.classList.add("mx-hit"));
+      if (grid) grid.classList.add("mx-focus");
+    }
+  });
+  /* 点击可选格子以外的任意位置（页面空白/表头/其他区块）取消聚焦 */
+  document.addEventListener("click", e => {
+    if (e.target.closest(".mx-cell[data-code]")) return;
+    if (!el.querySelector(".mx-cell.mx-hit")) return;
+    el.querySelectorAll(".mx-cell.mx-hit").forEach(c => c.classList.remove("mx-hit"));
+    const grid = el.querySelector(".mx-grid");
+    if (grid) grid.classList.remove("mx-focus");
+  });
+})();
+
 /* ---------- 渲染题材区块 ---------- */
 const blocks = document.getElementById("blocks");
 const navChips = document.getElementById("navChips");
 const TL = [...TIMELINE, MACRO];
 
 TL.forEach((tl, bi) => {
-  const stocks = STOCKS.filter(s => s.theme === tl.theme);
+  /* 个股行（题材梯队：前七锚定股在前、同题材池外梯队员在后） */
+  const stocks = STOCKS.filter(s => s.theme === tl.theme)
+    .sort((a, b) => ((a.out ? 1 : 0) - (b.out ? 1 : 0)) || ((a.rk || 99) - (b.rk || 99)));
   const isMacro = tl.theme === "宏观·市场";
   const block = document.createElement("div");
   block.className = "theme-block"; block.id = "blk" + bi;
   block.style.setProperty("--tc", THEME_COLORS[tl.theme] || "#e8b64c");
 
 
-  /* 个股行 */
   const stocksHtml = stocks.map(s => {
     const zt = Math.abs(s.pct) >= 9.9 ? (s.pct > 0 ? " 涨停" : " 跌停") : "";
+    const pm = s.pool === "d10" ? ["十日", "pool-d10"] : ["月度", "pool-mo"];
+    const hs = (typeof s.hs === "number" && isFinite(s.hs)) ? s.hs.toFixed(1) + "%" : "—";
+    const jjHtml = (typeof s.jj === "number" && isFinite(s.jj))
+      ? `<span class="${pctCls(s.jj)}${Math.abs(s.jj) >= 3 ? " jjv" : ""}">${pctTxt(s.jj)}</span>${Math.abs(s.jj) >= 3 ? '<i class="jj-tag">竞价异动</i>' : ""}`
+      : "—";
     return `<div class="s-row" data-code="${s.code}">
       <div class="s-id">
-        <div class="nm"><span class="pool ${s.pool === "lb" ? "pool-lb" : "pool-m9"}">${s.pool === "lb" ? "连板" : "九月"}</span><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}${s.pool === "lb" ? "*" : ""} ↗</a>${s.risk ? `<span class="risk-chip" title="${s.riskNote || "首板涨停早于题材首发消息，疑似资金抢跑"}">⚠ 抢跑</span>` : ""}</div>
-        <div class="cd num">${s.code} · ${(CONCEPTS[s.code] || {}).industry || ""}</div>
+        <div class="nm">${s.out ? `<span class="pool pool-out" title="${s.via || "同题材池外标的（连板梯队成员）"}">池外</span>` : `<span class="pool ${pm[1]}">${pm[0]}</span>`}${(!s.out && s.rk >= 1 && s.rk <= 7) ? `<i class="rk-chip" style="border-color:${RAINBOW[s.rk - 1].fg};color:${RAINBOW[s.rk - 1].fg}" title="本月第 ${s.rk} 名（彩虹色系与矩阵同色）">#${s.rk}</i>` : ""}<a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页" style="${(!s.out && s.rk >= 1 && s.rk <= 7) ? "color:" + RAINBOW[s.rk - 1].fg : (s.out ? "color:var(--sub);" : "")}">${s.name} ↗</a>${s.top ? `<span class="top-chip" title="月度涨幅前七 ∩ 近十日涨幅前三 · 双窗口确认的最强标的">★最强</span>` : ""}${s.risk ? `<span class="risk-chip" title="${s.riskNote || "首板涨停早于题材首发消息，疑似资金抢跑"}">⚠ 抢跑</span>` : ""}</div>
+        <div class="cd num">${s.code} · ${(CONCEPTS[s.code] || {}).industry || ""}${s.out ? " · 梯队" : ""}</div>
       </div>
-      <div class="s-pct num ${pctCls(s.pct)}">${pctTxt(s.pct)}${zt}<span class="lbinfo">${s.pool === "lb" ? "竞价 " + pctTxt(s.jj) + " · 换手 " + s.hs.toFixed(1) + "%" : "换手 " + s.hs.toFixed(1) + "%"}</span></div>
+      <div class="s-pct num ${pctCls(s.pct)}">${pctTxt(s.pct)}${zt}<span class="lbinfo">竞价 ${jjHtml} · 换手 ${hs}</span></div>
     </div>`;
   }).join("") || `<div class="msg-empty">该分组无股池标的（市场级消息）</div>`;
 
-  /* 消息序列 */
-  const newsNodes = tl.nodes.filter(nd => nd.kind === "news" || nd.kind === "note");
+  /* 消息序列（news=消息节点，kline=行情确认节点，note=说明节点） */
+  const newsNodes = tl.nodes;
   const newsHtml = newsNodes.map(nd => `
     <div class="msg">
       <div class="d num">${(() => { const ts = nd.ts || ("2026-" + nd.d); const pp = ts.split(" "); return `<b>${pp[0]}</b><span>${pp.slice(1).join(" ") || "当日"}</span>`; })()}</div>
       <div class="body">
         <div class="t">${nd.t}</div>
-        <div class="m">${nd.risk ? `<span class="tagchip risk" title="${nd.riskNote || "首发消息晚于该题材首板涨停"}">消息晚于首板</span>` : ""}${nd.tag ? `<span class="tagchip ${nd.tag === "利空" ? "bear" : ""}">${nd.tag}</span>` : ""}${nd.src ? `<span>${nd.src}</span>` : ""}${nd.url ? `<a href="${nd.url}" target="_blank">原文 ↗</a>` : ""}</div>
+        <div class="m">${nd.risk ? `<span class="tagchip risk" title="${nd.riskNote || "首发消息晚于该题材首板涨停"}">消息晚于首板</span>` : ""}${nd.tag ? `<span class="tagchip ${nd.tag === "利空" ? "bear" : (nd.kind === "kline" ? "kline" : "")}">${nd.tag}</span>` : ""}${nd.src ? `<span>${nd.src}</span>` : ""}${nd.url ? `<a href="${nd.url}" target="_blank">原文 ↗</a>` : ""}</div>
       </div>
-    </div>`).join("") || `<div class="msg-empty">窗口内无直接催化报道（题材轮动/资金驱动）</div>`;
+    </div>`).join("") || `<div class="msg-empty">窗口内无消息与行情确认节点</div>`;
 
   block.innerHTML = `
     <div class="tb-head">

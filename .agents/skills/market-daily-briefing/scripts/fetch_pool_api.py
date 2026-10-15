@@ -6,27 +6,33 @@
       因此任意条件都能取数且列名自适应，无列号错位问题。
 
 用法：
-  python3 fetch_pool_api.py --direction both          # 内置双方向（连板情绪 + 月度强势）
-  python3 fetch_pool_api.py --direction lb            # 仅方向一（连板情绪）
+  python3 fetch_pool_api.py --direction all        # 月度前七 + 近十日三强 + 连板天梯（完整流水线）
+  python3 fetch_pool_api.py --direction both       # 双窗口股池（month + d10）
+  python3 fetch_pool_api.py --direction month      # 仅方向一（月度前七）
   python3 fetch_pool_api.py --cond "任意自然语言条件" --tag 自定义
-输出：pool_<tag>.json {tag, condition, total, pool:[{中文列名: 值}], fetched_at}
+输出：pool_<tag>.json {tag, condition, total, latestDate, pool:[{中文列名: 值}], fetched_at}
 
 注意：接口无 cookie 依赖、fingerprint/requestId 可伪造；请控制频率（单方向间隔 ≥1s），勿循环刷。
+      股池条件里的"竞价涨幅大于-11%"是**非过滤性字段提及**（剔创/科/北/ST 后全为主板，涨跌停±10%，
+      任何竞价涨幅都 > -11%），唯一作用是让自适应列带出"集合竞价涨跌幅"。
+      禁止改用"竞价金额大于0元"——实测会过滤掉无竞价成交的标的（total 10→9）。
 """
 import argparse, datetime, json, os, time, urllib.request
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
 URL = "https://np-tjxg-b.eastmoney.com/api/smart-tag/stock/v3/pw/search-code"
 
-# 内置方向（条件文本可按需改）
+# 内置方向（条件文本可按需改；措辞规范见 references/channel-guide.md，均已一次性验证）
 DIRECTIONS = {
-    "lb": ("连板情绪",
-           "连板等于2且换手率大于5%且竞价涨幅大于-5%；或2板断板且涨幅大于0；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板"),
-    "month": ("月度强势",
-              "本月涨幅前十且本月涨幅大于20%；不要ST股及不要退市股;不要北交所;不要创业板;不要科创板；不要新股和次新股"),
+    "month": ("月度前七",
+              "本月涨幅前七；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；竞价涨幅大于-11%"),
+    "d10": ("近十日三强",
+            "近十日涨幅前三；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；竞价涨幅大于-11%"),
+    "ladder": ("连板天梯",
+               "连板大于等于2；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板"),
 }
 
-def query(cond):
+def query(cond, raw=False):
     body = {
         "needAmbiguousSuggest": True, "pageSize": 50, "pageNo": 1,
         "fingerprint": "84151842d0ff834d33c1b482db9020f7", "matchWord": "",
@@ -50,14 +56,18 @@ def query(cond):
         raise RuntimeError("接口返回 code=%s msg=%s" % (d.get("code"), d.get("msg")))
     res = (d.get("data") or {}).get("result") or {}
     cols = {c["key"]: c["title"] for c in (res.get("columns") or [])}
+    rawList = res.get("dataList") or []
     pool = []
-    for row in (res.get("dataList") or []):
+    for row in rawList:
         pool.append({cols.get(k, k): v for k, v in row.items()})
-    return {"total": res.get("total", len(pool)), "pool": pool}
+    out = {"total": res.get("total", len(pool)), "pool": pool, "latestDate": res.get("latestDate")}
+    if raw:
+        out["rawList"] = rawList
+    return out
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--direction", choices=["lb", "month", "both"], default="both")
+    ap.add_argument("--direction", choices=["month", "d10", "ladder", "both", "all"], default="both")
     ap.add_argument("--cond", help="自定义自然语言条件")
     ap.add_argument("--tag", default="custom")
     ap.add_argument("--out", default=".")
@@ -67,16 +77,20 @@ def main():
     if args.cond:
         tasks.append((args.tag, args.cond))
     else:
-        keys = ["lb", "month"] if args.direction == "both" else [args.direction]
-        tasks = [(k, DIRECTIONS[k][0], DIRECTIONS[k][1]) for k in keys]
-        tasks = [(tag, cond) for _, tag, cond in tasks]
+        if args.direction == "both":
+            keys = ["month", "d10"]
+        elif args.direction == "all":
+            keys = ["month", "d10", "ladder"]
+        else:
+            keys = [args.direction]
+        tasks = [(DIRECTIONS[k][0], DIRECTIONS[k][1]) for k in keys]
 
     os.makedirs(args.out, exist_ok=True)
     for tag, cond in tasks:
         try:
             r = query(cond)
             out = {"tag": tag, "condition": cond, "fetched_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                   "total": r["total"], "pool": r["pool"]}
+                   "total": r["total"], "latestDate": r.get("latestDate"), "pool": r["pool"]}
             path = os.path.join(args.out, "pool_%s.json" % tag)
             json.dump(out, open(path, "w"), ensure_ascii=False, indent=1)
             print("[OK]   %-8s %2d 只 -> %s" % (tag, r["total"], path))

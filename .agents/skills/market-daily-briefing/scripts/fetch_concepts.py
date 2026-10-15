@@ -19,24 +19,34 @@ def mkt(code):
 
 REGION_WORDS = ("板块",)
 
-def fetch_one(code):
-    req = urllib.request.Request(URL.format(mkt(code)),
-                                 headers={"User-Agent": UA, "Referer": "https://emweb.securities.eastmoney.com/"})
-    d = json.loads(urllib.request.urlopen(req, timeout=12).read().decode("utf-8", "ignore"))
-    ssbk = d.get("ssbk") or []
-    names = [b.get("BOARD_NAME", "").strip() for b in ssbk]
-    industry = [n for n in names[:3] if n]                       # 前3条=行业层级
-    concepts = [n for n in names[3:] if n and not n.endswith("板块")]  # 其后=概念（剔除地域）
-    hxtc = [{"kw": it.get("KEYWORD", ""), "cls": it.get("KEY_CLASSIF", "")} for it in (d.get("hxtc") or [])]
-    return {"name": (ssbk[0].get("SECURITY_NAME_ABBR") if ssbk else ""), "industry": industry,
-            "concepts": concepts, "hxtc": hxtc}
+def fetch_one(code, retries=1):
+    for attempt in range(retries + 1):
+        try:
+            req = urllib.request.Request(URL.format(mkt(code)),
+                                         headers={"User-Agent": UA, "Referer": "https://emweb.securities.eastmoney.com/"})
+            d = json.loads(urllib.request.urlopen(req, timeout=12).read().decode("utf-8", "ignore"))
+            ssbk = d.get("ssbk") or []
+            names = [b.get("BOARD_NAME", "").strip() for b in ssbk]
+            industry = [n for n in names[:3] if n]                       # 前3条=行业层级
+            concepts = [n for n in names[3:] if n and not n.endswith("板块")]  # 其后=概念（剔除地域）
+            hxtc = [{"kw": it.get("KEYWORD", ""), "cls": it.get("KEY_CLASSIF", "")} for it in (d.get("hxtc") or [])]
+            return {"name": (ssbk[0].get("SECURITY_NAME_ABBR") if ssbk else ""), "industry": industry,
+                    "concepts": concepts, "hxtc": hxtc}
+        except Exception:
+            if attempt >= retries:
+                raise
+            time.sleep(1.0)
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--codes", required=True)
     ap.add_argument("--out", default=".")
     args = ap.parse_args()
+    path = os.path.join(args.out, "concepts.json")
     out = {}
+    if os.path.exists(path):
+        # 合并写入：保留已有代码，本次抓取的覆盖同名条目（分批补抓不丢数据）
+        out = json.load(open(path))
     for code in filter(None, args.codes.split(",")):
         try:
             out[code] = fetch_one(code)
@@ -47,7 +57,6 @@ def main():
             print("[FAIL] %s %s: %s" % (code, type(e).__name__, str(e)[:80]))
         time.sleep(0.4)
     os.makedirs(args.out, exist_ok=True)
-    path = os.path.join(args.out, "concepts.json")
     json.dump(out, open(path, "w"), ensure_ascii=False, indent=1)
     print("saved ->", path)
 
