@@ -19,12 +19,24 @@ def mkt(code):
 
 REGION_WORDS = ("板块",)
 
-def fetch_one(code, retries=1):
+def decode_body(raw):
+    """东财对较大响应强制 gzip（不论请求头），需按魔数解压后再解析。"""
+    if raw[:2] == b"\x1f\x8b":
+        import gzip
+        raw = gzip.decompress(raw)
+    elif raw[:2] == b"\x78\x9c":
+        import zlib
+        raw = zlib.decompress(raw)
+    return raw.decode("utf-8", "ignore")
+
+def fetch_one(code, retries=2):
     for attempt in range(retries + 1):
         try:
             req = urllib.request.Request(URL.format(mkt(code)),
-                                         headers={"User-Agent": UA, "Referer": "https://emweb.securities.eastmoney.com/"})
-            d = json.loads(urllib.request.urlopen(req, timeout=12).read().decode("utf-8", "ignore"))
+                                         headers={"User-Agent": UA,
+                                                  "Referer": "https://emweb.securities.eastmoney.com/",
+                                                  "Accept-Encoding": "gzip"})
+            d = json.loads(decode_body(urllib.request.urlopen(req, timeout=12).read()))
             ssbk = d.get("ssbk") or []
             names = [b.get("BOARD_NAME", "").strip() for b in ssbk]
             industry = [n for n in names[:3] if n]                       # 前3条=行业层级
