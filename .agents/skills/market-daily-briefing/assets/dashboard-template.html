@@ -61,7 +61,7 @@
   .mk-name i { font-style:normal; display:inline-block; width:8px; height:8px; border-radius:3px; background:var(--ic); margin-right:6px; transform:rotate(45deg); }
   .mk-en { font-size:9px; color:var(--faint); letter-spacing:1px; }
   .mk-asof { margin-left:auto; font-size:9.5px; color:var(--faint); }
-  .mk-body { display:grid; grid-template-columns:158px 1fr; gap:16px; align-items:stretch; margin-top:6px; }
+  .mk-body { display:grid; grid-template-columns:132px 1fr; gap:16px; align-items:stretch; margin-top:6px; }
   .mk-numcol { display:flex; flex-direction:column; justify-content:space-between; padding:2px 0; min-width:0; }
   .mk-close { font-size:25px; font-weight:700; letter-spacing:.3px; line-height:1.15; }
   .mk-chg { font-size:13.5px; font-weight:700; margin-top:1px; }
@@ -1395,7 +1395,7 @@ const TIER = [
 function fmtYi(v){ return v >= 10000 ? (v/10000).toFixed(2)+'万亿' : Math.round(v).toLocaleString('zh-CN')+'亿'; }
 
 function kline(o){
-  const D = MKT.dates, n = D.length, W = 760, H = 218, L = 8, R = 52, T = 10, PB = 126, VT = 136, VB = 208;
+  const D = MKT.dates, n = D.length, W = 560, H = 218, L = 8, R = 52, T = 10, PB = 126, VT = 136, VB = 208;
   const pw = W-L-R;
   const hi = Math.max.apply(null,o.H), lo = Math.min.apply(null,o.L);
   const pad = (hi-lo)*0.06 || 1;
@@ -1556,7 +1556,12 @@ function cardHtml(f, on){
 function typeChart(t){
   const D = E.series[t].slice(-60), n = D.length, W = 1360, H = 260, L = 58, R = 86, T = 14, B = 42;
   const pw = W - L - R, ph = H - T - B;
-  const mx = Math.max.apply(null, D.map(r => Math.abs(r[1]))) * 1.08 || 1;
+  const _abs = D.map(r => Math.abs(r[1]));
+  const _srt = _abs.slice().sort((a, b) => a - b);
+  const _p95 = _srt[Math.min(_srt.length - 1, Math.floor(_srt.length * .95))] || 1;
+  const _nz = v => { const e = Math.pow(10, Math.floor(Math.log(v) / Math.LN10)); const m = v / e;
+    return (m <= 1 ? 1 : m <= 1.5 ? 1.5 : m <= 2 ? 2 : m <= 3 ? 3 : m <= 4 ? 4 : m <= 5 ? 5 : m <= 7.5 ? 7.5 : 10) * e; };
+  const mx = _nz(Math.min(Math.max.apply(null, _abs) * 1.08 || 1, _p95 * 1.35));   /* P95 封顶+nice 刻度：防单日极值压扁日常柱，超限柱画到顶加 ▲ */
   const is = D.map(r => r[3]);
   let imn = Math.min.apply(null, is), imx = Math.max.apply(null, is);
   if (imx - imn < 1e-9) { imx += 1; imn -= 1; } else { const pad = (imx - imn) * .06; imx += pad; imn -= pad; }
@@ -1566,19 +1571,23 @@ function typeChart(t){
   const yi = v => T + ph * (1 - (v - imn) / ((imx - imn) || 1));
   let g = '', bars = '', pts = [], labs = '';
   [-mx, -mx / 2, 0, mx / 2, mx].forEach(v => {
-    g += '<line x1="' + L + '" y1="' + yv(v) + '" x2="' + (W - R) + '" y2="' + yv(v) + '" stroke="var(--border)" stroke-width="1" opacity=".55"/>'
+    const z = v === 0;
+    g += '<line x1="' + L + '" y1="' + yv(v) + '" x2="' + (W - R) + '" y2="' + yv(v) + '" stroke="' + (z ? '#68758C' : 'var(--border)') + '" stroke-width="1"' + (z ? '' : ' opacity=".55"') + '/>'
       + '<text x="' + (L - 6) + '" y="' + (yv(v) + 3.5) + '" text-anchor="end" font-size="9.5" fill="var(--faint)">' + v.toFixed(0) + '</text>';
   });
+  g += '<text x="' + (L - 6) + '" y="' + (T + 2) + '" text-anchor="end" font-size="9" fill="var(--faint)">亿</text>';
   D.forEach((r, i) => {
-    const up = r[1] >= 0, hh = Math.max(1, Math.abs(r[1]) / mx * ph / 2);
-    bars += '<rect x="' + (x(i) - bw / 2) + '" y="' + (up ? yv(r[1]) : yv(0)) + '" width="' + bw + '" height="' + hh + '" fill="' + (up ? 'var(--red)' : 'var(--green)') + '" opacity=".8"><title>' + r[0] + ' 净流入 ' + fmt(r[1]) + '亿 · 60日累计 ' + fmt(r[2]) + '亿 · 对应指数收盘 ' + r[3] + '</title></rect>';
+    const up = r[1] >= 0, av = Math.abs(r[1]), hh = Math.max(1, Math.min(av, mx) / mx * ph / 2);
+    bars += '<rect x="' + (x(i) - bw / 2) + '" y="' + (up ? yv(Math.min(av, mx)) : yv(0)) + '" width="' + bw + '" height="' + hh + '" fill="' + (up ? 'var(--red)' : 'var(--green)') + '" opacity=".8"><title>' + r[0] + ' 净流入 ' + fmt(r[1]) + '亿 · 60日累计 ' + fmt(r[2]) + '亿 · 对应指数收盘 ' + r[3] + '</title></rect>';
+    if (av > mx) bars += '<text x="' + x(i).toFixed(1) + '" y="' + (up ? yv(mx) + 10 : yv(-mx) - 3) + '" text-anchor="middle" font-size="9" fill="#68758C">▲<title>' + r[0] + ' ' + fmt(r[1]) + '亿（超出轴顶，截断显示，悬停柱体可见全量明细）</title></text>';
     pts.push(x(i).toFixed(1) + ',' + yi(r[3]).toFixed(1));
     if (i % Math.ceil(n / 9) === 0 || i === n - 1)
       labs += '<text x="' + x(i) + '" y="' + (H - 16) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + r[0].slice(5) + '</text>';
   });
-  [imx, (imx + imn) / 2, imn].forEach(v => {
-    g += '<text x="' + (W - R + 10) + '" y="' + (yi(v) + 3.5) + '" font-size="10" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fx(v) + '</text>';
-  });
+  for (let k = 0; k < 4; k++) {
+    const v = imx - (imx - imn) * k / 3;
+    g += '<text x="' + (W - R + 10) + '" y="' + (yi(v) + 3.5) + '" font-size="9.5" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fx(v) + '</text>';
+  }
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + g + bars
     + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#3b66d4" stroke-width="1.8"/>' + labs
     + '<text x="' + (W - R + 10) + '" y="' + (T + 4) + '" font-size="10" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">指数</text></svg>';
@@ -1590,7 +1599,7 @@ function fundChart(f, withSum){
   const nmap = {}; hist.forEach(x => { nmap[x[0]] = x[1]; });
   const W = 1360, H = 260, L = 58, R = 80, T = 14, B = 42, n = K.length || 1;
   const pw = W - L - R, ph = H - T - B;
-  const mx = Math.max(20, Math.max.apply(null, hist.map(x => Math.abs(x[1])).concat([Math.abs(f.netIn1 || 0)])) * 1.15);
+  const mx = Math.max(1, Math.max.apply(null, hist.map(x => Math.abs(x[1])).concat([Math.abs(f.netIn1 || 0)])) * 1.15);
   const cs = K.map(x => x[1]);
   let cmn = cs.length ? Math.min.apply(null, cs) : 0, cmx = cs.length ? Math.max.apply(null, cs) : 1;
   if (cmx - cmn < 1e-9) { cmx += 1; cmn -= 1; } else { const pad = (cmx - cmn) * .06; cmx += pad; cmn -= pad; }
@@ -1600,9 +1609,11 @@ function fundChart(f, withSum){
   const yc = v => T + ph * (1 - (v - cmn) / ((cmx - cmn) || 1));
   let g = '', bars = '', pts = [], labs = '';
   [-mx, -mx / 2, 0, mx / 2, mx].forEach(v => {
-    g += '<line x1="' + L + '" y1="' + yv(v) + '" x2="' + (W - R) + '" y2="' + yv(v) + '" stroke="var(--border)" stroke-width="1" opacity=".55"/>'
+    const z = v === 0;
+    g += '<line x1="' + L + '" y1="' + yv(v) + '" x2="' + (W - R) + '" y2="' + yv(v) + '" stroke="' + (z ? '#68758C' : 'var(--border)') + '" stroke-width="1"' + (z ? '' : ' opacity=".55"') + '/>'
       + '<text x="' + (L - 6) + '" y="' + (yv(v) + 3.5) + '" text-anchor="end" font-size="9.5" fill="var(--faint)">' + v.toFixed(0) + '</text>';
   });
+  g += '<text x="' + (L - 6) + '" y="' + (T + 2) + '" text-anchor="end" font-size="9" fill="var(--faint)">亿</text>';
   K.forEach((r, i) => {
     const d = r[0], v = nmap[d];
     if (v != null) {
@@ -1613,9 +1624,10 @@ function fundChart(f, withSum){
     if (i % Math.ceil(n / 9) === 0 || i === n - 1)
       labs += '<text x="' + x(i) + '" y="' + (H - 16) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + d.slice(5) + '</text>';
   });
-  [cmx, (cmx + cmn) / 2, cmn].forEach(v => {
-    g += '<text x="' + (W - R + 10) + '" y="' + (yc(v) + 3.5) + '" font-size="10" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fxp(v) + '</text>';
-  });
+  for (let k = 0; k < 4; k++) {
+    const v = cmx - (cmx - cmn) * k / 3;
+    g += '<text x="' + (W - R + 10) + '" y="' + (yc(v) + 3.5) + '" font-size="9.5" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fxp(v) + '</text>';
+  }
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + g + bars
     + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#3b66d4" stroke-width="1.8"/>' + labs
     + '<text x="' + (W - R + 10) + '" y="' + (T + 4) + '" font-size="10" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">价格</text></svg>'
@@ -1626,7 +1638,7 @@ function fundChart(f, withSum){
     + '<span>份额5日 <b class="' + cls(f.shareChg5) + '">' + (f.shareChg5 == null ? '—' : f.shareChg5 + '%') + '</b></span>'
     + '<span>份额20日 <b class="' + cls(f.shareChg20) + '">' + (f.shareChg20 == null ? '—' : f.shareChg20 + '%') + '</b></span>'
     + '<span>最新成交 <b>' + (f.amt == null ? '—' : f.amt) + ' 亿</b></span></div>')
-    + '<div class="ef-axis-note">柱=该 ETF 当日净流入（亿元，红入绿出；自 ' + (hist[0] ? hist[0][0] : '—') + ' 起由本地历史库逐日积累，单只历史无官方回溯接口' + (hist.length < 3 ? '，序列积累中' : '') + '） · 蓝线=ETF 收盘价（右轴，前复权，东财日 K）</div>';
+    + '<div class="ef-axis-note">柱=该 ETF 当日净流入（红入绿出；自 ' + (hist[0] ? hist[0][0] : '—') + ' 起由本地历史库逐日积累，单只历史无官方回溯接口' + (hist.length < 3 ? '，序列积累中' : '') + '） · 蓝线=ETF 收盘价（右轴，前复权，东财日 K）</div>';
 }
 
 /* 行业专区：左侧聚合下拉列表（类内按规模倒序、近5日净流入倒序，区域内滑动）＋右侧图表 */
@@ -1677,7 +1689,7 @@ function render(){
       + '<span>近60日净流入 <b class="' + cls(last[2]) + '">' + fmt(last[2]) + ' 亿</b></span>'
       + '<span>对应指数收盘 <b>' + last[3] + '</b></span></div>'
       + typeChart(mt)
-      + '<div class="ef-axis-note">柱=当日估算净流入（左轴，亿元，红入绿出） · 线=对应指数收盘（右轴） · 悬停柱体可见当日明细（含 60 日累计） · 点击上方重点卡切换单只 ETF 净买入趋势</div>';
+      + '<div class="ef-axis-note">柱=当日估算净流入（红入绿出） · 线=对应指数收盘（右轴） · 悬停柱体可见当日明细（含 60 日累计） · 点击上方重点卡切换单只 ETF 净买入趋势</div>';
   }
   /* 行业专区图：行业类整体 ＋ 行业代表卡联动（独立于主图） */
   let indChartHtml;
@@ -1695,7 +1707,7 @@ function render(){
       + '<span>近60日净流入 <b class="' + cls(last[2]) + '">' + fmt(last[2]) + ' 亿</b></span>'
       + '<span>对应指数收盘 <b>' + last[3] + '</b></span></div>'
       + typeChart('2')
-      + '<div class="ef-axis-note">柱=当日估算净流入（左轴，亿元，红入绿出） · 线=对应指数收盘（右轴） · 悬停柱体可见当日明细（含 60 日累计） · 左侧列表点选行业切换单只净买入趋势</div>';
+      + '<div class="ef-axis-note">柱=当日估算净流入（红入绿出） · 线=对应指数收盘（右轴） · 悬停柱体可见当日明细（含 60 日累计） · 左侧列表点选行业切换单只净买入趋势</div>';
   }
   const indSec = INDS.length ? '<div class="ef-isec">'
     + '<div class="ef-khead">行业 ETF 观察池 · 分组代表 · 资金偏好</div>'
