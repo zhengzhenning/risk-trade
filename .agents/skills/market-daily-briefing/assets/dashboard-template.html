@@ -459,15 +459,7 @@
 .tier-more { font-size:11px; color:var(--sub); padding:4px 2px; }
 
 
-/* ---------- 当前供需 + 阶段依据 ---------- */
-.vp-sd { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; background:var(--surface2); border-radius:8px; padding:10px 12px; margin:8px 0 4px; }
-.vp-sd-label { font-size:11px; color:var(--sub); }
-.vp-sd-val { font-size:18px; font-weight:700; letter-spacing:.02em; }
-.vp-sd-val.up { color:var(--red); }
-.vp-sd-val.down { color:var(--green); }
-.vp-sd-val.na { color:var(--sub); }
-.vp-sd .conf { font-size:10.5px; }
-.vp-sd-why { font-size:12px; color:var(--txt); flex:1 1 340px; line-height:1.6; }
+/* ---------- 阶段依据 ---------- */
 .vp-plist { margin-top:6px; }
 .vp-plist-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--txt); padding:4px 0 2px; }
 .vp-plist-h span { font-size:11px; color:var(--sub); font-weight:400; }
@@ -507,6 +499,66 @@
 .tab-subchips::-webkit-scrollbar { display:none; }
 .tab-subchips a { flex:none; font-size:12px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
 .tab-subchips a:hover { color:var(--txt); border-color:var(--border2); background:var(--surface2); }
+
+
+/* ---------- 规则命中（R1–R4） ---------- */
+.vp-prow { flex-wrap:wrap; }
+.vp-rules { flex-basis:100%; display:flex; flex-wrap:wrap; gap:6px; margin:5px 0 0 18px; }
+.rule { font-size:11px; border:1px solid var(--border); border-radius:3px; padding:1px 7px; color:var(--sub); background:var(--surface); }
+.rule b { font-weight:600; color:var(--txt); }
+.rule.ok { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
+.rule.miss { color:#68758C; background:var(--surface2); }
+.rule.miss b { color:var(--sub); }
+.hits { flex:none; font-size:10.5px; color:var(--sub); border:1px solid var(--border); border-radius:3px; padding:1px 6px; }
+.wk-phase { flex:none; font-size:10.5px; border:1px solid; border-radius:3px; padding:1px 7px; font-weight:600; }
+
+
+.trend-badge { flex:none; font-size:10.5px; border:1px solid var(--border); border-radius:3px; padding:1px 7px; color:var(--sub); }
+.trend-badge.t-up { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
+.trend-badge.t-down { color:#9f1239; border-color:#fecdd3; background:#fff1f2; }
+.trend-badge.t-mid { color:#68758C; background:var(--surface2); }
+
+
+/* ---------- 阶段行：可折叠证据 ---------- */
+.vp-ph { border-top:1px dashed var(--border); }
+.vp-ph summary { display:flex; align-items:baseline; gap:10px; padding:8px 0; cursor:pointer; list-style:none; }
+.vp-ph summary::-webkit-details-marker { display:none; }
+.vp-ph summary:focus-visible { outline:2px solid #0F172A; outline-offset:2px; }
+.vp-ph summary > i { flex:none; width:8px; height:8px; border-radius:2px; margin-top:5px; }
+.vp-ph summary > b { flex:none; width:66px; }
+.vp-ph summary .dt { flex:none; width:96px; color:var(--sub); font-size:11px; }
+.vp-ph summary .dur { flex:none; width:72px; color:var(--faint); font-size:11px; text-align:right; }
+.vp-ph summary .hits { flex:none; }
+.vp-ph summary .conf { flex:none; }
+.vp-ph summary .chev { margin-left:auto; color:var(--sub); font-size:11px; }
+.vp-ph summary .chev:before { content:"▸"; }
+.vp-ph[open] summary .chev:before { content:"▾"; }
+.vp-ph[open] summary { border-bottom:1px dashed var(--border); }
+.vp-ph .vp-rules { margin:8px 0 10px 18px; }
+
+
+/* ---------- 日/周 K 切换 ---------- */
+.vp-chartbar { display:flex; align-items:center; gap:12px; margin:4px 0 2px; flex-wrap:wrap; }
+.vp-seg { display:inline-flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.vp-seg button { font:inherit; font-size:12px; color:var(--sub); background:var(--surface); border:none; padding:4px 12px; cursor:pointer; }
+.vp-seg button + button { border-left:1px solid var(--border); }
+.vp-seg button[aria-pressed="true"] { background:#0F172A; color:#fff; }
+.vp-seg button:focus-visible { outline:2px solid #0F172A; outline-offset:-2px; }
+.vp-chartnote { font-size:11px; color:var(--faint); }
+.vp-chart-body[hidden] { display:none; }
+.wk-line { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; padding:8px 0 4px; border-top:1px dashed var(--border); margin-top:6px; }
+.wk-line .wk-why { flex:1 1 380px; font-size:11.5px; color:var(--sub); line-height:1.6; }
+.wk-detail summary { cursor:pointer; font-size:11px; color:var(--sub); }
+.wk-detail .vp-rules { margin:6px 0 0; }
+
+
+
+
+/* ---------- 东财式 K 线：MA 数值图例 + 十字光标 ---------- */
+.vp-ma { display:flex; gap:14px; font-size:11px; color:var(--sub); margin:4px 0 0; }
+.vp-ma .ma5 { color:#d97706; } .vp-ma .ma10 { color:#2563eb; } .vp-ma .ma20 { color:#7c3aed; }
+.vp-tip { position:absolute; pointer-events:none; background:rgba(15,23,42,.92); color:#fff; font-size:11px; line-height:1.6; padding:6px 9px; border-radius:4px; white-space:nowrap; display:none; z-index:5; }
+.vp-chart-body { position:relative; }
 
 </style>
 </head>
@@ -1149,6 +1201,14 @@ const blocks = document.getElementById("blocks");
   window.addEventListener("hashchange", function(){ var hh = norm(location.hash); if (hh === "etf" || hh === "history" || hh === "cycle") activate(hh, false); });
 })();
 
+
+document.addEventListener("click", function(e){
+  var b = e.target.closest && e.target.closest(".vp-seg button");
+  if (!b) return;
+  var card = b.closest(".vp-card"), view = b.getAttribute("data-view");
+  card.querySelectorAll(".vp-seg button").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+  card.querySelectorAll(".vp-chart-body").forEach(function(el){ el.hidden = el.getAttribute("data-view") !== view; });
+});
 const navChips = document.getElementById("navChips");
 /* ---------- 板块梯队：同板块全部标的（含跟涨），按今日涨幅排列 ---------- */
 const PHASE_META = { acc: { n: "吸筹", c: "#2563eb" }, wash: { n: "洗盘", c: "#b45309" },
@@ -1237,7 +1297,7 @@ function newsHtmlOf(tl) {
 
 function vpChartHtml(v, name) {
   const K = (v && v.k) || []; if (!K.length) return "";
-  const W = 1360, H = 410, L = 44, R = 66, T = 30, ph = 244, vTop = 302, vh = 72;
+  const W = 1360, H = 340, L = 44, R = 66, T = 30, ph = 200, vTop = 252, vh = 58;
   const n = K.length, step = (W - L - R) / n;
   const lo = Math.min.apply(null, K.map(r => r[3])), hi = Math.max.apply(null, K.map(r => r[4]));
   const pad = (hi - lo) * 0.08 || 0.1, pl = lo - pad, phh = hi + pad;
@@ -1266,9 +1326,9 @@ function vpChartHtml(v, name) {
     }
   }
   /* 价格网格 + 右轴 */
-  for (let k = 0; k <= 3; k++) {
-    const p = phh - (phh - pl) * k / 3, yy = y(p);
-    g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="var(--border)" stroke-width="1" opacity=".6"/>';
+  for (let k = 0; k <= 2; k++) {
+    const p = phh - (phh - pl) * k / 2, yy = y(p);
+    g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#eef2f6" stroke-width="1"/>';
     axis += '<text x="' + (W - R + 8) + '" y="' + (yy + 3.5) + '" font-size="9.5" fill="var(--faint)">' + p.toFixed(2) + '</text>';
   }
   /* 蜡烛：阳线空心、阴线实心（不依赖颜色单一编码） */
@@ -1301,44 +1361,51 @@ function vpChartHtml(v, name) {
     + '<text x="' + L + '" y="' + (vTop - 4) + '" font-size="9" fill="var(--faint)">成交量（万手）</text></svg>';
 }
 
-/* ---------- 当前供需结论 + 各阶段依据（固化口径） ---------- */
-function vpSdHtml(v) {
-  const sd = v.sd || "无法判定";
-  const cls = sd === "供大于需" ? "down" : (sd === "供小于需" ? "up" : "na");
-  const cf = v.sdConf === "强" ? "strong" : (v.sdConf === "中" ? "mid" : "weak");
-  return '<div class="vp-sd"><span class="vp-sd-label">当前供需</span><b class="vp-sd-val ' + cls + '">' + sd + '</b>'
-    + '<em class="conf ' + cf + '">证据 ' + (v.sdConf || "—") + '</em>'
-    + '<span class="vp-sd-why">依据：' + (v.sdWhy || "阶段证据不足（不足 2 个交易日或量价特征不满足），暂不判定") + '</span></div>';
-}
+/* ---------- 各阶段依据（固化口径） ---------- */
 function vpPhaseListHtml(v) {
   const rows = (v.phases || []).map(p => {
     const m = PHASE_META[p.k] || { n: p.k, c: "#68758C" };
     const cf = p.conf === "强" ? "strong" : (p.conf === "中" ? "mid" : "weak");
-    return '<div class="vp-prow"><i style="background:' + m.c + '"></i><b>' + m.n + (p.tent ? "（观察）" : '') + '</b>'
+    return '<details class="vp-ph"><summary><i style="background:' + m.c + '"></i><b>' + m.n + (p.tent ? "（观察）" : '') + '</b>'
       + '<span class="dt num" title="起点依据：' + (p.sw || "—") + '">' + p.a.slice(5) + "–" + p.b.slice(5) + '</span>'
       + '<span class="dur num" title="自然日 ' + (p.cal || "—") + ' 天">' + (p.n || "—") + ' 交易日</span>'
-      + '<span class="why">' + (p.why || "") + '</span>'
-      + '<em class="conf ' + cf + '">' + (p.conf || "弱") + '</em></div>';
+      + (p.hits != null ? '<span class="hits num">命中 ' + p.hits + '/' + (p.rules || []).length + '</span>' : '')
+      + '<em class="conf ' + cf + '">' + (p.conf || "弱") + '</em><span class="chev" aria-hidden="true"></span></summary>'
+      + '<div class="vp-rules">' + (p.rules || []).map(function(r){
+          return '<span class="rule ' + (r.ok ? "ok" : "miss") + '" title="' + (r.name || "") + '">' + r.id + ' ' + r.name
+            + ' <b>' + r.v + '</b> ' + r.t + ' ' + (r.ok ? "✓" : "✗") + '</span>';
+        }).join("") + '</div></details>';
   }).join("");
-  return '<div class="vp-plist"><div class="vp-plist-h"><b>阶段依据</b><span title="成立条件：吸筹 振幅<15%、量比<1.0×、换手<4%、阳线量≥阴线量；洗盘 回撤8–20%、量比<1.1×、不破平台；启动 涨幅≥8%、量比≥1.2×、≥1 涨停；派发 量比≥1.2×、换手峰值≥日均1.3×、跌停或收跌。满足≥3 条且≥2 日成立；强=4 条且≥5 日，中=3 条或2–4 日，弱=2 条或单日。起点口径：吸筹=箱体/低换手起点，洗盘=高点后首个缩量回落，启动=洗盘后首个涨停（首板），派发=高位首个异常换手日">按价格区间、涨跌幅、换手率、量比计算；起点与阈值悬停可看</span></div>' + rows + '</div>';
+  return '<div class="vp-plist"><div class="vp-plist-h"><b>阶段依据</b><span title="成立条件：吸筹 振幅<15%、量比<1.0×、换手<4%、阳线量≥阴线量；洗盘 回撤8–20%、量比<1.1×、不破平台；启动 涨幅≥8%、量比≥1.2×、≥1 涨停；派发 量比≥1.2×、换手峰值≥日均1.3×、跌停或收跌。满足≥3 条且≥2 日成立；强=4 条且≥5 日，中=3 条或2–4 日，弱=2 条或单日。起点口径：吸筹=箱体/低换手起点，洗盘=高点后首个缩量回落，启动=洗盘后首个涨停（首板），派发=高位首个异常换手日">R1–R5 逐条判定，点击展开实际值与阈值；起点依据悬停日期查看</span></div>' + rows + '</div>';
 }
 
 /* ---------- 周线交叉验证（26 周） ---------- */
-function wkChartHtml(v) {
+function wkChartHtml(v, name) {
   const wk = v.wk || {}; const K = wk.k || [];
   if (!K.length) return "";
-  const W = 1360, H = 258, L = 44, R = 66, T = 18, B = 26;
-  const priceH = 150, vTop = T + priceH + 22, vh = 44;
+  const W = 1360, H = 340, L = 44, R = 66, T = 18, B = 26;
+  const priceH = 200, vTop = T + priceH + 22, vh = 58;
   const n = K.length, step = (W - L - R) / n, bw = Math.min(14, step * .58);
   const lo = Math.min.apply(null, K.map(r => r[3])), hi = Math.max.apply(null, K.map(r => r[4]));
   const pad = (hi - lo) * .07 || .1, pl = lo - pad, ph = hi + pad;
   const vmax = Math.max.apply(null, K.map(r => r[5])) || 1;
   const x = i => L + step * (i + .5), y = p => T + priceH * (1 - (p - pl) / (ph - pl));
-  const yv = b => vTop + vh * (1 - Math.sqrt(b / vmax));   /* 平方根刻度：避免单周天量压扁其余周 */
+  const yv = b => vTop + vh * (1 - Math.sqrt(b / vmax));
+  const wkStart = d => { for (let i = 0; i < n; i++) if (K[i][0] >= d) return i; return n - 1; };
+  let bands = "";
+  (v.phases || []).forEach(p => {
+    const a = wkStart(p.a), b = wkStart(p.b);
+    if (a < 0 || b < 0) return;
+    const meta = PHASE_META[p.k] || { n: p.k, c: "#68758C" };
+    const x0 = x(a) - step / 2, x1 = x(b) + step / 2;
+    bands += '<rect x="' + x0 + '" y="' + T + '" width="' + (x1 - x0) + '" height="' + priceH + '" fill="' + meta.c + '" opacity=".09"/>'
+      + '<rect x="' + x0 + '" y="' + T + '" width="' + (x1 - x0) + '" height="2" fill="' + meta.c + '" opacity=".55"/>'
+      + ((x1 - x0) >= 46 ? '<text x="' + (x0 + 4) + '" y="' + (T + 13) + '" font-size="10.5" fill="' + meta.c + '" font-weight="600" style="paint-order:stroke" stroke="#fff" stroke-width="2.5">' + meta.n + '</text>' : '');
+  });
   let g = "", axis = "", vol = "";
-  for (let k = 0; k <= 3; k++) {
-    const p = ph - (ph - pl) * k / 3, yy = y(p);
-    g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="var(--border)" opacity=".55"/>';
+  for (let k = 0; k <= 2; k++) {
+    const p = ph - (ph - pl) * k / 2, yy = y(p);
+    g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#eef2f6"/>';
     axis += '<text x="' + (W - R + 8) + '" y="' + (yy + 3.5) + '" font-size="9.5" fill="var(--faint)">' + p.toFixed(2) + '</text>';
   }
   K.forEach((r, i) => {
@@ -1358,19 +1425,23 @@ function wkChartHtml(v) {
     }
     return '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + (k === 5 ? "#d97706" : "#2563eb") + '" stroke-width="1.2" opacity=".8"/>';
   };
-  vol += '<text x="' + L + '" y="' + (vTop - 5) + '" font-size="9" fill="var(--faint)">周成交量（万手，平方根刻度）</text>'
-    + '<line x1="' + L + '" y1="' + (vTop + vh) + '" x2="' + (W - R) + '" y2="' + (vTop + vh) + '" stroke="var(--border)" stroke-width="1"/>';
-  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (v.wk && v.wk.phase) + ' 周线 26 周，含周成交量">'
-    + g + vol + ma(5) + ma(10) + axis + '</svg>';
+  vol += '<line x1="' + L + '" y1="' + (vTop + vh) + '" x2="' + (W - R) + '" y2="' + (vTop + vh) + '" stroke="var(--border)" stroke-width="1"/>';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + name + ' 周线 26 周，含阶段色带与周成交量">'
+    + bands + g + vol + ma(5) + ma(10) + axis + '</svg>';
 }
 
-function wkBlockHtml(v) {
+function wkLineHtml(v) {
   const wk = v.wk || {};
-  if (!wk.k || !wk.k.length) return "";
+  if (!wk.rules || !wk.rules.length) return "";
   const cls = wk.tag === "一致" ? "ok" : (wk.tag === "冲突" ? "bad" : "mid");
-  return '<div class="wk-block"><div class="wk-head">周线交叉验证（26 周，验证末段「' + (wk.phase || "—") + '」）</div>'
-    + '<div class="wk-chart">' + wkChartHtml(v) + '</div>'
-    + '<div class="wk-verdict"><span class="wk-tag ' + cls + '">' + (wk.tag || "—") + '</span><span class="wk-why">' + (wk.why || "") + '</span></div></div>';
+  const pm = PHASE_META[wk.pk] || { n: wk.phase || "—", c: "#68758C" };
+  return '<div class="wk-line"><span class="wk-phase" style="color:' + pm.c + ';border-color:' + pm.c + '">周线 · ' + pm.n + '</span>'
+    + '<span class="wk-tag ' + cls + '">' + (wk.tag || "—") + '</span>'
+    + '<span class="hits num">命中 ' + (wk.hits != null ? wk.hits : "—") + '/' + wk.rules.length + '</span>'
+    + '<span class="wk-why">' + (wk.why || "") + '</span>'
+    + '<details class="wk-detail"><summary>规则</summary><div class="vp-rules">' + wk.rules.map(function(r){
+        return '<span class="rule ' + (r.ok ? "ok" : "miss") + '">' + r.id + ' ' + r.name + ' <b>' + r.v + '</b> ' + r.t + ' ' + (r.ok ? "✓" : "✗") + '</span>';
+      }).join("") + '</div></details></div>';
 }
 
 function vpCardHtml(s, v) {
@@ -1390,16 +1461,19 @@ function vpCardHtml(s, v) {
     + '<a class="vp-name" href="' + emQuote(s.code) + '" target="_blank" style="color:' + nmCol + '">' + s.name + ' ↗</a>'
     + '<span class="vp-sub num">' + s.code + ' · ' + s.theme + ' · 月度 ' + (mp == null ? '—' : pctTxt(mp)) + ' · 今日 ' + (s.pct > 0 ? '+' : '') + Number(s.pct).toFixed(2) + '% · 竞价 ' + (s.jj == null ? '—' : pctTxt(s.jj)) + ' · 换手 ' + (s.hs == null ? '—' : s.hs.toFixed(2) + '%') + '</span>'
     + badges.join("")
+    + (v.trend ? '<span class="trend-badge t-' + (v.trend.state === "上行" ? "up" : v.trend.state === "下行" ? "down" : "mid") + '" title="近60日 ' + v.trend.chg60 + '% · ' + (v.trend.aboveMA60 ? "站上" : "低于") + ' MA60">趋势 ' + v.trend.state + '</span>' : '')
     + '<span class="vp-kpis"><span>半年 <b class="num ' + pctCls(st.chg) + '">' + (st.chg > 0 ? "+" : "") + st.chg + '%</b></span>'
     + '<span>收盘 <b class="num">' + st.close + '</b></span>'
     + '<span>区间 <b class="num">' + st.lo + '–' + st.hi + '</b></span>'
     + '</span>'
     + '</div>'
-    + '<div class="vp-chart">' + vpChartHtml(v, s.name) + '</div>'
-    + '<div class="vp-legend"><span><i style="background:#fff;border:1px solid var(--red)"></i>阳线（空心）</span><span><i style="background:var(--green)"></i>阴线（实心）</span><span><i style="background:#d97706"></i>MA5</span><span><i style="background:#2563eb"></i>MA10</span><span><i style="background:#7c3aed"></i>MA20</span></div>'
-    + vpSdHtml(v)
+    + '<div class="vp-chartbar"><div class="vp-seg" role="group" aria-label="K 线周期"><button type="button" data-view="day" aria-pressed="true">日K</button><button type="button" data-view="week" aria-pressed="false">周K</button></div><span class="vp-chartnote">日线 120 个交易日 / 周线 26 周 · 时间区间对齐</span></div>'
+    + '<div class="vp-chart-body" data-view="day" data-code="' + s.code + '">' + vpChartHtml(v, s.name) + '</div>'
+    + '<div class="vp-chart-body" data-view="week" data-code="' + s.code + '" hidden>' + wkChartHtml(v, s.name) + '</div>'
+    + (function(){ var K=v.k||[]; var m=function(n){ if(K.length<n) return '—'; var t=0; for(var i=K.length-n;i<K.length;i++) t+=K[i][2]; return (t/n).toFixed(2); };
+        return '<div class="vp-ma"><span class="ma5">MA5 ' + m(5) + '</span><span class="ma10">MA10 ' + m(10) + '</span><span class="ma20">MA20 ' + m(20) + '</span></div>'; })()
+    + wkLineHtml(v)
     + vpPhaseListHtml(v)
-    + wkBlockHtml(v)
     + '</div>';
 }
 function vpCardsHtml(theme) {
@@ -2145,6 +2219,38 @@ function render(){
 
 }
 render();
+})();
+
+/* ---------- K 线：固定全区间（日 120 / 周 26 对齐）+ 十字光标 ---------- */
+(function(){
+  function attachTip(body){
+    var svg = body.querySelector("svg"); if (!svg) return;
+    var tip = body.querySelector(".vp-tip");
+    if (!tip) { tip = document.createElement("div"); tip.className = "vp-tip"; body.appendChild(tip); }
+    svg.onmousemove = function(e){
+      var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+      var sx = (e.clientX - r.left) / r.width * vb.width;
+      var n = +body.getAttribute("data-n") || 0;
+      var L = 44, R = 66, step = (1360 - L - R) / n, i = Math.round((sx - L) / step - .5);
+      var v = VP[body.getAttribute("data-code")], view = body.getAttribute("data-view");
+      var arr = view === "day" ? v.k : v.wk.k;
+      if (!n || i < 0 || i >= n || !arr[i]) { tip.style.display = "none"; return; }
+      var b = arr[i], txt;
+      if (view === "day") txt = b[0] + " 开 " + b[1] + " 高 " + b[4] + " 低 " + b[3] + " 收 " + b[2] + "　涨跌 " + (b[6] > 0 ? "+" : "") + b[6] + "%　换手 " + b[7] + "%　量 " + b[5] + "万手";
+      else txt = b[0] + " 开 " + b[1] + " 高 " + b[4] + " 低 " + b[3] + " 收 " + b[2] + "　量 " + b[5] + "万手";
+      tip.textContent = txt; tip.style.display = "block";
+      var br = body.getBoundingClientRect();
+      var left = Math.min(e.clientX - br.left + 12, br.width - tip.offsetWidth - 6);
+      tip.style.left = Math.max(4, left) + "px"; tip.style.top = Math.max(4, e.clientY - br.top - 34) + "px";
+    };
+    svg.onmouseleave = function(){ tip.style.display = "none"; };
+  }
+  document.querySelectorAll(".vp-chart-body").forEach(function(body){
+    var v = VP[body.getAttribute("data-code")]; if (!v) return;
+    var all = body.getAttribute("data-view") === "day" ? v.k : (v.wk && v.wk.k) || [];
+    body.setAttribute("data-n", all.length);
+    attachTip(body);
+  });
 })();
 </script>
 </body>
