@@ -427,7 +427,7 @@
 .vp-head .vp-sub { font-size:11px; color:var(--sub); }
 .vp-head .vp-kpis { margin-left:auto; display:flex; gap:14px; font-size:11px; color:var(--sub); flex-wrap:wrap; }
 .vp-head .vp-kpis b { font-size:13px; }
-.vp-chart svg { width:100%; height:auto; display:block; }
+.vp-chart-body svg { width:100%; height:auto; display:block; }
 .vp-legend { display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:var(--sub); margin:4px 0 0; }
 .vp-legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
 .vp-phases { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 8px; }
@@ -477,7 +477,7 @@
 /* ---------- 周线交叉验证 ---------- */
 .wk-block { margin-top:10px; border-top:1px dashed var(--border); padding-top:8px; }
 .wk-head { font-size:12px; font-weight:600; color:var(--txt); }
-.wk-chart svg { width:100%; height:auto; display:block; }
+.vp-chart-body svg { width:100%; height:auto; display:block; }
 .wk-verdict { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; padding:2px 0 2px; }
 .wk-tag { flex:none; font-size:10.5px; border:1px solid var(--border); border-radius:3px; padding:1px 6px; }
 .wk-tag.ok { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
@@ -1296,15 +1296,17 @@ function newsHtmlOf(tl) {
 }
 
 function vpChartHtml(v, name) {
-  const K = (v && v.k) || []; if (!K.length) return "";
-  const W = 1360, H = 340, L = 44, R = 66, T = 30, ph = 200, vTop = 252, vh = 58;
+  const K = ((v && v.k) || []).slice(-40); if (!K.length) return "";   /* 日K仅展示最近 40 个交易日（约2个月，覆盖吸筹/洗盘/启动；改 20 则聚焦最近1个月） */
+  const W = 1360, H = 640, L = 12, R = 70, T = 28, ph = 420, vTop = 472, vh = 120;
   const n = K.length, step = (W - L - R) / n;
   const lo = Math.min.apply(null, K.map(r => r[3])), hi = Math.max.apply(null, K.map(r => r[4]));
-  const pad = (hi - lo) * 0.08 || 0.1, pl = lo - pad, phh = hi + pad;
+  const pad = (hi - lo) * 0.06 || 0.1, pl = lo - pad, phh = hi + pad;
   const vmax = Math.max.apply(null, K.map(r => r[5])) || 1;
-  const x = i => L + step * (i + 0.5), bw = Math.max(2.5, Math.min(9, step * .62));
+  const x = i => L + step * (i + 0.5), bw = Math.max(1.5, Math.min(20, step * .65));
   const y = p => T + ph * (1 - (p - pl) / (phh - pl));
-  const yv = b => vTop + vh * (1 - Math.sqrt(b / vmax));   /* 平方根刻度：避免单周天量压扁其余周 */
+  const vSorted = K.map(r => r[5]).slice().sort((a, b) => a - b);
+  const vCap = vSorted[Math.floor(vSorted.length * 0.95)] || vmax;   /* P95 封顶，防单日极量压扁日常量柱 */
+  const yv = b => vTop + vh * (1 - Math.min(b, vCap) / vCap);
   const dv = d => Date.parse(d);
   let g = "", bands = "", vol = "", axis = "";
   /* 阶段色带（四阶段）+ 停牌断点 */
@@ -1325,20 +1327,37 @@ function vpChartHtml(v, name) {
         + '<text x="' + (gx + 3) + '" y="' + (T - 8) + '" font-size="9.5" fill="#475569" style="paint-order:stroke" stroke="#fff" stroke-width="2.5">停牌</text>';
     }
   }
-  /* 价格网格 + 右轴 */
-  for (let k = 0; k <= 2; k++) {
-    const p = phh - (phh - pl) * k / 2, yy = y(p);
+  /* 价格网格（5 级）+ 右轴 */
+  for (let k = 0; k <= 4; k++) {
+    const p = phh - (phh - pl) * k / 4, yy = y(p);
     g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#eef2f6" stroke-width="1"/>';
-    axis += '<text x="' + (W - R + 8) + '" y="' + (yy + 3.5) + '" font-size="9.5" fill="var(--faint)">' + p.toFixed(2) + '</text>';
+    axis += '<text x="' + (W - R + 10) + '" y="' + (yy + 3.5) + '" font-size="10" fill="var(--faint)">' + p.toFixed(2) + '</text>';
   }
-  /* 蜡烛：阳线空心、阴线实心（不依赖颜色单一编码） */
+  /* 价格区与成交量区分隔线 */
+  g += '<line x1="' + L + '" y1="' + vTop + '" x2="' + (W - R) + '" y2="' + vTop + '" stroke="var(--border)" stroke-width="1"/>';
+  /* 蜡烛：红涨绿跌基底；特殊态——涨停=黄实心、跌停=黑实心、炸板（触板未封）=蓝实心；影线保留涨跌色 */
+  const ZT = "#F5C518", ZT_EDGE = "#C9971C", DT = "#0F172A", ZHA = "#2563eb";
   K.forEach((r, i) => {
     const o = r[1], c = r[2], l = r[3], h = r[4], up = c >= o;
-    const col = up ? "var(--red)" : "var(--green)";
-    g += '<line x1="' + x(i) + '" y1="' + y(h) + '" x2="' + x(i) + '" y2="' + y(l) + '" stroke="' + col + '" stroke-width="1"/>'
-      + '<rect x="' + (x(i) - bw / 2) + '" y="' + y(Math.max(o, c)) + '" width="' + bw + '" height="' + Math.max(1, Math.abs(y(o) - y(c))) + '" fill="' + (up ? "#fff" : col) + '" stroke="' + col + '" stroke-width="1"><title>'
-      + r[0] + ' 开' + o + ' 高' + h + ' 低' + l + ' 收' + c + ' 涨' + r[6] + '% 换手' + r[7] + '% 量' + r[5] + '万手</title></rect>';
-    vol += '<rect x="' + (x(i) - bw / 2) + '" y="' + yv(r[5]) + '" width="' + bw + '" height="' + Math.max(1, vTop + vh - yv(r[5])) + '" fill="' + col + '" opacity=".38"><title>' + r[0] + ' 成交 ' + r[5] + ' 万手</title></rect>';
+    const prevC = i > 0 ? K[i - 1][2] : o;
+    const ztPrice = Math.round(prevC * 1.1 * 100) / 100;   /* 主板涨停价（近似） */
+    const isZt = r[6] >= 9.8;                                /* 涨停收盘 */
+    const isDt = r[6] <= -9.8;                               /* 跌停收盘 */
+    const isZha = !isZt && h >= ztPrice - 0.01;              /* 盘中触板未封板（炸板） */
+    const dirCol = up ? "var(--red)" : "var(--green)";
+    let fill, stroke;
+    if (isZt) { fill = ZT; stroke = ZT_EDGE; }
+    else if (isDt) { fill = DT; stroke = DT; }
+    else if (isZha) { fill = ZHA; stroke = ZHA; }
+    else { stroke = dirCol; fill = up ? "#fff" : dirCol; }
+    const rawH = Math.abs(y(o) - y(c));
+    const bodyH = (isZt || isDt) ? Math.max(3, rawH) : Math.max(1, rawH);
+    const bodyY = (isZt || isDt) && rawH < 3 ? y(c) - bodyH / 2 : y(Math.max(o, c));   /* 一字板给 3px 实体可见 */
+    const tag = isZt ? "涨停" : (isDt ? "跌停" : (isZha ? "炸板" : ""));
+    g += '<line x1="' + x(i) + '" y1="' + y(h) + '" x2="' + x(i) + '" y2="' + y(l) + '" stroke="' + dirCol + '" stroke-width="1"/>'
+      + '<rect x="' + (x(i) - bw / 2) + '" y="' + bodyY + '" width="' + bw + '" height="' + bodyH + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1"><title>'
+      + r[0] + (tag ? ' [' + tag + ']' : '') + ' 开' + o + ' 高' + h + ' 低' + l + ' 收' + c + ' 涨' + r[6] + '% 换手' + r[7] + '% 量' + r[5] + '万手</title></rect>';
+    vol += '<rect x="' + (x(i) - bw / 2) + '" y="' + yv(r[5]) + '" width="' + bw + '" height="' + Math.max(1, vTop + vh - yv(r[5])) + '" fill="' + dirCol + '" opacity=".38"><title>' + r[0] + ' 成交 ' + r[5] + ' 万手</title></rect>';
     if (i === 0 || i === n - 1 || i % Math.ceil(n / 8) === 0)
       axis += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + r[0].slice(5) + '</text>';
   });
@@ -1356,8 +1375,10 @@ function vpChartHtml(v, name) {
   const lbl = v.phases && v.phases.length
     ? v.phases.map(p => (PHASE_META[p.k] || {}).n).filter((x, i, a) => i === 0 || x !== a[i - 1]).join(" → ")
     : "无显著阶段";
-  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + name + ' 近半年（120 交易日）K线与成交量，阶段：' + lbl + '">'
-    + bands + g + vol + maHtml + axis
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + name + ' 近40个交易日K线与成交量，阶段：' + lbl + '">'
+    + bands + g + vol + maHtml
+    + '<text x="' + (W - R) + '" y="' + (T - 8) + '" text-anchor="end" font-size="10" fill="var(--faint)">黄=涨停 · 黑=跌停 · 蓝=炸板</text>'
+    + axis
     + '<text x="' + L + '" y="' + (vTop - 4) + '" font-size="9" fill="var(--faint)">成交量（万手）</text></svg>';
 }
 
@@ -1381,16 +1402,18 @@ function vpPhaseListHtml(v) {
 
 /* ---------- 周线交叉验证（26 周） ---------- */
 function wkChartHtml(v, name) {
-  const wk = v.wk || {}; const K = wk.k || [];
+  const wk = v.wk || {}; const K = (wk.k || []).slice(-26);   /* 周K展示最近 26 周（技能规范） */
   if (!K.length) return "";
-  const W = 1360, H = 340, L = 44, R = 66, T = 18, B = 26;
-  const priceH = 200, vTop = T + priceH + 22, vh = 58;
-  const n = K.length, step = (W - L - R) / n, bw = Math.min(14, step * .58);
+  const W = 1360, H = 640, L = 12, R = 70, T = 24, B = 26;
+  const priceH = 400, vTop = T + priceH + 24, vh = 120;
+  const n = K.length, step = (W - L - R) / n, bw = Math.max(1.5, Math.min(28, step * .6));
   const lo = Math.min.apply(null, K.map(r => r[3])), hi = Math.max.apply(null, K.map(r => r[4]));
-  const pad = (hi - lo) * .07 || .1, pl = lo - pad, ph = hi + pad;
+  const pad = (hi - lo) * .06 || .1, pl = lo - pad, ph = hi + pad;
   const vmax = Math.max.apply(null, K.map(r => r[5])) || 1;
   const x = i => L + step * (i + .5), y = p => T + priceH * (1 - (p - pl) / (ph - pl));
-  const yv = b => vTop + vh * (1 - Math.sqrt(b / vmax));
+  const vSorted = K.map(r => r[5]).slice().sort((a, b) => a - b);
+  const vCap = vSorted[Math.floor(vSorted.length * 0.95)] || vmax;
+  const yv = b => vTop + vh * (1 - Math.min(b, vCap) / vCap);
   const wkStart = d => { for (let i = 0; i < n; i++) if (K[i][0] >= d) return i; return n - 1; };
   let bands = "";
   (v.phases || []).forEach(p => {
@@ -1403,11 +1426,12 @@ function wkChartHtml(v, name) {
       + ((x1 - x0) >= 46 ? '<text x="' + (x0 + 4) + '" y="' + (T + 13) + '" font-size="10.5" fill="' + meta.c + '" font-weight="600" style="paint-order:stroke" stroke="#fff" stroke-width="2.5">' + meta.n + '</text>' : '');
   });
   let g = "", axis = "", vol = "";
-  for (let k = 0; k <= 2; k++) {
-    const p = ph - (ph - pl) * k / 2, yy = y(p);
+  for (let k = 0; k <= 4; k++) {
+    const p = ph - (ph - pl) * k / 4, yy = y(p);
     g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#eef2f6"/>';
-    axis += '<text x="' + (W - R + 8) + '" y="' + (yy + 3.5) + '" font-size="9.5" fill="var(--faint)">' + p.toFixed(2) + '</text>';
+    axis += '<text x="' + (W - R + 10) + '" y="' + (yy + 3.5) + '" font-size="10" fill="var(--faint)">' + p.toFixed(2) + '</text>';
   }
+  g += '<line x1="' + L + '" y1="' + vTop + '" x2="' + (W - R) + '" y2="' + vTop + '" stroke="var(--border)" stroke-width="1"/>';
   K.forEach((r, i) => {
     const o = r[1], c = r[2], l = r[3], h = r[4], up = c >= o, col = up ? "var(--red)" : "var(--green)";
     g += '<line x1="' + x(i) + '" y1="' + y(h) + '" x2="' + x(i) + '" y2="' + y(l) + '" stroke="' + col + '" stroke-width="1"/>'
@@ -1467,7 +1491,7 @@ function vpCardHtml(s, v) {
     + '<span>区间 <b class="num">' + st.lo + '–' + st.hi + '</b></span>'
     + '</span>'
     + '</div>'
-    + '<div class="vp-chartbar"><div class="vp-seg" role="group" aria-label="K 线周期"><button type="button" data-view="day" aria-pressed="true">日K</button><button type="button" data-view="week" aria-pressed="false">周K</button></div><span class="vp-chartnote">日线 120 个交易日 / 周线 26 周 · 时间区间对齐</span></div>'
+    + '<div class="vp-chartbar"><div class="vp-seg" role="group" aria-label="K 线周期"><button type="button" data-view="day" aria-pressed="true">日K</button><button type="button" data-view="week" aria-pressed="false">周K</button></div><span class="vp-chartnote">日线 40 个交易日 / 周线 26 周 · 时间区间对齐</span></div>'
     + '<div class="vp-chart-body" data-view="day" data-code="' + s.code + '">' + vpChartHtml(v, s.name) + '</div>'
     + '<div class="vp-chart-body" data-view="week" data-code="' + s.code + '" hidden>' + wkChartHtml(v, s.name) + '</div>'
     + (function(){ var K=v.k||[]; var m=function(n){ if(K.length<n) return '—'; var t=0; for(var i=K.length-n;i<K.length;i++) t+=K[i][2]; return (t/n).toFixed(2); };
