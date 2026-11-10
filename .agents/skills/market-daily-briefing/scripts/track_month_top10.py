@@ -16,6 +16,7 @@
    added/removed/retained（vs 最近一个不同交易日的前七子集，removed 带 prev_* 昨日字段）
    + matrix（全景矩阵）：dates=当月快照日升序、labels=MMDD+星期、
      rankRows=[{rank:1..7, cells:{日期:{code,name,month_pct}}}]、
+     tailRows=[{rank:8..10, cells:{日期:…}}]（榜外名次行：每日第 8-10 名实际标的，供看板灰色榜外区逐日呈现）、
      removed=[{code,name,prev_rank,cells:{日期:{rank,month_pct}},note}]。
    题材（themes）不在脚本产出，由模型在第 4 步按 F10 回填到看板 POOLCHG。
 
@@ -107,7 +108,7 @@ def main():
             if d in have or d == date:
                 continue
             dot = d.replace("-", ".")
-            cond = "%s.01至%s区间涨跌幅前七；%s" % (month.replace("-", "."), dot, EXCL)
+            cond = "%s.01至%s区间涨跌幅前十；%s" % (month.replace("-", "."), dot, EXCL)
             try:
                 r = xg_query(cond, raw=True)
             except Exception as e:
@@ -134,6 +135,7 @@ def main():
 
     month_dates = [l["date"] for l in hist if l.get("date", "").startswith(month)]
     rank_rows = [{"rank": i, "cells": {}} for i in range(1, TOPN + 1)]
+    tail_rows = [{"rank": i, "cells": {}} for i in range(TOPN + 1, TOPN + 4)]
     for l in hist:
         if not l.get("date", "").startswith(month):
             continue
@@ -141,11 +143,14 @@ def main():
             if 1 <= s.get("rank", 0) <= TOPN:
                 rank_rows[s["rank"] - 1]["cells"][l["date"]] = {
                     "code": s["code"], "name": s["name"], "month_pct": s["month_pct"]}
+            elif TOPN < s.get("rank", 0) <= TOPN + 3:
+                tail_rows[s["rank"] - TOPN - 1]["cells"][l["date"]] = {
+                    "code": s["code"], "name": s["name"], "month_pct": s["month_pct"]}
 
-    cur_codes = {s["code"] for s in stocks}
+    cur_codes = {s["code"] for s in stocks if 1 <= s.get("rank", 99) <= TOPN}
     prev_top = [p for p in (prev["stocks"] if prev else []) if 1 <= p.get("rank", 99) <= TOPN]
     prev_codes = {p["code"] for p in prev_top}
-    added = [s for s in stocks if s["code"] not in prev_codes]
+    added = [s for s in stocks if 1 <= s.get("rank", 99) <= TOPN and s["code"] not in prev_codes]
     removed = []
     if prev:
         for p in prev_top:
@@ -164,9 +169,26 @@ def main():
     if prev:
         pmap = {p["code"]: p for p in prev_top}
         for s in stocks:
-            if s["code"] in pmap:
+            if 1 <= s.get("rank", 99) <= TOPN and s["code"] in pmap:
                 retained.append({**s, "prev_rank": pmap[s["code"]]["rank"],
                                  "delta": pmap[s["code"]]["rank"] - s["rank"]})
+
+    # ---- 4) 榜外第 8-10 名（固定三行的退出溯源区数据源；跌出前十的不再跟踪） ----
+    last_in7 = {}
+    for l in hist:
+        d = l.get("date", "")
+        if not d.startswith(month) or d >= date:
+            continue
+        for s in l["stocks"]:
+            if 1 <= s.get("rank", 99) <= TOPN and last_in7.get(s["code"], "") < d:
+                last_in7[s["code"]] = d
+    tail = []
+    for s in stocks:
+        if TOPN < s.get("rank", 0) <= TOPN + 3:
+            tail.append({"rank": s["rank"], "code": s["code"], "name": s["name"],
+                         "month_pct": s["month_pct"], "today_pct": s.get("today_pct"),
+                         "auction": s.get("auction"),
+                         "last_in7": last_in7.get(s["code"])})
 
     baseline = prev is None
     changes = {
@@ -179,7 +201,7 @@ def main():
             "prev_date": prev["date"] if prev else None, "baseline": baseline,
             "dates": month_dates,
             "labels": {d: label(d) for d in month_dates},
-            "rankRows": rank_rows, "removed": removed,
+            "rankRows": rank_rows, "tailRows": tail_rows, "removed": removed, "tail": tail,
         },
     }
 

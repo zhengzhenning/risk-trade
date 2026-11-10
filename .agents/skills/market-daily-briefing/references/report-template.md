@@ -1,6 +1,6 @@
 # 简报模板与格式规范（Markdown 可选附录）
 
-> **默认交付物为 HTML 联动看板**：复制 `assets/dashboard-template.html` 并替换其中"数据注入区"（九个数据块：STOCKS/POOLCHG/THEMES/NEWS/EVENTS/TIMELINE/CONCEPTS/MACRO/LADDER），含月度前七当月全景矩阵（题材色签+前七彩虹名次色）、前七锚定题材区块（标的梯队+消息序列）、连板天梯、★最强徽章与竞价异动高亮。本文件仅规范 Markdown 附录的格式。
+> **默认交付物为 HTML 联动看板**：复制 `assets/dashboard-template.html` 并替换其中"数据注入区"（十个数据块：STOCKS/POOLCHG/THEMES/NEWS/EVENTS/TIMELINE/CONCEPTS/LADDER/MKT/HISTORY），含月度前七当月全景矩阵（题材色签+前七彩虹名次色）、前七锚定题材区块（标的梯队+消息序列）、连板天梯、★最强徽章与竞价异动高亮。本文件仅规范 Markdown 附录的格式。
 
 ## 格式硬约束（渲染验证过的结论，勿改）
 

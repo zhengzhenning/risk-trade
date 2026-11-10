@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "trading-signals-skill": {
+      "source": "scientiacapital/skills",
+      "sourceType": "github",
+      "skillPath": "active/trading-signals-skill/SKILL.md",
+      "computedHash": "64b17c6c289ec724cdb7a4eefe3d7428a327aca65e190292993fb35a426d90f0"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "f9f7f8eb0ff50334c509c51b761f362db712ba99972748b1fc3a1dbc65873e80"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# IDE 与本地工作目录（不入库）
+.idea/
+.claude/
+work/

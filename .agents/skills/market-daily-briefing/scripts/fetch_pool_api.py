@@ -6,9 +6,9 @@
       因此任意条件都能取数且列名自适应，无列号错位问题。
 
 用法：
-  python3 fetch_pool_api.py --direction all        # 月度前七 + 近十日三强 + 连板天梯（完整流水线）
+  python3 fetch_pool_api.py --direction all        # 月度前十(展示前七+榜外8-10) + 近十日三强 + 连板天梯
   python3 fetch_pool_api.py --direction both       # 双窗口股池（month + d10）
-  python3 fetch_pool_api.py --direction month      # 仅方向一（月度前七）
+  python3 fetch_pool_api.py --direction month      # 仅方向一（月度前十，矩阵展示 #1-7、榜外区展示 #8-10）
   python3 fetch_pool_api.py --cond "任意自然语言条件" --tag 自定义
 输出：pool_<tag>.json {tag, condition, total, latestDate, pool:[{中文列名: 值}], fetched_at}
 
@@ -24,8 +24,8 @@ URL = "https://np-tjxg-b.eastmoney.com/api/smart-tag/stock/v3/pw/search-code"
 
 # 内置方向（条件文本可按需改；措辞规范见 references/channel-guide.md，均已一次性验证）
 DIRECTIONS = {
-    "month": ("月度前七",
-              "本月涨幅前七；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；竞价涨幅大于-11%"),
+    "month": ("月度前十",
+              "本月涨幅前十；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；竞价涨幅大于-11%"),
     "d10": ("近十日三强",
             "近十日涨幅前三；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；竞价涨幅大于-11%"),
     "ladder": ("连板天梯",

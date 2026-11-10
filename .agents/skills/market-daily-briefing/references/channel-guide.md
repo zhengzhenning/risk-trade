@@ -115,3 +115,20 @@ const data = await tab.playwright.evaluate(`(() => {
 ```
 
 `proxy_api` 填商业代理的短效提取链接（返回 ip:port 文本）。未配置时直连；当前架构单日请求仅十几次，直连足够，代理是为扩容预留。
+
+## ETF 申赎与资金流（datacenter 接口，第 3.55 步 fetch_etf_flow.py）
+
+**端点**：`https://datacenter.eastmoney.com/securities/api/data/v1/get`（UA+Referer 指向 emrnweb，无需鉴权；源自 etfKit H5 bundle 逆向）
+
+| 报表 | 用途 | 关键参数 |
+|---|---|---|
+| `RPT_ETF_NETINFLOW` | 市场六类历史净流入（TYPE：1宽基/2行业/3策略/4债基/5黄金/6汇金） | columns=`SECURITY_TYPE,TYPE,TRADE_DATE,PERIODESTIMATENETINFLOW1,PERIODESTIMATENETINFLOW60,CORR_IDX,CM_CLOSE`；filter 只带日期（不带 TYPE 即一次拉全部六类）；sortColumns=`TRADE_DATE,TYPE`；**pageSize≥2000**（六类×120 交易日≈800 行，800 会截断最新段） |
+| `RPT_ETF_NETINFLOWNEW` | 单只 ETF 最新快照（1/5/20/60 日估算净流入、份额变化率、成交额、跟踪指数） | filter=`(SECUCODE="510300.SH")`（沪 5→.SH / 深 1→.SZ）；**不支持按日期回溯**（日期过滤无效、只回最新一行）；**不支持多值 OR**（连写同名条件返回空）→ 逐只查询 |
+
+**已验证的坑**：① filter 日期必须**单引号**包裹 `(TRADE_DATE<='2026-11-04')`，双引号/无引号报“日期参数格式错误”；② 净流入为**估算口径**（份额变动×净值），**T-1 更新**（当日盘后发布，盘中拉到的是上一交易日）；③ `TVALCNY`=最新成交额（元）≠规模；④ 单只每日净流入历史序列无接口，由本地 `archives/pool-history/etf-flow.jsonl` 逐日积累；⑤ bundle 中的 `RPT_CUSTOM_ETF_NETINFLOW` 是**行业指数维度榜单**（INDCODE 分组的 1/5/20/60 日快照排序），不是单只历史接口——找单只回溯数据时勿走此死胡同。
+
+**六类全量榜单**（第 3.55 步规模王数据源）：`RPT_ETF_NETINFLOWNEW` 同报表，filter `(TYPE="1".."6")`（页面"全部"=TYPE 7）、**columns 必须用 bundle 完整列集**（缺列报"返回字段不存在"）、sortColumns=`PERIODESTIMATENETINFLOW1,SECURITY_CODE`、**pageSize 上限 500**（行业类 810 只需翻页到齐）；榜单无规模列——规模另取 push2 clist（`fs=b:MK0021,MK0022,MK0023,MK0024`，f20 总市值，4 页×100）+ 债/货币类不在该板块、单点 `push2.eastmoney.com/api/qt/stock/get?secid=…&fields=f116` 兜底（债基类组代表可能产生 ~25 次轻量单点）。**H5 页面实际请求可从 `performance.getEntriesByType('resource')` 直接读取**（榜单参数逆向的最快路径）。
+
+单只 ETF 收盘价序列（按天趋势右轴）：push2his 日 K `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.510300&klt=101&fqt=1&lmt=150&end=20500101&fields1=f1,f2,f3&fields2=f51,f53`（与 fetch_market_overview.py 同源；沪 ETF=1.代码/深=0.代码；每只 1 次轻量调用，共 4 次/日）。
+
+**佐证页**：`https://emrnweb.eastmoney.com/etfKit/home?appfenxiang=1`（JS 渲染 H5，直接解析无数据，接口以上表为准）

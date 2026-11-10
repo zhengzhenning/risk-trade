@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A股题材发酵看板 · 2026-10-16</title>
+<style>
+  :root {
+    --bg:#f4f6fa; --surface:#ffffff; --surface2:#eff3f8; --surface3:#e6ebf3;
+    --border:#e2e8f0; --border2:#cfd8e5;
+    --txt:#1c2740; --sub:#5c6675; --faint:#98a2b3;
+    --accent:#b8860b; --red:#d63450; --red-bg:rgba(214,52,80,.09);
+    --green:#0e9668; --green-bg:rgba(14,150,104,.09);
+    --radius:14px;
+    --shadow:0 1px 2px rgba(20,30,60,.05), 0 8px 24px rgba(20,30,60,.07);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:64px; }
+  body { background:var(--bg); color:var(--txt); font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+  .up { color:var(--red); } .down { color:var(--green); }
+
+  nav { position:sticky; top:0; z-index:100; background:rgba(255,255,255,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+  .nav-inner { max-width:1440px; margin:0 auto; display:flex; align-items:center; gap:16px; padding:0 32px; height:52px; }
+  .nav-logo { font-size:15px; font-weight:700; white-space:nowrap; }
+  .nav-logo em { color:var(--accent); font-style:normal; }
+  .nav-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-left:auto; }
+  .nav-chips::-webkit-scrollbar { display:none; }
+  .nav-chips a { flex:none; font-size:12px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
+  .nav-chips a:hover { color:var(--txt); border-color:var(--border2); background:var(--surface2); }
+  .nav-date { font-size:12px; color:var(--faint); white-space:nowrap; margin-left:8px; }
+
+  .wrap { max-width:1440px; margin:0 auto; padding:32px 32px 80px; }
+
+  .hero { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px; }
+  .hero h1 { font-size:26px; font-weight:700; }
+  .hero h1 span { color:var(--accent); font-weight:500; }
+  .hero .sub { color:var(--sub); font-size:13px; margin-top:6px; }
+  .badges { display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { font-size:12px; color:var(--sub); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px 12px; }
+  .badge b { color:var(--txt); font-weight:600; }
+  .badge.live { border-color:rgba(232,182,76,.4); color:var(--accent); }
+  .badge.live b { color:var(--accent); }
+
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-bottom:36px; }
+  .stat { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px 14px; overflow:hidden; }
+  .stat::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent 60%); opacity:.7; }
+  .stat .k { font-size:12px; color:var(--sub); margin-bottom:7px; }
+  .stat .v { font-size:19px; font-weight:700; }
+  .stat .v small { font-size:12px; font-weight:400; color:var(--faint); margin-left:8px; }
+
+  /* ---------- 题材区块 ---------- */
+  .theme-block { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:22px; overflow:hidden; }
+  .tb-head { display:flex; align-items:center; gap:14px; padding:18px 22px 14px; border-bottom:1px solid var(--border); position:relative; }
+  .tb-head::before { content:""; position:absolute; top:0; left:0; bottom:0; width:3px; background:var(--tc); }
+  .tb-dot { width:12px; height:12px; border-radius:4px; background:var(--tc); transform:rotate(45deg); flex:none; }
+  .tb-name { font-size:19px; font-weight:700; }
+  .tb-span { font-size:12px; color:var(--sub); }
+  .st { display:inline-block; font-size:11px; font-weight:600; border-radius:6px; padding:3px 10px; }
+  .st-hot { color:var(--red); background:var(--red-bg); }
+  .st-mid { color:var(--accent); background:rgba(232,182,76,.12); }
+  .st-cool { color:var(--green); background:var(--green-bg); }
+  .st-risk { color:#d63450; background:rgba(214,52,80,.08); border:1px solid rgba(214,52,80,.35); }
+
+
+  .tb-body { display:grid; grid-template-columns:400px 1fr; border-top:1px solid var(--border); }
+  @media (max-width:1100px){ .tb-body { grid-template-columns:1fr; } }
+  .tb-stocks { padding:14px 18px; border-right:1px solid var(--border); }
+  @media (max-width:1100px){ .tb-stocks { border-right:none; border-bottom:1px solid var(--border); } }
+  .tb-stocks h4, .tb-news h4 { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:10px; }
+  .s-row { display:grid; grid-template-columns:minmax(104px,auto) 1fr; align-items:center; gap:12px; padding:7px 10px; border-radius:10px; cursor:pointer; transition:background .12s; }
+  .s-row:hover { background:var(--surface2); }
+  .s-row.active { background:var(--surface3); outline:1px solid var(--tc); }
+  .s-id .nm { font-weight:600; font-size:13.5px; white-space:nowrap; }
+  .s-id .nm a, .lad-cell a { color:inherit; text-decoration:none; }
+  .s-id .nm a:hover, .lad-cell a:hover { color:#3b66d4; text-decoration:underline; }
+  .s-id .cd { font-size:10.5px; color:var(--faint); }
+  .pool { font-size:9.5px; border-radius:4px; padding:0 4px; margin-right:5px; vertical-align:1px; }
+  .pool-lb { color:#ff9f43; border:1px solid rgba(255,159,67,.45); }
+  .pool-m9 { color:#7aa2f7; border:1px solid rgba(122,162,247,.45); }
+  .risk-chip { display:inline-block; font-size:9.5px; font-weight:600; color:#d63450; border:1px solid rgba(214,52,80,.4); background:rgba(214,52,80,.06); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .pool-mo { color:#7aa2f7; border:1px solid rgba(122,162,247,.45); }
+  .pool-out { color:var(--sub); border:1px dashed var(--border2); cursor:help; }
+  .pool-d10 { color:#ff9f43; border:1px solid rgba(255,159,67,.45); }
+  .top-chip { display:inline-block; font-size:9.5px; font-weight:700; color:var(--accent); border:1px solid rgba(184,134,11,.45); background:rgba(184,134,11,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .rk-chip { display:inline-block; font-style:normal; font-size:9.5px; font-weight:700; border:1px solid; border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .jjv { font-weight:700; text-decoration:underline dotted rgba(184,134,11,.6); text-underline-offset:3px; }
+  .jj-tag { font-style:normal; font-size:9px; color:var(--accent); border:1px solid rgba(184,134,11,.4); border-radius:4px; padding:0 3px; margin-left:3px; vertical-align:1px; }
+  /* 月度前七全景矩阵 */
+  .mx-block { margin-bottom:26px; }
+  .mx-wrap { overflow-x:auto; overflow-y:hidden; clip-path:inset(0); padding:6px 18px 14px; }
+  .mx-grid { display:grid; min-width:max-content; }
+  .mx-hc, .mx-hd { font-size:10.5px; color:var(--faint); letter-spacing:.5px; padding:5px 6px 8px; border-bottom:1px solid var(--border); text-align:center; }
+  .mx-hc { position:sticky; left:0; z-index:3; background:var(--surface); }
+  .mx-hd.mx-today { color:var(--accent); font-weight:700; background:rgba(184,134,11,.10); border-bottom-color:rgba(184,134,11,.45); }
+  .mx-rk { position:sticky; left:0; z-index:2; background:var(--surface); font-weight:700; color:var(--sub); display:flex; align-items:center; justify-content:center; border-right:1px solid var(--border); border-bottom:1px dashed rgba(29,36,48,.6); font-size:12px; }
+  .mx-rk-out { color:var(--faint); font-size:10.5px; font-weight:600; }
+  .mx-cell { display:flex; align-items:center; gap:5px; padding:5px 8px 5px 7px; border-bottom:1px dashed rgba(22,32,52,.14); border-right:1px dashed rgba(22,32,52,.10); border-left:3px solid var(--mxc,#e2e8f0); min-height:34px; font-size:12px; min-width:0; }
+  .mx-cell.mx-today { border-right:1px solid rgba(184,134,11,.5); box-shadow:inset 0 0 0 1px rgba(184,134,11,.18); }
+  .mx-cell a { color:inherit; text-decoration:none; font-weight:600; white-space:nowrap; flex:none; }
+  .mx-cell a:hover { color:#3b66d4; text-decoration:underline; }
+  .mx-th { flex:none; max-width:46%; font-size:9.5px; font-weight:600; line-height:1.5; color:#fff; background:var(--mxc); border-radius:4px; padding:0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mx-th-ghost { background:transparent; color:var(--mxc); border:1px solid var(--mxc); padding:0 5px; }
+  .mx-pct { margin-left:auto; flex:none; }
+  .mx-cell[data-code] { cursor:pointer; }
+  .mx-cell { transition:opacity .18s ease, filter .18s ease; }
+  .mx-grid.mx-focus .mx-cell:not(.mx-hit) { opacity:.32; filter:saturate(.2); }
+  .mx-grid.mx-focus .mx-cell.mx-today:not(.mx-hit) { box-shadow:none; }
+  .mx-cell.mx-hit { outline:2px solid var(--mxc); outline-offset:-2px; }
+  .mx-cell.mx-hit a { text-decoration:underline; }
+  .mx-new { font-style:normal; font-size:9px; color:var(--red); border:1px solid rgba(214,52,80,.5); border-radius:4px; padding:0 3px; margin-left:2px; vertical-align:1px; flex:none; }
+  .mx-rem-tag { font-size:10px; color:var(--faint); border:1px dashed var(--border2); border-radius:4px; padding:1px 6px; }
+  .mx-out { opacity:.9; }
+  .mx-pr { font-style:normal; font-size:9.5px; color:var(--faint); margin-left:5px; }
+  .s-pct { font-size:13px; font-weight:700; text-align:right; min-width:120px; }
+  .s-pct .lbinfo { display:block; font-size:10px; font-weight:400; color:var(--faint); }
+  .s-sep { font-size:10.5px; color:var(--faint); }
+
+  .tb-news { padding:14px 18px; }
+  .msg { display:flex; gap:10px; padding:9px 10px; border-radius:10px; transition:background .12s; }
+  .msg:hover { background:var(--surface2); }
+  .msg + .msg { margin-top:4px; }
+  .msg .d { flex:none; width:58px; font-size:11px; color:var(--accent); font-weight:600; padding-top:2px; }
+  .msg .body .t { font-size:13px; line-height:1.5; }
+  .msg .body .m { font-size:11px; color:var(--sub); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .msg .m a { color:#3b66d4; text-decoration:none; }
+  .msg .m a:hover { text-decoration:underline; }
+  .msg .tagchip { color:var(--accent); border:1px solid rgba(232,182,76,.35); border-radius:4px; padding:0 5px; font-size:10px; }
+  .msg .tagchip.bear { color:var(--green); border-color:rgba(46,189,133,.35); }
+  .msg .tagchip.kline { color:#3b66d4; border-color:rgba(59,102,212,.35); }
+  .msg .tagchip.risk { color:#d63450; border-color:rgba(214,52,80,.4); }
+  .msg-empty { font-size:12px; color:var(--faint); padding:10px; }
+
+
+
+  .tb-ladder { padding:10px 18px 12px; border-top:1px solid var(--border); }
+  .tb-ladder .h { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:8px; }
+  .tb-ladder .h span { font-weight:400; letter-spacing:0; margin-left:8px; }
+  .lad-table { display:flex; flex-direction:column; gap:6px; }
+  .lad-trow { display:grid; grid-template-columns:64px minmax(70px, 220px) 1fr; align-items:center; gap:12px; padding:4px 0; }
+  .lad-trow + .lad-trow { border-top:1px dashed rgba(22,32,52,.14); }
+  .lad-lb { font-size:12.5px; font-weight:700; color:var(--red); text-align:center; background:var(--red-bg); border-radius:6px; padding:3px 0; }
+  .lad-lb small { display:block; font-size:9px; color:var(--faint); font-weight:400; }
+  .lad-bar { height:10px; }
+  .lad-bar i { display:block; height:100%; border-radius:5px; background:linear-gradient(90deg, rgba(246,70,93,.9), rgba(246,70,93,.3)); }
+  .lad-cells { display:flex; flex-wrap:wrap; gap:6px; }
+  .lad-cell { font-size:12.5px; font-weight:600; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:3px 10px; white-space:nowrap; }
+  .lad-cell.outpool { color:var(--sub); font-weight:500; border-style:dashed; }
+  .lad-cell em { font-style:normal; font-size:9px; color:var(--faint); margin-left:5px; vertical-align:1px; }
+  .lad-empty { font-size:11.5px; color:var(--faint); }
+  .msg .d { width:104px; line-height:1.35; }
+  .msg .d b { display:block; font-size:10.5px; color:var(--accent); }
+  .msg .d span { font-size:9.5px; color:var(--faint); }
+
+  footer { font-size:11.5px; color:var(--faint); line-height:1.9; border-top:1px solid var(--border); padding-top:18px; }
+  footer b { color:var(--sub); font-weight:500; }
+</style>
+</head>
+<body>
+
+<nav><div class="nav-inner">
+  <div class="nav-logo">题材发酵看板<em> · Theme Pulse</em></div>
+  <div class="nav-chips" id="navChips"></div>
+  <div class="nav-date num">2026-10-16 · 快照 14:41 盘中（尾盘）</div>
+</div></nav>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>题材分组 <span>× 连板天梯 × 消息时间链</span></h1>
+      <div class="sub">方向一·月度前七 7 只（彩虹色系 #1 红→#7 紫） ｜ 方向二·近十日三强 3 只（交集 ★最强 3 只：新华传媒 · 九阳 · 时代万恒）</div>
+    </div>
+    <div class="badges">
+      <span class="badge live">快照 <b>14:41 盘中（尾盘）</b></span>
+      <span class="badge">题材 <b>6 组</b></span>
+      <span class="badge">月度前七 <b>7 只</b>（彩虹色系） ｜ 近十日三强 <b>3 只</b></span>
+      <span class="badge">★最强 <b>3 只</b>（双窗共振）</span>
+      <span class="badge">前七全景 <b>7 日</b> · 新进 <b>1</b>/移除 <b>1</b></span>
+      <span class="badge">抢跑警示 <b>3 组</b></span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">当日情绪主线</div><div class="v">反弹日·高低切换<small>超 4800 股飘红、军工/低空领涨（尾盘创业板一度转跌）；冰山弱转强 4 板接棒全场最高度 vs 百洋 5 板天地板跌停</small></div></div>
+    <div class="stat"><div class="k">★最强（月度前七 ∩ 近十日前三）</div><div class="v num" style="color:var(--accent)">3 只<small>新华传媒（复牌一字·近十日 +95.11% 第一）· 九阳股份（+88.50% 第二）· 时代万恒（+87.96% 第三）</small></div></div>
+    <div class="stat"><div class="k">月度前七当月全景</div><div class="v num">7 个交易日<small>新进 1（新华文轩·教育出版 3 板）· 移除 1（新经典·连续回落兑现离场）；彩虹色系 #1 红→#7 紫</small></div></div>
+    <div class="stat"><div class="k">隔夜与外围</div><div class="v" style="font-size:14px">美股惊魂逆转 · 韩国救市反弹<small>PPI +6.3% 超预期 vs AI 链龙头密集回购（中际旭创拟注销近 50 亿）· KOSPI +2.05% · 电子板块主力净流入 57 亿</small></div></div>
+    <div class="stat"><div class="k">先涨停后消息（抢跑警示）</div><div class="v" style="color:#ff6b6b;font-size:13.5px">3 组<small>影视动漫（慈文 6 板断板巨量，兑现中）· 制冷液冷（冰山 4 板加速，警示后连板）· 锂电池（时代万恒窄幅震荡）</small></div></div>
+  </div>
+
+  <div id="poolchg"></div>
+
+  <div id="blocks"></div>
+
+  <footer>
+    <b>口径</b>：盘中版（快照 14:41，尾盘未收盘；本版覆盖当日早前版本，收盘后应重跑终版）。方向一·<b>月度前七</b>（彩虹名次签 #1 红→#7 紫）；方向二·近十日三强（接口解析为 10 个交易日区间）；均剔 ST/退市/北交所/创/科板、不剔新股次新；“竞价涨幅大于-11%”仅带出竞价列不构成过滤。历史库 10-08～10-14 为前十口径快照，矩阵与对比统一取 rank≤7 子集兼容。<b>连板天梯</b>：反弹日 6 只（冰点日 5 只→6 只，高度重建至 4 板）——冰山冷热 4 板 · 新华文轩 3 板 · 读者传媒/尖峰集团/吉大正元/东方嘉盛 2 板。<b>停牌复牌说明</b>：新华传媒停牌核查 3 个交易日后今日复牌一字涨停（复牌公告细节以交易所披露为准）。<br>
+    <b>最强与异动</b>：★最强=月度前七 ∩ 近十日前三（3 只）；竞价异动=|集合竞价涨跌幅|≥3%（mapping-rules 第 8 节）：高开=慈文 +8.31/新华传媒 +10.01，低开=冰山 -4.18/百洋 -6.52/时代万恒 -4.00（九阳 -2.60、新华文轩 +2.03 未达阈值不标）。月度前七全景矩阵：列=当月交易日、行=排名、单元格背景=题材/字体=标的彩虹色，表尾灰色行为移除标的（新经典）。<br>
+    <b>首发口径</b>：★首发=窗口内可核实的最早事件性报道并附原文地址；题材启动日早于当日的按第 3.9 步回溯——本流水线自 10-08 起逐日完整采集（/tmp/briefing-2026101X/news.json 链与既往看板溯源），覆盖在池题材启动日；上海 PUE 规划条目（财联社 2503969）沿用 10-15 会话批次采集并注明。无源的（华为链 Mate90 预期、水产饲料、百洋）标注“首发溯源待补/无事件催化”。<br>
+    <b>抢跑警示</b>：题材★首发事件消息晚于标的首板涨停日的标 ⚠（判定规则见 mapping-rules 第 7 节）。本日 3 组——① 影视动漫·AI漫剧：慈文传媒首板 2026-10-09（天梯连板倒推）vs 短剧事件首发 2026-10-12 约11:45（财联社 2501885），提前 1 个交易日；第 4 日，今日 6 板断板、换手 44.74% 天量，兑现进行中；② 制冷空调·液冷：冰山冷热首板 2026-10-13 vs 上海 PUE 规划最早报道 2026-10-14 约08:28（财联社 2503969），提前 1 个交易日（规划印发日期未核）；警示后连板加速至 4 板，风险同步累积；③ 锂电池：时代万恒首板 2026-09-26 vs 电池规划首发 2026-09-29 09:58，提前 1 个交易日。不判清单：新华传媒（9/21 重组窗口外）、新华文轩/读者传媒（首板晚于短剧首发，消息驱动）、九阳（溯源待补）、百洋（无事件首发可对照，纯资金抱团瓦解如实描述）。疑似资金抢跑，兑现风险高，谨慎追高。<br>
+    <b>数据质量说明</b>：① F10：尾盘批次 11 只中 5 只无返回（百洋/新华传媒/新华文轩/读者传媒/尖峰集团）——读者传媒/尖峰集团取自当日并发批次真实返回（期刊出版、水泥+医药），百洋/新华传媒沿用 10-15 真实快照、新华文轩沿用 10-8 真实快照，均非凭印象归类；② 财联社深度头条相对时间按快照时刻（约 14:47）换算并标注“约”；③ 接口原始结果仅由 track_month_top10.py 写入历史库（同日重跑覆盖，本次 14:41 快照已覆盖早间版）；④ 三渠道采集全部成功（东财 12 / 新浪 347 / 财联社电报 20 + 深度页约 30 条）。盘中快照，仅供参考，不构成投资建议。
+  </footer>
+</div>
+
+<script>
+/* ==== 数据注入区开始 ==== */
+const STOCKS = [
+  {code:"002343", name:"慈文传媒", pool:"month", rk:1, theme:"影视动漫·AI漫剧", jj:8.31, hs:44.74, pct:1.68, risk:true,
+   riskNote:"首板 2026-10-09（天梯连板倒推）早于短剧事件首发 2026-10-12 约11:45（财联社 2501885），提前 1 个交易日；警示第 4 日——今日 6 板断板、换手 44.74% 天量分歧，兑现进行中"},
+  {code:"000530", name:"冰山冷热", pool:"month", rk:2, theme:"制冷空调·液冷", jj:-4.18, hs:33.01, pct:9.96, risk:true,
+   riskNote:"首板 2026-10-13（天梯 4 连板倒推）早于上海 PUE 规划最早报道 2026-10-14 约08:28（财联社 2503969），提前 1 个交易日；警示后连板加速（今日 4 板全场最高度）"},
+  {code:"002696", name:"百洋股份", pool:"month", rk:3, theme:"水产饲料", jj:-6.52, hs:26.54, pct:-9.97,
+   sub:"002696 · 月度 #3（+46.81%）· 5 板独苗今日竞价 -6.52% 低开直接跌停（天地板），高位抱团瓦解"},
+  {code:"600825", name:"新华传媒", pool:"month", rk:4, top:true, theme:"出版·AI语料", jj:10.01, hs:1.47, pct:10.01,
+   sub:"600825 · 月度 #4（+46.47%）· 停牌核查 3 个交易日后今日复牌一字涨停（换手 1.47% 缩量；近十日 +95.11% 第一）"},
+  {code:"002242", name:"九阳股份", pool:"month", rk:5, top:true, theme:"厨房小家电·华为链", jj:-2.60, hs:8.47, pct:2.25},
+  {code:"600241", name:"时代万恒", pool:"month", rk:6, top:true, theme:"锂电池", jj:-4.00, hs:21.97, pct:-1.79, risk:true,
+   riskNote:"首板 2026-09-26（天梯连板倒推）早于电池规划首发 2026-09-29 09:58（东财原文地址），提前 1 个交易日；10-13 跌出警示曾兑现，10-14 起回归宽幅震荡"},
+  {code:"601811", name:"新华文轩", pool:"month", rk:7, theme:"出版·AI语料", jj:2.03, hs:7.70, pct:10.01,
+   sub:"601811 · 月度 #7 新进（+33.24%）· 教育出版 3 连板（F10 沿用 10/8 快照）"},
+  {code:"603999", name:"读者传媒", pool:"d10", out:true, theme:"出版·AI语料", lb:"2连板", jj:null, hs:2.88, pct:9.97,
+   via:"公开分类=期刊出版（F10 无返回）·同题材池外梯队员（天梯 14:41）·首板 10/15 晚于短剧首发，消息驱动不判抢跑",
+   sub:"603999 · 池外梯队员 · 出版 2 连板（换手 2.88% 缩量）"}
+];
+const POOLCHG = {"month":"2026-10","today":"2026-10-16","prevDate":"2026-10-15","baseline":false,"note":"","dates":["2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16"],"labels":{"2026-10-08":"1008周四","2026-10-09":"1009周五","2026-10-12":"1012周一","2026-10-13":"1013周二","2026-10-14":"1014周三","2026-10-15":"1015周四","2026-10-16":"1016周五"},"themes":{"600825":"大众出版","002242":"厨房小家电·华为链","600241":"锂电池","002696":"水产饲料","002343":"影视动漫·AI漫剧","603096":"大众出版","000530":"制冷空调·液冷","601811":"教育出版","600812":"化学制药","002702":"食品加工","002805":"电池正极","001336":"环保设备","002687":"服装","600400":"服装","000869":"葡萄酒","001300":"康复器械","002733":"蓄电池","002058":"电池化学品","002692":"线缆","605136":"化妆品电商","600693":"百货","600831":"广电","002869":"智能交通","603968":"食品及饲料添加剂"},"rankRows":[{"rank":1,"cells":{"2026-10-08":{"code":"600825","name":"新华传媒","month_pct":"10.05"},"2026-10-09":{"code":"600812","name":"华北制药","month_pct":"21.08"},"2026-10-12":{"code":"600825","name":"新华传媒","month_pct":"33.14"},"2026-10-13":{"code":"002242","name":"九阳股份","month_pct":"41.36"},"2026-10-14":{"code":"002696","name":"百洋股份","month_pct":"48.18"},"2026-10-15":{"code":"002696","name":"百洋股份","month_pct":"63.07"},"2026-10-16":{"code":"002343","name":"慈文传媒","month_pct":"60.64"}}},{"rank":2,"cells":{"2026-10-08":{"code":"600812","name":"华北制药","month_pct":"10.04"},"2026-10-09":{"code":"600825","name":"新华传媒","month_pct":"21.06"},"2026-10-12":{"code":"600812","name":"华北制药","month_pct":"33.13"},"2026-10-13":{"code":"002696","name":"百洋股份","month_pct":"34.65"},"2026-10-14":{"code":"002343","name":"慈文传媒","month_pct":"43.62"},"2026-10-15":{"code":"002343","name":"慈文传媒","month_pct":"57.98"},"2026-10-16":{"code":"000530","name":"冰山冷热","month_pct":"47.96"}}},{"rank":3,"cells":{"2026-10-08":{"code":"002702","name":"海欣食品","month_pct":"10.04"},"2026-10-09":{"code":"002805","name":"丰元股份","month_pct":"21.05"},"2026-10-12":{"code":"600241","name":"时代万恒","month_pct":"33.13"},"2026-10-13":{"code":"600825","name":"新华传媒","month_pct":"33.14"},"2026-10-14":{"code":"603096","name":"新经典","month_pct":"43.29"},"2026-10-15":{"code":"600241","name":"时代万恒","month_pct":"41.46"},"2026-10-16":{"code":"002696","name":"百洋股份","month_pct":"46.81"}}},{"rank":4,"cells":{"2026-10-08":{"code":"002687","name":"乔治白","month_pct":"10.04"},"2026-10-09":{"code":"001336","name":"楚环科技","month_pct":"21.04"},"2026-10-12":{"code":"002242","name":"九阳股份","month_pct":"33.12"},"2026-10-13":{"code":"600241","name":"时代万恒","month_pct":"32.30"},"2026-10-14":{"code":"002242","name":"九阳股份","month_pct":"41.52"},"2026-10-15":{"code":"603096","name":"新经典","month_pct":"40.50"},"2026-10-16":{"code":"600825","name":"新华传媒","month_pct":"46.47"}}},{"rank":5,"cells":{"2026-10-08":{"code":"600400","name":"红豆股份","month_pct":"10.03"},"2026-10-09":{"code":"002242","name":"九阳股份","month_pct":"21.04"},"2026-10-12":{"code":"002058","name":"紫竹高科","month_pct":"25.25"},"2026-10-13":{"code":"600693","name":"东百集团","month_pct":"31.97"},"2026-10-14":{"code":"603968","name":"醋化股份","month_pct":"37.39"},"2026-10-15":{"code":"002242","name":"九阳股份","month_pct":"37.60"},"2026-10-16":{"code":"002242","name":"九阳股份","month_pct":"41.60"}}},{"rank":6,"cells":{"2026-10-08":{"code":"000869","name":"张  裕Ａ","month_pct":"10.03"},"2026-10-09":{"code":"002733","name":"雄韬股份","month_pct":"21.03"},"2026-10-12":{"code":"002692","name":"远程股份","month_pct":"24.17"},"2026-10-13":{"code":"605136","name":"丽人丽妆","month_pct":"31.87"},"2026-10-14":{"code":"600241","name":"时代万恒","month_pct":"35.91"},"2026-10-15":{"code":"000530","name":"冰山冷热","month_pct":"34.56"},"2026-10-16":{"code":"600241","name":"时代万恒","month_pct":"41.36"}}},{"rank":7,"cells":{"2026-10-08":{"code":"002805","name":"丰元股份","month_pct":"10.02"},"2026-10-09":{"code":"001300","name":"三柏硕","month_pct":"21.01"},"2026-10-12":{"code":"002733","name":"雄韬股份","month_pct":"23.59"},"2026-10-13":{"code":"002343","name":"慈文传媒","month_pct":"30.50"},"2026-10-14":{"code":"600825","name":"新华传媒","month_pct":"33.14"},"2026-10-15":{"code":"600825","name":"新华传媒","month_pct":"33.14"},"2026-10-16":{"code":"601811","name":"新华文轩","month_pct":"33.24"}}}],"removed":[{"code":"603096","name":"新经典","prev_rank":4,"prev_month_pct":"40.50","prev_today_pct":"-1.95","prev_auction":"-5.24","note":"今日大幅回落滑出前七，被涨停 3 板的新华文轩替换（连续两日回落后兑现离场）","cells":{"2026-10-14":{"rank":3,"month_pct":"43.29"},"2026-10-15":{"rank":4,"month_pct":"40.50"}}}]};
+const THEMES = [
+  {name:"影视动漫·AI漫剧", desc:"巨量分歧：慈文传媒 6 板断板（竞价 +8.31% 高开回落 +1.68%，换手 44.74% 天量；本月 +60.64% 居 #1）；腾讯“绿泡泡”四战短剧（社交关系链 vs 红果算法）、可灵 4.0 发布。⚠ 首板（10/9）早于短剧首发（10/12）1 个交易日，警示第 4 日兑现中", news:["F"], risk:"消息滞后·资金抢跑"},
+  {name:"制冷空调·液冷", desc:"弱转强·全场最高度：冰山冷热竞价 -4.18% 低开后拉板，4 连板晋级（换手 33.01%；本月 +47.96% 居 #2）——反弹日情绪标杆；哈空调/龙江交通已断板，梯队独苗。⚠ 首板（10/13）早于上海 PUE 规划最早报道（10/14），警示后连板加速", news:["B"], risk:"消息滞后·资金抢跑"},
+  {name:"水产饲料", desc:"天地板·抱团瓦解：百洋股份 5 板独苗今日竞价 -6.52% 低开直接跌停 -9.97%（换手 26.54%）——昨日全场最高度标的高位崩塌；无事件消息可对照（纯资金抱团，如实标注）", news:[]},
+  {name:"出版·AI语料", desc:"复牌一字·板块复活：新华传媒停牌核查 3 个交易日后复牌一字涨停（换手 1.47% 缩量，近十日 +95.11% 第一）；新华文轩 3 板新进前七 #7、读者传媒（池外）2 板——出版梯队重新集结；新经典连续回落今日移除（抢跑警示兑现完成）", news:["F"]},
+  {name:"厨房小家电·华为链", desc:"低位企稳：九阳股份（★最强）-2.60% 低开回升 +2.25%（本月 #5，近十日 +88.50% 第二）；题材首发溯源待补，不判抢跑", news:[]},
+  {name:"锂电池", desc:"窄幅震荡：时代万恒（★最强）-1.79%（本月 #6，近十日 +87.96% 第三）；工信部最新表态“新型电池产业绝不能盲目大干快上”（狠抓规划实施）。⚠ 首板 9/26 早于规划首发 9/29，警示持续", news:["G"], risk:"消息滞后·资金抢跑"}
+];
+const NEWS = [
+  {id:"A", t:"一夜反转：美股科技股深夜绝境反击、中国资产大爆发、美债集体狂飙；AI 链龙头密集回购——中际旭创拟注销近 50 亿元回购股份（盘中 +5%）、新易盛拟最高回购 10 亿元", time:"隔夜 / 09:53", link:["东方财富","https://finance.eastmoney.com/a/202610163897372922.html"], bull:"AI 硬件链（回购托底）", bear:""},
+  {id:"B", t:"财联社午报：沪指高开高走、深成指半日涨超 1%、全市场超 4800 股飘红；军工领涨批量涨停（长城军工封板）、低空经济拉升（未来或突破 3.5 万亿）；早盘涨停 75 家、连板 5 家，冰山冷热晋级 4 连板；午后创业板指一度转跌逾 1%（14:39，冲高回落）", time:"午间 / 14:39", link:["财联社","https://www.cls.cn/detail/2506610"], bull:"军工/低空经济（股池内无相关行业标的）", bear:"创业板权重（尾盘转跌）"},
+  {id:"C", t:"韩国“救市”突发利好：KOSPI 收涨 2.05%（昨日熔断后反弹）、日经 +1.43%；黄仁勋强势发声力挺 AI 需求", time:"14:32", link:["东方财富","https://finance.eastmoney.com/a/202610163897833925.html"], bull:"全球风险偏好修复", bear:""},
+  {id:"D", t:"AI 板块风险叙事升温：全球市值前 20 的 AI/芯片股本周市值蒸发超 1 万亿美元；Anthropic 估值预期据称缩水（招股文件显示 2025 年亏损 420 亿美元）、纽约市审计长要求推迟 IPO；CoreWeave 三位创始人已套现 33 亿美元", time:"约09:45 / 10:45", link:["财联社","https://www.cls.cn/detail/2506536"], bull:"", bear:"全球 AI 硬件情绪"},
+  {id:"E", t:"美国 9 月 PPI 环比 +1.3%、同比 +6.3% 远超预期（柴油危机全面蔓延）；瑞银改口：本轮紧缩周期将加息三次，下一次行动在 12 月", time:"约08:45", link:["财联社","https://www.cls.cn/detail/2506404"], bull:"", bear:"全球流动性预期"},
+  {id:"F", t:"短剧与 AI 内容双催化：四战短剧——腾讯以“绿泡泡”对垒字节“红果”（社交关系链 vs 算法推荐+买量）；可灵 AI 发布 Kling 4.0、快手盘中一度涨超 6%", time:"约10:45 / 约14:07", link:["财联社","https://www.cls.cn/detail/2506436"], bull:"影视/短剧/出版·AI语料", bear:""},
+  {id:"G", t:"工信部：新型电池产业绝不能盲目地大干快上（狠抓“十五五”规划实施、健全会商联动机制）；1-9 月国内动力电池装车量 576.3GWh 同比 +16.7%", time:"约12:45", link:["财联社","https://www.cls.cn/detail/2506606"], bull:"电池头部企业（供给侧约束）", bear:"电池尾部产能"},
+  {id:"H", t:"三季报预增潮延续（10/15 盘后）：江波龙前三季净利预增 1865%~1991%、海光信息预增 38%~52%、深南电路/光迅科技/沐曦股份等密集预喜", time:"10-15 23:38", link:["财联社","https://www.cls.cn/detail/2506185"], bull:"存储/PCB/算力链（股池内无相关行业标的）", bear:""},
+  {id:"I", t:"三部门发布养老机构收费管理新政：区分兜底保障型/普惠支持型/完全市场型，分别实行政府指导价或市场调节价", time:"14:34", link:["财联社","https://www.cls.cn/detail/2506719"], bull:"养老服务（股池内无相关行业标的）", bear:""},
+  {id:"J", t:"工信部等三部门联合调查有关车辆刹车踏板支架断裂问题（尊界事件监管延伸）；商务部——中欧混动汽车领域达成的谅解是对等互利的", time:"约09:45", link:["财联社","https://www.cls.cn/detail/2506345"], bull:"", bear:"涉事车企（个案）"},
+  {id:"K", t:"科技前沿：谷歌“魔态培育法”量子计算突破（Willow 误差降低 40 倍、逻辑保真度 99.99%）；微软 MAI-Base-2 自研模型（2.8 万亿参数、1/4 算力超 OpenAI 同类）；特斯拉 Roadster 飞行跑车实现高空转体与悬停降落", time:"约10:45 / 约11:45", link:["财联社","https://www.cls.cn/detail/2506383"], bull:"量子计算/具身智能（事件型）", bear:""}
+];
+const EVENTS = [
+  {d:"10-12", t:"10/12 短剧爆款首发 · 新华传媒 10 板"},
+  {d:"10-13", t:"10/13 新华停牌 · 冰雪/液冷启动"},
+  {d:"10-15", t:"10/15 韩股熔断 · CPI 超预期 · 冰点日"},
+  {d:"10-16", t:"10/16 反弹日 · 新华复牌一字 · 百洋天地板 · 冰山 4 板"}
+];
+const TIMELINE = [
+  {theme:"影视动漫·AI漫剧", status:"巨量分歧·断板", st:"mid", span:"9/21 出版复牌（窗口外）→ 10/16 · 6 板断板",
+   risk:"消息滞后·资金抢跑", riskNote:"慈文传媒首板 2026-10-09（天梯连板倒推）早于短剧事件首发 2026-10-12 约11:45（财联社 2501885），提前 1 个交易日；警示第 4 日，今日断板巨量兑现中",
+   nodes:[
+     {d:"10-12", kind:"news", first:true, tag:"★首发", risk:true, riskNote:"事件首发 2026-10-12 约11:45，晚于梯队首板 10-09", ts:"2026-10-12 约11:45", t:"AI 点燃短剧热潮：字节 PineDrama 海外日活约 700 万成爆款", src:"财联社", url:"https://www.cls.cn/detail/2501885"},
+     {d:"10-15", kind:"news", tag:"AI漫剧专题", ts:"2026-10-15 约13:47", t:"慈文传媒 5 连板：2026 AI 漫剧市场规模预计 400 亿元（+138%）、出海超 40 亿美元", src:"财联社", url:"https://www.cls.cn/detail/2505419"},
+     {d:"10-16", kind:"news", tag:"四战短剧", ts:"2026-10-16 约10:45", t:"腾讯以“绿泡泡”四战短剧，对垒字节“红果”；可灵 AI 发布 Kling 4.0（快手盘中 +6%）", src:"财联社", url:"https://www.cls.cn/detail/2506436"},
+     {d:"10-16", kind:"kline", tag:"断板巨量", t:"慈文传媒竞价 +8.31% 高开后回落 +1.68%，6 板断板、换手 44.74% 天量（本月 +60.64% 仍居 #1）——高位筹码大交换"}]},
+  {theme:"制冷空调·液冷", status:"弱转强·全场最高度", st:"hot", span:"10/13 首板 → 10/16 · 4 板",
+   risk:"消息滞后·资金抢跑", riskNote:"冰山冷热首板 2026-10-13（天梯 4 连板倒推）早于上海 PUE 规划最早报道 2026-10-14 约08:28（财联社 2503969，当日 09:41 批次采集；规划印发日期未核），提前 1 个交易日",
+   nodes:[
+     {d:"10-13", kind:"kline", risk:true, tag:"首板", t:"冰山冷热/哈空调盘中首板（当日无对应事件消息）"},
+     {d:"10-14", kind:"news", first:true, risk:true, tag:"★首发", ts:"2026-10-14 约08:28", t:"上海节能降碳“十五五”规划：新建算力设施 PUE≤1.2、液冷渗透率有望提升", src:"财联社", url:"https://www.cls.cn/detail/2503969"},
+     {d:"10-15", kind:"kline", tag:"3板·新进", t:"冰点日涨停 3 板（换手 40.84% 巨量），新进月度前七 #6"},
+     {d:"10-16", kind:"kline", tag:"4板·最高度", t:"竞价 -4.18% 低开后拉板 +9.96%，晋级 4 连板（午报确认）——百洋断板后接棒全场最高度；换手 33.01%，梯队独苗"}]},
+  {theme:"水产饲料", status:"天地板·抱团瓦解", st:"cool", span:"10/9 首板 → 10/16 · 5 板后跌停",
+   nodes:[
+     {d:"10-09", kind:"kline", tag:"首板", t:"百洋股份首板（彼时无当日催化，资金驱动）"},
+     {d:"10-14", kind:"kline", tag:"4板·一字", t:"4 板一字（换手 0.96% 极致缩量）"},
+     {d:"10-15", kind:"kline", tag:"5板·全场最高度", t:"冰点日 5 板涨停（本月 +63.07% 居 #1），独苗抱团极致"},
+     {d:"10-16", kind:"kline", tag:"天地板", t:"竞价 -6.52% 低开直接跌停 -9.97%（换手 26.54%）——高位抱团瓦解、情绪标杆交接（冰山 4 板）；无事件消息可对照，如实标注"}]},
+  {theme:"出版·AI语料", status:"复牌一字·板块复活", st:"hot", span:"9/21 复牌（窗口外）→ 10/16",
+   nodes:[
+     {d:"10-13", kind:"kline", tag:"停牌核查", t:"新华传媒 10 个一字板累计 +159.51% 后停牌核查"},
+     {d:"10-16", kind:"kline", tag:"复牌一字", t:"停牌 3 个交易日后复牌一字涨停（竞价 +10.01%、换手 1.47% 缩量；本月 +46.47% 居 #4，近十日 +95.11% 第一；复牌公告细节以交易所披露为准）"},
+     {d:"10-16", kind:"kline", tag:"梯队集结", t:"新华文轩 3 板涨停新进前七 #7（+33.24%）· 读者传媒（池外）2 板缩量——出版梯队重新集结；新经典连续回落今日移除前七（抢跑警示兑现完成）"}]},
+  {theme:"厨房小家电·华为链", status:"低位企稳", st:"cool", span:"窗口外预期 → 10/16",
+   nodes:[
+     {d:"10-15", kind:"kline", tag:"低开走弱", t:"九阳股份 -2.77%（连续三日未回封）"},
+     {d:"10-16", kind:"kline", tag:"企稳", t:"-2.60% 低开回升 +2.25%（本月 #5，近十日 +88.50% 第二）；首发溯源待补，不判抢跑"}]},
+  {theme:"锂电池", status:"窄幅震荡", st:"cool", span:"9/26 首板 → 10/16",
+   risk:"消息滞后·资金抢跑", riskNote:"时代万恒首板 2026-09-26（天梯连板倒推）早于电池规划首发 2026-09-29 09:58（东财原文地址），提前 1 个交易日",
+   nodes:[
+     {d:"09-29", kind:"news", first:true, tag:"★首发", risk:true, riskNote:"首发 2026-09-29 09:58，晚于时代万恒首板 9/26 一个交易日", ts:"2026-09-29 09:58", t:"七部门《新型电池产业“十五五”规划》印发", src:"东方财富", url:"https://finance.eastmoney.com/a/202609293886233767.html"},
+     {d:"10-16", kind:"news", tag:"监管表态", ts:"2026-10-16 约12:45", t:"工信部：新型电池产业绝不能盲目地大干快上（狠抓规划实施）；1-9 月动力电池装车量 +16.7%", src:"财联社", url:"https://www.cls.cn/detail/2506606"},
+     {d:"10-16", kind:"kline", tag:"震荡", t:"时代万恒 -4.00% 低开收 -1.79%（本月 #6，近十日 +87.96% 第三）；电池链天梯 0 成员"}]}
+];
+const CONCEPTS = {"002343":{"name":"慈文传媒","industry":"传媒 / 影视院线 / 影视动漫制作","biz":["影视IP内容投资、开发、制作及发行","游戏产品及渠道推广"],"style":["题材股","百日新高","破增发价股","破发股"]},"000530":{"name":"冰山冷热","industry":"机械设备 / 通用设备 / 制冷空调设备","biz":["工业制冷制热事业领域","商用冷冻冷藏事业领域"],"style":["题材股","百日新高","近期新高","昨日打二板以上表现"]},"002242":{"name":"九阳股份","industry":"家用电器 / 小家电 / 厨房小家电","biz":["小家电系列产品的研发、生产和销售","小家电行业"],"style":["题材股","趋势股","最近多板","东方财富热股"]},"600241":{"name":"时代万恒","industry":"电力设备 / 电池 / 锂电池","biz":["锂电池业务","镍氢电池业务"],"style":["2026中报首亏","题材股","最近多板","东方财富热股"]},"003029":{"name":"吉大正元","industry":"计算机 / 软件开发 / 垂直应用软件","biz":["网络安全","网络安全行业"],"style":["最近多板","东方财富热股","昨日高振幅","昨日首板"]},"002889":{"name":"东方嘉盛","industry":"交通运输 / 物流 / 端到端供应链服务","biz":["一体化4PL数字供应链服务商","2025年进出口贸易总额再创新高跨境电商巩固外贸增长关键引擎"],"style":["2026中报预增","最近多板","东方财富热股","昨日高振幅"]},"603999":{"name":"读者传媒","industry":"传媒 / 出版 / 大众出版","biz":["期刊业务","图书业务"],"style":["趋势股","百日新高","近期新高","最近多板"]},"600668":{"name":"尖峰集团","industry":"建筑材料 / 水泥 / 水泥制造","biz":["建材业务","医药业务"],"style":["低市净率","2026中报首亏","最近多板","东方财富热股"]},"002696":{"name":"百洋股份","industry":"农林牧渔 / 饲料 / 水产饲料","biz":["水产品加工及生物制品业务","饲料及饲料原料业务"],"style":["2026中报首亏","题材股","百日新高","破增发价股"]},"600825":{"name":"新华传媒","industry":"传媒 / 出版 / 大众出版","biz":["图书、文教用品","新闻和出版业"],"style":["题材股","最近多板","东方财富热股","沪股通"]},"601811":{"name":"新华文轩","industry":"传媒 / 出版 / 教育出版","biz":["出版业务","阅读服务业务","教育服务业务"],"style":["题材股","趋势股","小盘价值","小盘股"]}};
+/* 宏观·市场 消息时间线（与股池题材无直接映射的市场级消息） */
+const MACRO = {theme:"宏观·市场", status:"反弹日·外围修复", st:"mid", span:"10/16 早间 → 14:41", nodes:[
+  {d:"10-16", kind:"news", tag:"资金", ts:"2026-10-16 14:21", t:"主力资金监控：电子板块净流入超 57 亿（昨日冰点后资金回流）", src:"财联社", url:"https://www.cls.cn/detail/2506709"},
+  {d:"10-16", kind:"news", tag:"日本央行", ts:"2026-10-16 14:34", t:"日本央行行长植田和男：将继续根据经济和物价情况加息", src:"财联社", url:"https://www.cls.cn/detail/2506720"},
+  {d:"10-16", kind:"news", tag:"美债", ts:"2026-10-16 约09:45", t:"避险压倒一切：美债迎来“大翻身”，重新确立避风港地位", src:"财联社", url:"https://www.cls.cn/detail/2506338"},
+  {d:"10-16", kind:"news", tag:"防御股", ts:"2026-10-16 约11:45", t:"“美国茅台”可口可乐创历史新高（年内 +32% 跑赢七巨头）；美国肯德基全面转售可口可乐（四十年合作落幕）", src:"财联社", url:"https://www.cls.cn/detail/2506528"},
+  {d:"10-16", kind:"news", tag:"医药", ts:"2026-10-16 约13:45", t:"癌症疫苗第一股莫德纳创新高（ESMO 完整数据预期，市值一度 960 亿美元）；康诺亚前三季收入大增涨超 13%；CRO 概念震荡回落", src:"财联社", url:"https://www.cls.cn/detail/2506622"},
+  {d:"10-16", kind:"news", tag:"港股", ts:"2026-10-16 约12:45", t:"港股 AI 相关个股遭空头狙击：智谱月内卖空股数暴增近五倍", src:"财联社", url:"https://www.cls.cn/detail/2506588"},
+  {d:"10-16", kind:"news", tag:"工博会", ts:"2026-10-16 约10:45", t:"制造业迈向“自主智能体”时代：算力芯片与具身机器人同台竞速（多厂商发布新品）", src:"财联社", url:"https://www.cls.cn/detail/2506466"},
+  {d:"10-16", kind:"news", tag:"腾讯云", ts:"2026-10-16 约14:10", t:"腾讯云发布 DeepSeek 异常补偿方案（全额返还 10/8-14 消耗积分+赠送）", src:"财联社", url:"https://www.cls.cn/detail/2506686"},
+  {d:"10-16", kind:"news", tag:"运河", ts:"2026-10-16 约14:10", t:"平陆运河通航满月：过货量超 95 万吨、客运量超 3 万（游轮开票即售罄）", src:"财联社", url:"https://www.cls.cn/detail/2506687"},
+  {d:"10-16", kind:"news", tag:"红海", ts:"2026-10-16 头条区", t:"红海成“风暴眼”：胡塞武装施压美国沙特、欧盟增派军舰护航；胡塞首次袭击也门总统府，利雅得机场半月遇袭 20 次", src:"财联社", url:"https://www.cls.cn/detail/2506617"},
+  {d:"10-16", kind:"news", tag:"金融反腐", ts:"2026-10-16 14:32", t:"中国邮政储蓄银行原副行长曲家文接受审查调查", src:"财联社", url:"https://www.cls.cn/detail/2506717"},
+  {d:"10-16", kind:"news", tag:"卖方研究", ts:"2026-10-16 约13:45", t:"中证协梳理卖方研究痛点：分仓佣金收缩、AI 乱象，七条方案点出转型方向（禁止分析师直接采信 AI 生成未核验内容）", src:"东方财富", url:"https://finance.eastmoney.com/a/202610163898209336.html"}
+]};
+
+/* 题材连板天梯：全市场连板>=2 快照（14:41 盘中·尾盘）——反弹日天梯 6 只（冰点 5 → 6），高度重建至 4 板 */
+const LADDER = {grabbedAt: "2026-10-16 14:41（盘中·尾盘）", rows: [
+  {code:"000530", name:"冰山冷热", lb:4, theme:"制冷空调·液冷", inPool:true, via:"月度前七 #2（+47.96%）·F10=制冷空调设备·弱转强拉板 4 连板（换手 33.01%）（⚠ 首板 10/13 早于 PUE 规划最早报道 10/14）"},
+  {code:"601811", name:"新华文轩", lb:3, theme:"出版·AI语料", inPool:true, via:"月度前七 #7 新进（+33.24%）·F10=教育出版（沿用 10/8 快照）·3 连板"},
+  {code:"603999", name:"读者传媒", lb:2, theme:"出版·AI语料", inPool:false, via:"公开分类=期刊出版（F10 无返回）·换手 2.88% 缩量（首板 10/15，消息驱动不判抢跑）"},
+  {code:"600668", name:"尖峰集团", lb:2, theme:"_other", inPool:false, via:"公开分类=水泥及医药（F10 无返回）·前七内无相关锚定股"},
+  {code:"003029", name:"吉大正元", lb:2, theme:"_other", inPool:false, via:"F10=软件开发/垂直应用软件（信息安全·密码）·换手 20.84% 放量（前七内无软件锚定股）"},
+  {code:"002889", name:"东方嘉盛", lb:2, theme:"_other", inPool:false, via:"F10=端到端供应链服务 · 概念含 2026 中报预增（半导体供应链分销）（前七内无锚定股）"}
+]};
+/* ==== 数据注入区结束（以下为渲染代码，勿改） ==== */
+
+
+const emQuote = code => "https://quote.eastmoney.com/" + (code.startsWith("6") ? "sh" : "sz") + code + ".html";
+/* 名次彩虹色系（月度前七）：#1 红 → #7 紫；bg=矩阵单元格底色（浅色块），fg=深色字 */
+const RAINBOW = [
+  { bg: "#ffdfe3", fg: "#c9252d" },
+  { bg: "#ffe8cc", fg: "#c46a10" },
+  { bg: "#fdf6d3", fg: "#937011" },
+  { bg: "#d9f2e5", fg: "#16835c" },
+  { bg: "#d6f2f5", fg: "#0d7490" },
+  { bg: "#dde9fc", fg: "#2563c9" },
+  { bg: "#ece1fa", fg: "#6f42c1" }
+];
+const pctCls = v => v > 0 ? "up" : (v < 0 ? "down" : "");
+const pctTxt = (v, suf) => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + (suf || "%");
+const THEME_COLORS = {"固态电池":"#e8b64c","房地产":"#ff9f43","出版":"#7aa2f7","非白酒":"#c792ea","元件":"#4dd0e1","家居用品":"#9ccc65","宏观·市场":"#8a94a6"};
+
+const evMarkAreas = EVENTS.map(ev => [{xAxis: ev.d, itemStyle: {color: "rgba(232,182,76,.07)"}}, {xAxis: ev.d}]);
+
+
+
+function ladderHtml(theme) {
+  const rows = LADDER.rows.filter(r => r.theme === theme).sort((a, b) => b.lb - a.lb);
+  if (!rows.length) return `<div class="lad-empty">该题材当前无连板梯队（连板≥2 快照 ${LADDER.grabbedAt}）</div>`;
+  const lbs = [...new Set(rows.map(r => r.lb))].sort((a, b) => b - a);  // 自上而下板数递减（天梯：越往上越高）
+  const maxLb = lbs[0], minLb = lbs[lbs.length - 1];
+  const trs = lbs.map(lb => {
+    const grp = rows.filter(r => r.lb === lb);
+    const cells = grp.map(r =>
+      `<span class="lad-cell${r.inPool ? "" : " outpool"}" title="${r.via}"><a href="${emQuote(r.code)}" target="_blank" title="打开东方财富行情页">${r.name}${r.inPool ? "" : '<em>池外</em>'} ↗</a></span>`).join("");
+    const w = 12 + (lb - minLb + 1) / (maxLb - minLb + 1) * 88;
+    return `<div class="lad-trow">
+      <span class="lad-lb num">${lb}板<small>${grp.length}只</small></span>
+      <span class="lad-bar"><i style="width:${w.toFixed(0)}%"></i></span>
+      <span class="lad-cells">${cells}</span>
+    </div>`;
+  }).join("");
+  return `<div class="lad-table">${trs}</div>`;
+}
+
+/* ---------- 月度前七 · 当月全景矩阵（POOLCHG） ---------- */
+(function() {
+  const el = document.getElementById("poolchg");
+  if (!el || typeof POOLCHG === "undefined") return;
+  const P = POOLCHG || {};
+  const dates = P.dates || [];
+  const today = P.today, prevDate = P.prevDate;
+  if (!dates.length) { el.innerHTML = ""; return; }
+  const th = c => (P.themes || {})[c] || "—";
+  const pct = v => { const n = parseFloat(v); return isNaN(n) ? "—" : `<span class="mx-pct num ${pctCls(n)}">${(n > 0 ? "+" : "") + n.toFixed(2)}%</span>`; };
+  const prevSet = new Set();
+  (P.rankRows || []).forEach(r => { const c = (r.cells || {})[prevDate]; if (c) prevSet.add(c.code); });
+  let newCnt = 0;
+  (P.rankRows || []).forEach(r => { const c = (r.cells || {})[today]; if (c && prevDate && !prevSet.has(c.code)) newCnt++; });
+
+  /* 配色策略（专业数据面板三层信号：题材=色签+色条，名次=彩虹字，强弱=底色）：
+     题材色：黄金角色相+饱和度/明度交替 → vivid（色签底/色条/联动描边，白字对比≥4.5:1）与 tint（极浅底）；
+     当日前七标的：极浅题材底 + 彩虹名次字 + 实心题材色签（白字）；
+     其余历史格与移除行：白底 + 中性灰字 + 幽灵色签（vivid 描边/文字），题材可辨但不抢焦点 */
+  const NEUTRAL = { fg: "#5c6675" };
+  const themeColor = {};
+  let hi = 0;
+  const SL = [[74, 44], [62, 38], [80, 41], [68, 48]];
+  const themeOf = t => {
+    if (themeColor[t] !== undefined) return themeColor[t];
+    if (t === "—") { themeColor[t] = { vivid: "#8a94a6", tint: "#f2f4f7" }; return themeColor[t]; }
+    const h = Math.round(hi * 137.508) % 360, [s, l] = SL[hi % 4];
+    hi++;
+    return (themeColor[t] = { vivid: `hsl(${h},${s}%,${l}%)`, tint: `hsl(${h},${Math.min(s, 50)}%,96%)` });
+  };
+  /* 标的字体色：仅当日（最新列）前七的标的按今日名次取彩虹色（同一标的跨列同色）；
+     不在当日前七的标的与移除行均为中性灰（不着色） */
+  const fgOfCode = {};
+  (P.rankRows || []).forEach(r => { const c = (r.cells || {})[today]; if (c) fgOfCode[c.code] = (RAINBOW[r.rank - 1] || NEUTRAL).fg; });
+
+  let grid = `<div class="mx-hc">排名</div>` + dates.map(d =>
+    `<div class="mx-hd${d === today ? " mx-today" : ""}">${(P.labels || {})[d] || d.slice(5).replace("-", "")}</div>`).join("");
+  (P.rankRows || []).forEach(r => {
+    grid += `<div class="mx-rk num">#${r.rank}</div>` + dates.map(d => {
+      const c = (r.cells || {})[d];
+      const td = d === today ? " mx-today" : "";
+      if (!c) return `<div class="mx-cell${td}"></div>`;
+      const isNew = d === today && prevDate && !prevSet.has(c.code);
+      const C = themeOf(th(c.code));
+      const cur = c.code in fgOfCode;
+      const fg = cur ? fgOfCode[c.code] : NEUTRAL.fg;
+      return `<div class="mx-cell${td}" data-code="${c.code}" style="--mxc:${C.vivid};color:${fg}${cur ? `;background:${C.tint}` : ""}" title="${c.name} · 本月第${r.rank}名 · ${th(c.code)} · 本月${c.month_pct}% · 点击联动高亮同一标的"><a href="${emQuote(c.code)}" target="_blank" title="打开东方财富行情页">${c.name}</a>${isNew ? '<i class="mx-new">新</i>' : ""}<span class="mx-th${cur ? "" : " mx-th-ghost"}">${th(c.code)}</span>${pct(c.month_pct)}</div>`;
+    }).join("");
+  });
+  (P.removed || []).forEach(s => {
+    grid += `<div class="mx-rk mx-rk-out">移除</div>` + dates.map(d => {
+      if (d === today) return `<div class="mx-cell mx-today" style="display:flex;align-items:center;justify-content:center"><span class="mx-rem-tag">今日移除</span></div>`;
+      const c = (s.cells || {})[d];
+      if (!c) return `<div class="mx-cell"></div>`;
+      const C = themeOf(th(s.code));
+      return `<div class="mx-cell mx-out" data-code="${s.code}" style="--mxc:${C.vivid};color:${NEUTRAL.fg}" title="${s.name} · ${th(s.code)} · 本月（当期）${c.month_pct}% · 点击联动高亮同一标的"><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}</a><span class="mx-th mx-th-ghost">${th(s.code)}</span><span class="mx-pct num">${pct(c.month_pct)}<em class="mx-pr">#${c.rank}</em></span></div>`;
+    }).join("");
+  });
+
+  const remNote = (P.removed || []).map(s =>
+    `${s.name}（昨日#${s.prev_rank}）${s.note ? " · " + s.note : ""}`).join("；");
+  el.innerHTML = `<div class="theme-block mx-block">
+    <div class="tb-head"><span class="tb-dot"></span><span class="tb-name">月度前七 · 当月全景</span>
+      <span class="tb-span num">${dates[0].slice(5).replace("-", "/")} → ${dates[dates.length - 1].slice(5).replace("-", "/")} · ${dates.length} 个交易日</span>
+      ${P.baseline ? `<span class="st st-mid">首次记录 · 无对比基线</span>`
+                   : `<span class="st st-hot">较昨日新进 ${newCnt}</span><span class="st st-cool">移除 ${(P.removed || []).length}</span>`}
+    </div>
+    <div class="mx-wrap"><div class="mx-grid" style="grid-template-columns:52px repeat(${dates.length}, minmax(168px, 1fr))">${grid}</div></div>
+    <div style="padding:2px 18px 14px;font-size:11.5px;color:var(--sub)">配色：题材=色签+左色条（同题材同色系，色签白字）· 当日前七标的=极浅题材底+彩虹名次字（#1 红→#7 紫）· 其余历史格与移除行=白底灰字+幽灵色签 · 点击格子联动高亮同一标的（其余弱化，再次点击取消；点击标的名称跳东财行情页）${remNote ? "<br>较昨日移除：" + remNote : ""}</div>
+  </div>`;
+
+  /* 点击格子联动高亮同一标的（点击名称链接不拦截）；聚焦时未命中单元格弱化，再次点击取消 */
+  el.addEventListener("click", e => {
+    if (e.target.closest("a")) return;
+    const cell = e.target.closest(".mx-cell[data-code]");
+    if (!cell) return;
+    const grid = el.querySelector(".mx-grid");
+    const code = cell.dataset.code;
+    const wasOn = cell.classList.contains("mx-hit");
+    el.querySelectorAll(".mx-cell.mx-hit").forEach(c => c.classList.remove("mx-hit"));
+    if (grid) grid.classList.remove("mx-focus");
+    if (!wasOn) {
+      el.querySelectorAll(`.mx-cell[data-code="${code}"]`).forEach(c => c.classList.add("mx-hit"));
+      if (grid) grid.classList.add("mx-focus");
+    }
+  });
+  /* 点击可选格子以外的任意位置（页面空白/表头/其他区块）取消聚焦 */
+  document.addEventListener("click", e => {
+    if (e.target.closest(".mx-cell[data-code]")) return;
+    if (!el.querySelector(".mx-cell.mx-hit")) return;
+    el.querySelectorAll(".mx-cell.mx-hit").forEach(c => c.classList.remove("mx-hit"));
+    const grid = el.querySelector(".mx-grid");
+    if (grid) grid.classList.remove("mx-focus");
+  });
+})();
+
+/* ---------- 渲染题材区块 ---------- */
+const blocks = document.getElementById("blocks");
+const navChips = document.getElementById("navChips");
+const TL = [...TIMELINE, MACRO];
+
+TL.forEach((tl, bi) => {
+  /* 个股行（题材梯队：前七锚定股在前、同题材池外梯队员在后） */
+  const stocks = STOCKS.filter(s => s.theme === tl.theme)
+    .sort((a, b) => ((a.out ? 1 : 0) - (b.out ? 1 : 0)) || ((a.rk || 99) - (b.rk || 99)));
+  const isMacro = tl.theme === "宏观·市场";
+  const block = document.createElement("div");
+  block.className = "theme-block"; block.id = "blk" + bi;
+  block.style.setProperty("--tc", THEME_COLORS[tl.theme] || "#e8b64c");
+
+
+  const stocksHtml = stocks.map(s => {
+    const zt = Math.abs(s.pct) >= 9.9 ? (s.pct > 0 ? " 涨停" : " 跌停") : "";
+    const pm = s.pool === "d10" ? ["十日", "pool-d10"] : ["月度", "pool-mo"];
+    const hs = (typeof s.hs === "number" && isFinite(s.hs)) ? s.hs.toFixed(1) + "%" : "—";
+    const jjHtml = (typeof s.jj === "number" && isFinite(s.jj))
+      ? `<span class="${pctCls(s.jj)}${Math.abs(s.jj) >= 3 ? " jjv" : ""}">${pctTxt(s.jj)}</span>${Math.abs(s.jj) >= 3 ? '<i class="jj-tag">竞价异动</i>' : ""}`
+      : "—";
+    return `<div class="s-row" data-code="${s.code}">
+      <div class="s-id">
+        <div class="nm">${s.out ? `<span class="pool pool-out" title="${s.via || "同题材池外标的（连板梯队成员）"}">池外</span>` : `<span class="pool ${pm[1]}">${pm[0]}</span>`}${(!s.out && s.rk >= 1 && s.rk <= 7) ? `<i class="rk-chip" style="border-color:${RAINBOW[s.rk - 1].fg};color:${RAINBOW[s.rk - 1].fg}" title="本月第 ${s.rk} 名（彩虹色系与矩阵同色）">#${s.rk}</i>` : ""}<a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页" style="${(!s.out && s.rk >= 1 && s.rk <= 7) ? "color:" + RAINBOW[s.rk - 1].fg : (s.out ? "color:var(--sub);" : "")}">${s.name} ↗</a>${s.top ? `<span class="top-chip" title="月度涨幅前七 ∩ 近十日涨幅前三 · 双窗口确认的最强标的">★最强</span>` : ""}${s.risk ? `<span class="risk-chip" title="${s.riskNote || "首板涨停早于题材首发消息，疑似资金抢跑"}">⚠ 抢跑</span>` : ""}</div>
+        <div class="cd num">${s.code} · ${(CONCEPTS[s.code] || {}).industry || ""}${s.out ? " · 梯队" : ""}</div>
+      </div>
+      <div class="s-pct num ${pctCls(s.pct)}">${pctTxt(s.pct)}${zt}<span class="lbinfo">竞价 ${jjHtml} · 换手 ${hs}</span></div>
+    </div>`;
+  }).join("") || `<div class="msg-empty">该分组无股池标的（市场级消息）</div>`;
+
+  /* 消息序列（news=消息节点，kline=行情确认节点，note=说明节点） */
+  const newsNodes = tl.nodes;
+  const newsHtml = newsNodes.map(nd => `
+    <div class="msg">
+      <div class="d num">${(() => { const ts = nd.ts || ("2026-" + nd.d); const pp = ts.split(" "); return `<b>${pp[0]}</b><span>${pp.slice(1).join(" ") || "当日"}</span>`; })()}</div>
+      <div class="body">
+        <div class="t">${nd.t}</div>
+        <div class="m">${nd.risk ? `<span class="tagchip risk" title="${nd.riskNote || "首发消息晚于该题材首板涨停"}">消息晚于首板</span>` : ""}${nd.tag ? `<span class="tagchip ${nd.tag === "利空" ? "bear" : (nd.kind === "kline" ? "kline" : "")}">${nd.tag}</span>` : ""}${nd.src ? `<span>${nd.src}</span>` : ""}${nd.url ? `<a href="${nd.url}" target="_blank">原文 ↗</a>` : ""}</div>
+      </div>
+    </div>`).join("") || `<div class="msg-empty">窗口内无消息与行情确认节点</div>`;
+
+  block.innerHTML = `
+    <div class="tb-head">
+      <span class="tb-dot"></span>
+      <span class="tb-name">${tl.theme}</span>
+      <span class="tb-span num">${tl.span}</span>
+      <span class="st st-${tl.st}">${tl.status}</span>
+      ${tl.risk ? `<span class="st st-risk" title="${tl.riskNote || ""}">⚠ ${tl.risk}</span>` : ""}
+    </div>
+    ${isMacro ? `
+    <div class="tb-ladder" style="border-top:none;padding-top:2px"><div class="h">未归入题材组的连板梯队<span>快照 ${LADDER.grabbedAt}</span></div>${ladderHtml("_other")}</div>
+    <div class="tb-body" style="grid-template-columns:1fr">
+      <div class="tb-news" style="border:none">${newsHtml}</div>
+    </div>` : `
+    <div class="tb-ladder"><div class="h">连板梯队（连板≥2，含同题材池外标的）<span>快照 ${LADDER.grabbedAt} · 悬停看归属依据</span></div>${ladderHtml(tl.theme)}</div>` + `
+    <div class="tb-body">
+      <div class="tb-stocks"><h4>个 股 · ${stocks.length} 只</h4>${stocksHtml}</div>
+      <div class="tb-news"><h4>消息序列 · 点击“原文”跳转首发/发酵报道</h4>${newsHtml}</div>
+    </div>`}`;
+  blocks.appendChild(block);
+
+  const chip = document.createElement("a");
+  chip.href = "#blk" + bi; chip.textContent = tl.theme;
+  navChips.appendChild(chip);
+
+});
+</script>
+</body>
+</html>

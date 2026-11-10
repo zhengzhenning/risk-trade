@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A股题材发酵看板 · 2026-10-12</title>
+<style>
+  :root {
+    --bg:#0a0d13; --surface:#10141c; --surface2:#151a24; --surface3:#1a2030;
+    --border:#1d2430; --border2:#263042;
+    --txt:#e2e8f0; --sub:#8a94a6; --faint:#5c6675;
+    --accent:#e8b64c; --red:#f6465d; --red-bg:rgba(246,70,93,.12);
+    --green:#2ebd85; --green-bg:rgba(46,189,133,.12);
+    --radius:14px;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:64px; }
+  body { background:var(--bg); color:var(--txt); font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+  .up { color:var(--red); } .down { color:var(--green); }
+
+  nav { position:sticky; top:0; z-index:100; background:rgba(10,13,19,.88); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+  .nav-inner { max-width:1440px; margin:0 auto; display:flex; align-items:center; gap:16px; padding:0 32px; height:52px; }
+  .nav-logo { font-size:15px; font-weight:700; white-space:nowrap; }
+  .nav-logo em { color:var(--accent); font-style:normal; }
+  .nav-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-left:auto; }
+  .nav-chips::-webkit-scrollbar { display:none; }
+  .nav-chips a { flex:none; font-size:12px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
+  .nav-chips a:hover { color:var(--txt); border-color:var(--border2); background:var(--surface2); }
+  .nav-date { font-size:12px; color:var(--faint); white-space:nowrap; margin-left:8px; }
+
+  .wrap { max-width:1440px; margin:0 auto; padding:32px 32px 80px; }
+
+  .hero { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px; }
+  .hero h1 { font-size:26px; font-weight:700; }
+  .hero h1 span { color:var(--accent); font-weight:500; }
+  .hero .sub { color:var(--sub); font-size:13px; margin-top:6px; }
+  .badges { display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { font-size:12px; color:var(--sub); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px 12px; }
+  .badge b { color:var(--txt); font-weight:600; }
+  .badge.live { border-color:rgba(232,182,76,.4); color:var(--accent); }
+  .badge.live b { color:var(--accent); }
+
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-bottom:36px; }
+  .stat { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px 14px; overflow:hidden; }
+  .stat::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent 60%); opacity:.7; }
+  .stat .k { font-size:12px; color:var(--sub); margin-bottom:7px; }
+  .stat .v { font-size:19px; font-weight:700; }
+  .stat .v small { font-size:12px; font-weight:400; color:var(--faint); margin-left:8px; }
+
+  /* ---------- 题材区块 ---------- */
+  .theme-block { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:22px; overflow:hidden; }
+  .tb-head { display:flex; align-items:center; gap:14px; padding:18px 22px 14px; border-bottom:1px solid var(--border); position:relative; }
+  .tb-head::before { content:""; position:absolute; top:0; left:0; bottom:0; width:3px; background:var(--tc); }
+  .tb-dot { width:12px; height:12px; border-radius:4px; background:var(--tc); transform:rotate(45deg); flex:none; }
+  .tb-name { font-size:19px; font-weight:700; }
+  .tb-span { font-size:12px; color:var(--sub); }
+  .st { display:inline-block; font-size:11px; font-weight:600; border-radius:6px; padding:3px 10px; }
+  .st-hot { color:var(--red); background:var(--red-bg); }
+  .st-mid { color:var(--accent); background:rgba(232,182,76,.12); }
+  .st-cool { color:var(--green); background:var(--green-bg); }
+  .st-risk { color:#ff6b6b; background:rgba(255,107,107,.12); border:1px solid rgba(255,107,107,.35); }
+
+
+  .tb-body { display:grid; grid-template-columns:400px 1fr; border-top:1px solid var(--border); }
+  @media (max-width:1100px){ .tb-body { grid-template-columns:1fr; } }
+  .tb-stocks { padding:14px 18px; border-right:1px solid var(--border); }
+  @media (max-width:1100px){ .tb-stocks { border-right:none; border-bottom:1px solid var(--border); } }
+  .tb-stocks h4, .tb-news h4 { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:10px; }
+  .s-row { display:grid; grid-template-columns:minmax(104px,auto) 1fr; align-items:center; gap:12px; padding:7px 10px; border-radius:10px; cursor:pointer; transition:background .12s; }
+  .s-row:hover { background:var(--surface2); }
+  .s-row.active { background:var(--surface3); outline:1px solid var(--tc); }
+  .s-id .nm { font-weight:600; font-size:13.5px; white-space:nowrap; }
+  .s-id .nm a, .lad-cell a { color:inherit; text-decoration:none; }
+  .s-id .nm a:hover, .lad-cell a:hover { color:#7aa2f7; text-decoration:underline; }
+  .s-id .cd { font-size:10.5px; color:var(--faint); }
+  .pool { font-size:9.5px; border-radius:4px; padding:0 4px; margin-right:5px; vertical-align:1px; }
+  .pool-lb { color:#ff9f43; border:1px solid rgba(255,159,67,.45); }
+  .pool-m9 { color:#7aa2f7; border:1px solid rgba(122,162,247,.45); }
+  .risk-chip { display:inline-block; font-size:9.5px; font-weight:600; color:#ff6b6b; border:1px solid rgba(255,107,107,.45); background:rgba(255,107,107,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .s-pct { font-size:13px; font-weight:700; text-align:right; min-width:120px; }
+  .s-pct .lbinfo { display:block; font-size:10px; font-weight:400; color:var(--faint); }
+  .s-sep { font-size:10.5px; color:var(--faint); }
+
+  .tb-news { padding:14px 18px; }
+  .msg { display:flex; gap:10px; padding:9px 10px; border-radius:10px; transition:background .12s; }
+  .msg:hover { background:var(--surface2); }
+  .msg + .msg { margin-top:4px; }
+  .msg .d { flex:none; width:58px; font-size:11px; color:var(--accent); font-weight:600; padding-top:2px; }
+  .msg .body .t { font-size:13px; line-height:1.5; }
+  .msg .body .m { font-size:11px; color:var(--sub); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .msg .m a { color:#7aa2f7; text-decoration:none; }
+  .msg .m a:hover { text-decoration:underline; }
+  .msg .tagchip { color:var(--accent); border:1px solid rgba(232,182,76,.35); border-radius:4px; padding:0 5px; font-size:10px; }
+  .msg .tagchip.bear { color:var(--green); border-color:rgba(46,189,133,.35); }
+  .msg .tagchip.risk { color:#ff6b6b; border-color:rgba(255,107,107,.45); }
+  .msg-empty { font-size:12px; color:var(--faint); padding:10px; }
+
+
+
+  .tb-ladder { padding:10px 18px 12px; border-top:1px solid var(--border); }
+  .tb-ladder .h { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:8px; }
+  .tb-ladder .h span { font-weight:400; letter-spacing:0; margin-left:8px; }
+  .lad-table { display:flex; flex-direction:column; gap:6px; }
+  .lad-trow { display:grid; grid-template-columns:64px minmax(70px, 220px) 1fr; align-items:center; gap:12px; padding:4px 0; }
+  .lad-trow + .lad-trow { border-top:1px dashed rgba(29,36,48,.6); }
+  .lad-lb { font-size:12.5px; font-weight:700; color:var(--red); text-align:center; background:var(--red-bg); border-radius:6px; padding:3px 0; }
+  .lad-lb small { display:block; font-size:9px; color:var(--faint); font-weight:400; }
+  .lad-bar { height:10px; }
+  .lad-bar i { display:block; height:100%; border-radius:5px; background:linear-gradient(90deg, rgba(246,70,93,.9), rgba(246,70,93,.3)); }
+  .lad-cells { display:flex; flex-wrap:wrap; gap:6px; }
+  .lad-cell { font-size:12.5px; font-weight:600; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:3px 10px; white-space:nowrap; }
+  .lad-cell.outpool { color:var(--sub); font-weight:500; border-style:dashed; }
+  .lad-cell em { font-style:normal; font-size:9px; color:var(--faint); margin-left:5px; vertical-align:1px; }
+  .lad-empty { font-size:11.5px; color:var(--faint); }
+  .msg .d { width:104px; line-height:1.35; }
+  .msg .d b { display:block; font-size:10.5px; color:var(--accent); }
+  .msg .d span { font-size:9.5px; color:var(--faint); }
+
+  footer { font-size:11.5px; color:var(--faint); line-height:1.9; border-top:1px solid var(--border); padding-top:18px; }
+  footer b { color:var(--sub); font-weight:500; }
+</style>
+</head>
+<body>
+
+<nav><div class="nav-inner">
+  <div class="nav-logo">题材发酵看板<em> · Theme Pulse</em></div>
+  <div class="nav-chips" id="navChips"></div>
+  <div class="nav-date num">2026-10-12 · 快照 14:41 盘中（尾盘）</div>
+</div></nav>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>题材分组 <span>× 连板天梯 × 消息序列</span></h1>
+      <div class="sub">方向一·连板情绪 12 只 ｜ 方向二·月度强势 4 只（本月累计 &gt;30%）</div>
+    </div>
+    <div class="badges">
+      <span class="badge live">快照 <b>14:41 盘中（尾盘）</b></span>
+      <span class="badge">题材 <b>5 组</b></span>
+      <span class="badge">方向一·连板 <b>12 只</b> ｜ 方向二·月度 <b>4 只</b></span>
+      <span class="badge">消息 <b>11+12 条</b></span>
+      <span class="badge">抢跑警示 <b>3 组</b></span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">当日情绪主线</div><div class="v">影视传媒·短剧 AI<small>天梯 19 只中 10 只传媒链 · 新华传媒 10 板（封单上百万手）</small></div></div>
+    <div class="stat"><div class="k">方向二·月度强势（本月前十且&gt;20%）</div><div class="v num">4 只<small>本月累计约 +33%：新华传媒/华北制药/时代万恒/九阳股份，今日全部涨停</small></div></div>
+    <div class="stat"><div class="k">双池交叉（情绪 ∩ 趋势）</div><div class="v num">0 只<small>两池今日无交集：情绪资金聚焦影视 2 板梯队，趋势资金抱团高板白马</small></div></div>
+    <div class="stat"><div class="k">全市场最高度</div><div class="v" style="font-size:15px">新华传媒 10 板<small>一字缩量（换手 3.24%）· 影视传媒 9 只 2 板梯队成型</small></div></div>
+    <div class="stat"><div class="k">先涨停后消息（抢跑警示）</div><div class="v" style="color:#ff6b6b;font-size:15px">3 组<small>影视传媒（首板 10/9 早于短剧首发 10/12）· 电池链（时代万恒首板 9/26 早于规划 9/29）· 医药康复（华北制药首板 10/8 早于政策 10/9 盘前）</small></div></div>
+  </div>
+
+  <div id="blocks"></div>
+
+  <footer>
+    <b>口径</b>：盘中版（快照 14:41，尾盘未收盘；收盘后应重跑终版）。股池=东财选股器条件直连接口（方向一：连板=2 且换手&gt;5% 且竞价&gt;-5%，或 2 板断板且涨幅&gt;0——含 2 只断板股；方向二：本月涨幅前十且&gt;20%——10/12 为本月第 3 个交易日，共 4 只、月内累计约 33%；均剔 ST/退市/北交所/创/科板，故天梯中百洋股份（换手 3.83% 未达 5% 入池线）等 4 只为池外标的）。盘中字段（竞价/换手/涨幅）均为快照值。<br>
+    <b>首发口径</b>：★首发=本次要闻窗口（9/29 起）内可核实的最早<b>事件性</b>报道并附原文地址；行情盘面报道（如 10/9 14:14 影视传媒涨势扩大）不作为事件首发；窗口外启动的题材（出版为个股重组事件、华为链为 Mate90 生态预期）以行情节点呈现并标注“首发溯源待补”。行业信息来自东方财富 F10「核心题材」接口。<br>
+    <b>抢跑警示</b>：题材★首发事件消息晚于标的首板涨停日的标 ⚠（判定规则：首板日&lt;首发日，或同日但首发于 15:00 后；盘前/盘中发布的消息驱动不判；取不到首发时间戳不判）。本次 3 组，证据对（悬停查看）：① 影视传媒 2 板梯队首板 2026-10-09（天梯连板=2 倒推）vs 短剧爆款首发 2026-10-12 约 11:45（财联社深度 2501885），提前 1 个交易日；② 时代万恒首板 2026-09-26（天梯 6 连板倒推）vs 电池规划首发 2026-09-29 09:58（东财原文地址），提前 1 个交易日（9/26 首板驱动属性未溯源，按 F10 电池链归组判定）；③ 华北制药首板 2026-10-08（天梯 3 连板倒推）vs 康复方案首发 2026-10-09 00:10（新浪原文地址·盘前发布），提前 1 个交易日。疑似消息提前泄露/知情资金抢跑，兑现风险高，谨慎追高。<br>
+    <b>数据质量说明</b>：① F10 本次 21 只中 9 只接口无返回（两批均失败，标的级缺数据）：新华传媒/九阳股份/新华文轩沿用 10/8–10/9 真实快照（行业/主营稳定），格尔软件/掌阅科技/上海电影/新经典/德才股份/丽人丽妆按公开行业分类兜底并在个股行标注；② 财联社深度头条相对时间按快照时刻（约 14:45）换算并标注“约”；③ 消息时间戳取自原文地址/接口真实发布时间；④ 三渠道采集全部成功（东财 17 / 新浪 330 / 财联社电报 20 + 深度页约 30 条）；⑤ 较 11:32 版主要变化与修正：影视传媒由启动转为全面扩散（2 板梯队 9 只）、时代万恒 6 板巨量分歧、紫竹/雄韬断板、银行股集体再创历史新高；上午版对格尔软件的网安抢跑提示因缺少可核实的事件首发时间戳，按规则改为“不判”（时序待核）。盘中快照，仅供参考，不构成投资建议。
+  </footer>
+</div>
+
+<script>
+/* ==== 数据注入区开始 ==== */
+const STOCKS = [
+  {code:"600825", name:"新华传媒", pool:"m9", theme:"影视传媒", lb:"10连板·一字", jj:null, hs:3.24, pct:9.98, sep:33.14, news:["A","B","C"],
+   sub:"600825 · 月度强势（本月 +33.14%）· 出版/AI语料 · 9/21 复牌重组（窗口外首发待补）"},
+  {code:"000892", name:"欢瑞世纪", pool:"lb", theme:"影视传媒", lb:"2连板", jj:7.01, hs:33.70, pct:10.10, sep:null, news:["A","C"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"000892 · 连板情绪 · 影视动漫制作*"},
+  {code:"001330", name:"博纳影业", pool:"lb", theme:"影视传媒", lb:"2连板", jj:7.60, hs:17.50, pct:10.04, sep:null, news:["A","C"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"001330 · 连板情绪 · 影视动漫制作*"},
+  {code:"002343", name:"慈文传媒", pool:"lb", theme:"影视传媒", lb:"2连板", jj:9.05, hs:5.95, pct:10.03, sep:null, news:["A","C"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"002343 · 连板情绪 · 影视动漫制作*"},
+  {code:"601929", name:"吉视传媒", pool:"lb", theme:"影视传媒", lb:"2连板", jj:4.00, hs:14.68, pct:10.00, sep:null, news:["A","C"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"601929 · 连板情绪 · 电视广播*"},
+  {code:"601811", name:"新华文轩", pool:"lb", theme:"影视传媒", lb:"2连板", jj:2.15, hs:7.26, pct:10.00, sep:null, news:["A","C"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"601811 · 连板情绪 · 教育出版（F10 沿用 10/8 快照）*"},
+  {code:"603533", name:"掌阅科技", pool:"lb", theme:"影视传媒", lb:"2连板", jj:6.29, hs:17.74, pct:9.98, sep:null, news:["A"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"603533 · 连板情绪 · 数字阅读（公开分类兜底，F10 无返回）*"},
+  {code:"601595", name:"上海电影", pool:"lb", theme:"影视传媒", lb:"2连板", jj:4.24, hs:6.26, pct:9.98, sep:null, news:["A"], risk:true,
+   riskNote:"首板 2026-10-09（天梯连板=2 倒推）早于短剧事件首发 2026-10-12 约11:45（财联社深度），提前 1 个交易日",
+   sub:"601595 · 连板情绪 · 影视院线（公开分类兜底，F10 无返回）*"},
+  {code:"600241", name:"时代万恒", pool:"m9", theme:"固态电池", lb:"6连板", jj:null, hs:31.91, pct:10.03, sep:33.13, news:["E","F"], risk:true,
+   riskNote:"首板 2026-09-26（天梯 6 连板倒推）早于电池规划首发 2026-09-29 09:58（东财原文地址），提前 1 个交易日；9/26 首板驱动属性未溯源",
+   sub:"600241 · 月度强势（本月 +33.13%）· 锂电池/镍氢电池*"},
+  {code:"600812", name:"华北制药", pool:"m9", theme:"医药·康复", lb:"3连板", jj:null, hs:8.75, pct:9.95, sep:33.13, news:["D"], risk:true,
+   riskNote:"首板 2026-10-08（天梯 3 连板倒推）早于康复方案首发 2026-10-09 00:10（新浪原文地址·盘前发布），提前 1 个交易日",
+   sub:"600812 · 月度强势（本月 +33.13%）· 化学制药*"},
+  {code:"002242", name:"九阳股份", pool:"m9", theme:"华为链·小家电", lb:"6连板", jj:null, hs:16.02, pct:9.98, sep:33.12, news:["I"],
+   sub:"002242 · 月度强势（本月 +33.12%）· 厨房小家电（F10 沿用 10/9 快照）"},
+  {code:"002058", name:"紫竹高科", pool:"lb", theme:"固态电池", lb:"断板未回封", jj:-3.85, hs:21.40, pct:2.95, sep:null, news:["E","F"],
+   sub:"002058 · 连板情绪·断板组 · 电池化学品（首板 9/29=规划发布日盘中，消息驱动不判抢跑）*"},
+  {code:"002733", name:"雄韬股份", pool:"lb", theme:"固态电池", lb:"断板未回封", jj:3.66, hs:21.85, pct:2.50, sep:null, news:["E"],
+   sub:"002733 · 连板情绪·断板组 · 蓄电池（首板 10/8 晚于规划首发，不判抢跑）*"},
+  {code:"600207", name:"安彩高科", pool:"lb", theme:"低位轮动", lb:"2连板", jj:-1.79, hs:10.60, pct:10.00, sep:null, news:[],
+   sub:"600207 · 连板情绪 · 光伏辅材（无当日催化，资金驱动）*"},
+  {code:"603232", name:"格尔软件", pool:"lb", theme:"低位轮动", lb:"2连板", jj:0.06, hs:17.83, pct:10.01, sep:null, news:[],
+   sub:"603232 · 连板情绪 · 软件开发（公开分类兜底，F10 无返回；AI 应用联动）*"},
+  {code:"002692", name:"远程股份", pool:"lb", theme:"低位轮动", lb:"2连板", jj:4.62, hs:7.32, pct:10.08, sep:null, news:[],
+   sub:"002692 · 连板情绪 · 线缆部件（无当日催化，资金驱动）*"}
+];
+const THEMES = [
+  {name:"影视传媒", desc:"全面扩散：AI 短剧爆款（字节 PineDrama）点火，新华传媒 10 连板封单上百万手，影视/出版/数字阅读 9 只 2 板梯队成型；⚠ 2 板首板（10/9）早于事件首发（10/12）1 个交易日", news:["A","B","C"]},
+  {name:"固态电池", desc:"高位分歧·梯队收缩：时代万恒 6 板巨量分歧（换手 31.9%），紫竹/雄韬断板未回封，丰元/领湃跌出天梯；宁德 H 股重上 500 港元 vs 避雷针警示", news:["E","F"]},
+  {name:"医药·康复", desc:"康复护理政策落地后惯性延续：华北制药 3 连板（月内 +33%）；⚠ 首板（10/8）早于政策首发（10/9 00:10 盘前）1 个交易日", news:["D"]},
+  {name:"华为链·小家电", desc:"九阳 6 板高板延续；问界回归预期升温（赛力斯午后逼近涨停）", news:["I"]},
+  {name:"低位轮动", desc:"超 4000 股飘绿下资金挖掘低位补涨：安彩高科/远程股份/格尔软件 2 板 + 池外百洋/德才/丽人丽妆/新经典（无当日催化，题材轮动/资金驱动）", news:[]}
+];
+const NEWS = [
+  {id:"A", t:"AI 点燃短剧热潮：字节旗下 PineDrama 海外日活约 700 万、成海外短剧赛道增长最快应用之一（免费+广告的红果模式出海）；国金证券看好 AI 短剧“卖铲人”", time:"约11:45", link:["财联社","https://www.cls.cn/detail/2501885"], bull:"影视传媒/短剧/AI应用", bear:""},
+  {id:"B", t:"财联社午报：深成指/创业板指半日跌超 1%、全市场超 4000 股飘绿；银行逆势走强（中行/工行/建行/中信银行续创历史新高），影视传媒板块持续活跃；早盘涨停 36 家、炸板率 40%、连板 17 家", time:"午间", link:["财联社","https://www.cls.cn/detail/2501968"], bull:"银行/影视传媒", bear:"中小盘题材股（超 4000 股飘绿）"},
+  {id:"C", t:"A股“最靓的仔”批量涨停：新华传媒 10 连板、封单上百万手，影视传媒涨停潮扩散（欢瑞/博纳/慈文/吉视/上影等十余股）", time:"盘中", link:["东方财富","https://finance.eastmoney.com/a/202610123892524333.html"], bull:"影视传媒", bear:""},
+  {id:"D", t:"两部门《医疗康复护理扩容提升工程实施方案》落地次日，康复护理产业链延续兑现（华北制药 3 连板）", time:"00:10（10-09 首发）", link:["新浪财经","https://finance.sina.com.cn/stock/relnews/cn/2026-10-09/doc-iniupxkx7389102.shtml"], bull:"医疗服务/康复器械", bear:""},
+  {id:"E", t:"双重利好提振电池链：宁德时代 H 股重上 500 港元（大摩“三大成长极”+恒生科技指数修订被动资金预期，盘中涨超 4%）；9 月储能采招量同比翻倍", time:"10:39 / 约10:40", link:["财联社","https://www.cls.cn/detail/2501834"], bull:"电池/储能", bear:""},
+  {id:"F", t:"投资避雷针：5 连板人气股提示风险——公司产品未涉及固态电池（高位伪概念标的风险提示密集）", time:"早间", link:["财联社","https://www.cls.cn/detail/2501706"], bull:"", bear:"固态电池（伪概念标的）"},
+  {id:"G", t:"半导体链涨价与景气：阿斯麦光刻机零部件罕见全线涨 10%（韩国存储巨头全盘接受）；台积电 Q3 净利预计同比 +65%、连六季新高；博通 CEO：未来两年 AI 计算需求将超供应", time:"08:59 / 13:56 / 14:40", link:["新浪财经","https://finance.sina.com.cn/stock/usstock/c/2026-10-12/doc-iniuxmtr7200545.shtml"], bull:"半导体设备/AI硬件（股池内无相关行业标的）", bear:""},
+  {id:"H", t:"汽车链政策与出口：商务部就中欧混动/电动汽车磋商共识答记者问；乘联分会 9 月新能源乘用车出口 55.8 万辆（+163.5%）、中汽协 1-9 月新能源出口 400.6 万辆（+1.3 倍）；四部门新规禁止全隐藏式门把手", time:"盘中 / 早间", link:["财联社","https://www.cls.cn/detail/2502016"], bull:"汽车整车/零部件（股池内无相关行业标的）", bear:""},
+  {id:"I", t:"问界回归预期+欧洲扩张提速：华为与赛力斯再续前缘，赛力斯午后直线拉升逼近涨停（H 股一度涨 13%），宁德时代合作落地", time:"07:15 / 14:29", link:["新浪财经","https://finance.sina.com.cn/stock/relnews/cn/2026-10-12/doc-iniuxfms0458243.shtml"], bull:"华为链", bear:""},
+  {id:"J", t:"汽车舆情：奇瑞汽车致歉（OMODA 5 召回 8878 辆）；江淮汽车市值跌破 500 亿（尊界 V800 制动舆情，近 3 日累跌超 20%）", time:"14:20 / 11:52", link:["财联社","https://www.cls.cn/detail/2502068"], bull:"", bear:"汽车整车（个案）"},
+  {id:"K", t:"霍尔木兹局势现缓和信号：伊朗称美国已接受部分条件；美国封锁下 135 艘船只折返、伊朗石油出口受遏（俄乌“能源停火”提议并行）", time:"早间", link:["东方财富","https://finance.eastmoney.com/a/202610123892157652.html"], bull:"航空（成本端）", bear:"油气（股池内无相关行业标的）"}
+];
+const EVENTS = [
+  {d:"09-29", t:"9/29 七部门电池规划 · 贴息政策公布"},
+  {d:"09-30", t:"9/30 贴息落地 · 固态电池涨停潮"},
+  {d:"10-08", t:"10/8 光芯片跌停 · 银行新高 · 固态电池大涨"},
+  {d:"10-09", t:"10/9 AI 叙事利空 · 影视传媒扩大 · 新华 9 板"},
+  {d:"10-12", t:"10/12 影视传媒全面扩散 · 新华 10 板 · 银行再新高"}
+];
+const TIMELINE = [
+  {theme:"影视传媒", status:"全面扩散·高位加速", st:"hot", span:"9/21 出版复牌（窗口外）→ 10/12 扩散至影视短剧",
+   risk:"消息滞后·资金抢跑", riskNote:"2 板梯队首板 2026-10-09（天梯连板=2 倒推）早于题材事件首发 2026-10-12 约11:45（财联社深度·短剧爆款），提前 1 个交易日；10-09 仅有行情盘面报道（14:14 财联社）、无事件催化",
+   nodes:[
+     {d:"09-21", kind:"kline", tag:"复牌", t:"新华传媒复牌一字涨停（9/7–9/18 停牌；重组事件，窗口外首发待补）"},
+     {d:"10-08", kind:"news", tag:"喊话核查", ts:"2026-10-08 22:43", t:"“8连板”妖股喊话：再涨或申请停牌核查", src:"新浪财经", url:"https://finance.sina.com.cn/jjxw/2026-10-08/doc-iniuptat7505137.shtml"},
+     {d:"10-09", kind:"news", tag:"板块启动", ts:"2026-10-09 14:14", t:"影视传媒午后涨势扩大：中文在线等十余股涨停（行情盘面报道，非事件催化）", src:"财联社", url:"https://www.cls.cn/detail/2500355"},
+     {d:"10-09", kind:"kline", tag:"首板×9", risk:true, riskNote:"首板 2026-10-09（天梯连板=2 倒推），早于短剧事件首发（10-12 约11:45）1 个交易日", t:"欢瑞/博纳/慈文/吉视/掌阅/上影/新经典/龙版/新华文轩 集体首板"},
+     {d:"10-12", kind:"news", first:true, tag:"★首发", risk:true, riskNote:"事件首发 2026-10-12 约11:45（页面相对时间换算），晚于 2 板梯队首板 10-09", ts:"2026-10-12 约11:45", t:"AI 点燃短剧热潮：字节 PineDrama 海外日活约 700 万成爆款，国金看好 AI 短剧“卖铲人”", src:"财联社", url:"https://www.cls.cn/detail/2501885"},
+     {d:"10-12", kind:"news", tag:"午报确认", ts:"2026-10-12 午间", t:"午报：影视传媒持续活跃、连板 17 家；银行逆势走强创新高", src:"财联社", url:"https://www.cls.cn/detail/2501968"},
+     {d:"10-12", kind:"news", tag:"IP催化", ts:"2026-10-12 14:20", t:"《火影忍者》将推出新作动画；阅文集团短剧漫剧业务快速发展（港股涨近 4%）", src:"财联社", url:"https://www.cls.cn/detail/2502072"},
+     {d:"10-12", kind:"kline", tag:"10板封单", t:"新华传媒 10 连板、封单上百万手（换手 3.24% 一字缩量，月内 +33.14%）；影视传媒梯队 9 只 2 板（天梯 14:41）"}]},
+  {theme:"固态电池", status:"高位分歧·梯队收缩", st:"mid", span:"9/29 首发 → 10/12 · 8 个交易日",
+   risk:"消息滞后·资金抢跑", riskNote:"时代万恒首板 2026-09-26（天梯 6 连板倒推）早于电池规划首发 2026-09-29 09:58（东方财富原文地址），提前 1 个交易日；9/26 首板驱动属性未溯源，按 F10 电池链归组判定",
+   nodes:[
+     {d:"09-26", kind:"kline", tag:"首板", risk:true, riskNote:"首板 2026-09-26（天梯 6 连板倒推），早于电池规划首发 9/29 09:58", t:"时代万恒首板涨停（抢跑起点；当日驱动属性未溯源）"},
+     {d:"09-29", kind:"news", first:true, tag:"★首发", risk:true, riskNote:"首发 2026-09-29 09:58（东财原文地址），晚于时代万恒首板 9/26 一个交易日", ts:"2026-09-29 09:58", t:"七部门《新型电池产业“十五五”规划》印发", src:"东方财富", url:"https://finance.eastmoney.com/a/202609293886233767.html"},
+     {d:"10-08", kind:"news", tag:"大涨", ts:"2026-10-08 11:08", t:"固态电池板块逆势大涨（洗霸/龙蟠/兴业等涨停潮）", src:"东方财富", url:"https://finance.eastmoney.com/a/202610083889406887.html"},
+     {d:"10-09", kind:"news", tag:"接力与警示", ts:"2026-10-09 10:52", t:"锂电池概念持续走高（天赐材料等涨停）；财联社深度“纯度检验”聚焦风险提示", src:"财联社", url:"https://www.cls.cn/detail/2500181"},
+     {d:"10-12", kind:"news", tag:"利好", ts:"2026-10-12 约10:40", t:"宁德时代 H 股重上 500 港元（大摩看多+指数修订）；9 月储能采招量同比翻倍", src:"财联社", url:"https://www.cls.cn/detail/2501834"},
+     {d:"10-12", kind:"news", tag:"避雷", ts:"2026-10-12 早间", t:"投资避雷针：5 连板人气股提示风险，公司产品未涉及固态电池", src:"财联社", url:"https://www.cls.cn/detail/2501706"},
+     {d:"10-12", kind:"kline", tag:"梯队收缩", t:"时代万恒 6 板（换手 31.91% 巨量分歧，月内 +33.13%）；紫竹/雄韬断板未回封（+2.95%/+2.50%）；丰元/领湃跌出天梯（天梯 14:41）"}]},
+  {theme:"医药·康复", status:"政策驱动·惯性延续", st:"mid", span:"10/8 首板 → 10/12 · 3 板",
+   risk:"消息滞后·资金抢跑", riskNote:"华北制药首板 2026-10-08（天梯 3 连板倒推）早于康复方案首发 2026-10-09 00:10（新浪原文地址·盘前发布），提前 1 个交易日",
+   nodes:[
+     {d:"10-08", kind:"kline", tag:"首板", risk:true, riskNote:"首板 2026-10-08，早于康复方案首发（10-09 00:10 盘前）1 个交易日", t:"华北制药首板涨停（政策预期抢跑）"},
+     {d:"10-09", kind:"news", first:true, tag:"★首发", risk:true, riskNote:"首发 2026-10-09 00:10（新浪原文地址·盘前），晚于华北制药首板 10-08", ts:"2026-10-09 00:10", t:"两部门印发《医疗康复护理扩容提升工程实施方案》", src:"新浪财经", url:"https://finance.sina.com.cn/stock/relnews/cn/2026-10-09/doc-iniupxkx7389102.shtml"},
+     {d:"10-09", kind:"kline", tag:"2连板", t:"华北制药 2 连板（连板+月度双池共振）· 三柏硕 2 板（F10=康养康复器械）"},
+     {d:"10-12", kind:"kline", tag:"3连板", t:"华北制药 3 连板涨停（换手 8.75%，月内 +33.13%）；三柏硕跌出天梯"}]},
+  {theme:"华为链·小家电", status:"高板延续", st:"mid", span:"窗口外预期 → 10/12 · 九阳 6 板",
+   nodes:[
+     {d:"10-08", kind:"news", tag:"澄清后涨停", ts:"2026-10-08 16:50", t:"九阳股份澄清与华为无战略合作后再度涨停（4 连板）", src:"新浪财经", url:"https://finance.sina.com.cn/stock/relnews/cn/2026-10-08/doc-iniupafi3786469.shtml"},
+     {d:"10-09", kind:"news", tag:"涨价", ts:"2026-10-09 11:02", t:"华为 nova16 系列今起涨价；小米 17 Ultra 全系上调 1000 元", src:"财联社", url:"https://www.cls.cn/detail/2500185"},
+     {d:"10-12", kind:"news", tag:"问界回归", ts:"2026-10-12 07:15", t:"华为与赛力斯再续前缘：问界回归预期升温，赛力斯午后直线拉升逼近涨停（H 股一度涨 13%）", src:"新浪财经", url:"https://finance.sina.com.cn/stock/relnews/cn/2026-10-12/doc-iniuxfms0458243.shtml"},
+     {d:"10-12", kind:"kline", tag:"6连板", t:"九阳股份 6 连板涨停（换手 16.02% 放量，月内 +33.12%）"}]},
+  {theme:"低位轮动", status:"资金驱动", st:"cool", span:"10/12 盘中",
+   nodes:[
+     {d:"10-12", kind:"kline", tag:"2连板", t:"安彩高科（光伏辅材）· 远程股份（线缆）· 格尔软件（软件开发·兜底）2 板；池外：百洋股份/德才股份/丽人丽妆/新经典 2 板（天梯 14:41）"},
+     {d:"10-12", kind:"note", tag:"无催化", t:"超 4000 股飘绿背景下资金挖掘低位补涨；除格尔软件（AI 应用/软件开发联动）外无当日直接催化，题材轮动/资金驱动"}]}
+];
+const CONCEPTS = {"000892":{"name":"欢瑞世纪","industry":"传媒 / 影视院线 / 影视动漫制作","biz":["电视剧业务","短剧业务"],"style":["破增发价股","最近多板","东方财富热股","昨日高振幅"]},"002692":{"name":"远程股份","industry":"电力设备 / 电网设备 / 线缆部件及其他","biz":["电线电缆产品的研发、生产与经营","电线电缆行业"],"style":["2026中报首亏","最近多板","东方财富热股","昨日高振幅"]},"001330":{"name":"博纳影业","industry":"传媒 / 影视院线 / 影视动漫制作","biz":["电影业务、电影院业务、剧集业务、AI影视剧业务及其他业务","电影市场正处于结构性调整周期，优质内容仍具备强劲市场吸引力"],"style":["最近多板","东方财富热股","昨日高振幅","昨日高换手"]},"002343":{"name":"慈文传媒","industry":"传媒 / 影视院线 / 影视动漫制作","biz":["影视IP内容投资、开发、制作及发行","游戏产品及渠道推广"],"style":["破增发价股","破发股","最近多板","东方财富热股"]},"601929":{"name":"吉视传媒","industry":"传媒 / 电视广播Ⅱ / 电视广播Ⅲ","biz":["广电数智信息服务运营商","电信、广播电视和卫星传输服务"],"style":["破发股","最近多板","东方财富热股","昨日高振幅"]},"600207":{"name":"安彩高科","industry":"电力设备 / 光伏设备 / 光伏辅材","biz":["光伏玻璃业务","浮法玻璃业务"],"style":["题材股","趋势股","破发股","最近多板"]},"002058":{"name":"紫竹高科","industry":"电力设备 / 电池 / 电池化学品","biz":["汽车检具业务及铝塑膜业务","汽车检具行业"],"style":["高市净率","高成长股","近期摘帽","2026中报预减"]},"002733":{"name":"雄韬股份","industry":"电力设备 / 电池 / 蓄电池及其他电池","biz":["电源","电源行业"],"style":["题材股","最近多板","东方财富热股","昨日连板_含一字"]},"600812":{"name":"华北制药","industry":"医药生物 / 化学制药 / 化学制剂","biz":["化学药、生物药、农兽药、健康消费品","医药行业"],"style":["题材股","百日新高","破增发价股","近期新高"]},"600241":{"name":"时代万恒","industry":"电力设备 / 电池 / 锂电池","biz":["锂电池业务","镍氢电池业务"],"style":["2026中报首亏","题材股","百日新高","近期新高"]},"605577":{"name":"龙版传媒","industry":"传媒 / 出版 / 教育出版","biz":["出版业务","发行业务"],"style":["黑龙江","最近多板","东方财富热股","昨日高振幅"]},"002696":{"name":"百洋股份","industry":"农林牧渔 / 饲料 / 水产饲料","biz":["水产品加工及生物制品业务、饲料及饲料原料业务、远洋捕捞加工业务","水产品加工行业"],"style":["2026中报首亏","破增发价股","最近多板","东方财富热股"]},"600825":{"name":"新华传媒","industry":"传媒 / 出版 / 大众出版","biz":["图书、文教用品","新闻和出版业"],"style":["题材股","趋势股","百日新高","最近多板"]},"002242":{"name":"九阳股份","industry":"家用电器 / 小家电 / 厨房小家电","biz":["小家电系列产品的研发、生产和销售","实控人通过实际控制JS及Bilting增持公司16.93%权益"],"style":["题材股","趋势股","百日新高","近期新高"]},"601811":{"name":"新华文轩","industry":"传媒 / 出版 / 教育出版","biz":["出版业务","阅读服务业务","教育服务业务"],"style":["题材股","趋势股","小盘价值","小盘股"]},"603232":{"name":"格尔软件","industry":"计算机 / 软件开发（公开分类兜底）","biz":["F10 本次接口无返回·公开主营=信息安全/密码产品"],"style":[]},"603533":{"name":"掌阅科技","industry":"传媒 / 出版 / 数字阅读（公开分类兜底）","biz":["F10 本次接口无返回·公开主营=数字阅读平台"],"style":[]},"601595":{"name":"上海电影","industry":"传媒 / 影视院线（公开分类兜底）","biz":["F10 本次接口无返回·公开主营=电影发行放映"],"style":[]},"603096":{"name":"新经典","industry":"传媒 / 出版 / 图书策划（公开分类兜底）","biz":["F10 本次接口无返回·公开主营=图书策划与发行"],"style":[]},"605287":{"name":"德才股份","industry":"建筑装饰 / 装饰园林（公开分类兜底）","biz":["F10 本次接口无返回·公开主营=建筑装饰工程"],"style":[]},"605136":{"name":"丽人丽妆","industry":"商贸零售 / 电子商务（公开分类兜底）","biz":["F10 本次接口无返回·公开主营=美妆电商代运营"],"style":[]}};
+/* 宏观·市场 消息时间线（与股池题材无直接映射的市场级消息） */
+const MACRO = {theme:"宏观·市场", status:"市场背景", st:"mid", span:"10/12 早间 → 14:41", nodes:[
+  {d:"10-12", kind:"news", tag:"银行监管", ts:"2026-10-12 14:32", t:"独家|四季度伊始多地中小银行收提示：压降债券久期、金融投资增速不得高于贷款增速", src:"财联社", url:"https://www.cls.cn/detail/2502077"},
+  {d:"10-12", kind:"news", tag:"公募新规", ts:"2026-10-12 约13:40", t:"公募基金运作办法时隔 12 年迎来修订（中信建投：竞争格局有望从规模驱动转向能力驱动）", src:"财联社", url:"https://www.cls.cn/detail/2501927"},
+  {d:"10-12", kind:"news", tag:"REITs", ts:"2026-10-12 约13:40", t:"REITs 定位大调整：普通公募投资不再受“基金买基金”约束，有望撬动千亿级增量资金", src:"财联社", url:"https://www.cls.cn/detail/2501953"},
+  {d:"10-12", kind:"news", tag:"清盘红线", ts:"2026-10-12 约10:40", t:"发起式基金“3年2亿”强制清盘条款拟删除，132 只迷你基命运分化", src:"财联社", url:"https://www.cls.cn/detail/2501795"},
+  {d:"10-12", kind:"news", tag:"股王", ts:"2026-10-12 14:39", t:"贵州茅台盘中涨近 2% 重夺“股王”；联讯仪器跌超 7%、自 6 月高点回落超 31%", src:"财联社", url:"https://www.cls.cn/detail/2502098"},
+  {d:"10-12", kind:"news", tag:"黄金", ts:"2026-10-12 约11:40", t:"金价回落压制终端动销，老铺黄金遭机构下修目标价至 400 港元", src:"财联社", url:"https://www.cls.cn/detail/2501900"},
+  {d:"10-12", kind:"news", tag:"韩股", ts:"2026-10-12 14:32", t:"韩国 KOSPI 收跌 3.65%、SK 海力士 -4.5%；韩国半导体展 14 日启幕（HBM、物理 AI 芯片成核心看点）", src:"财联社", url:"https://www.cls.cn/detail/2502082"},
+  {d:"10-12", kind:"news", tag:"上海IC", ts:"2026-10-12 14:19", t:"上海经信委：1-8 月全市集成电路产业规模同比增速超 20%", src:"财联社", url:"https://www.cls.cn/detail/2502067"},
+  {d:"10-12", kind:"news", tag:"机器人", ts:"2026-10-12 盘中", t:"宇树科技王兴兴：具身智能临界点最快一两年内到来", src:"东方财富", url:"https://finance.eastmoney.com/a/202610123892519979.html"},
+  {d:"10-12", kind:"news", tag:"消费", ts:"2026-10-12 约11:40", t:"霸王茶姬“买一送一”致小程序崩溃（消费热度佐证）", src:"财联社", url:"https://www.cls.cn/detail/2501896"},
+  {d:"10-12", kind:"news", tag:"全球央行", ts:"2026-10-12 约09:40", t:"债市抛售潮带来“意外转机”：全球央行加息次数有望减少", src:"财联社", url:"https://www.cls.cn/detail/2501723"},
+  {d:"10-12", kind:"news", tag:"地缘", ts:"2026-10-12 约11:40", t:"美国铁腕封锁伊朗港口：135 艘船只折返、石油出海艰难（伊称美已接受部分条件）", src:"财联社", url:"https://www.cls.cn/detail/2501951"}
+]};
+
+/* 题材连板天梯：全市场连板>=2 快照（14:41 盘中），按 F10 概念/行业优先归组 */
+const LADDER = {grabbedAt: "2026-10-12 14:41（盘中）", rows: [
+  {code:"600825", name:"新华传媒", lb:10, theme:"影视传媒", inPool:true,  via:"月度强势池（10 连板·封单上百万手）· F10主营=图书出版（沿用 10/9 快照）"},
+  {code:"600241", name:"时代万恒", lb:6,  theme:"固态电池", inPool:true,  via:"月度强势池 · F10主营=锂电池/镍氢（⚠ 首板 9/26 早于规划首发 9/29 09:58）"},
+  {code:"002242", name:"九阳股份", lb:6,  theme:"华为链·小家电", inPool:true, via:"月度强势池 · F10行业=厨房小家电（沿用 10/9 快照）"},
+  {code:"600812", name:"华北制药", lb:3,  theme:"医药·康复", inPool:true,  via:"月度强势池 · F10行业=化学制剂（⚠ 首板 10/8 早于政策首发 10/9 00:10 盘前）"},
+  {code:"605577", name:"龙版传媒", lb:2,  theme:"影视传媒", inPool:false, via:"F10行业=出版/教育出版"},
+  {code:"603096", name:"新经典",   lb:2,  theme:"影视传媒", inPool:false, via:"公开分类=图书策划发行（F10 无返回）"},
+  {code:"000892", name:"欢瑞世纪", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · F10行业=影视动漫制作（⚠ 首板 10/9 早于短剧首发 10/12 约11:45）"},
+  {code:"001330", name:"博纳影业", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · F10行业=影视动漫制作（⚠ 同上）"},
+  {code:"002343", name:"慈文传媒", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · F10行业=影视动漫制作（⚠ 同上）"},
+  {code:"601929", name:"吉视传媒", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · F10行业=电视广播（⚠ 同上）"},
+  {code:"601811", name:"新华文轩", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · F10行业=教育出版（沿用 10/8 快照）（⚠ 同上）"},
+  {code:"603533", name:"掌阅科技", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · 公开分类=数字阅读（F10 无返回）（⚠ 同上）"},
+  {code:"601595", name:"上海电影", lb:2,  theme:"影视传媒", inPool:true,  via:"连板池 · 公开分类=影视院线（F10 无返回）（⚠ 同上）"},
+  {code:"600207", name:"安彩高科", lb:2,  theme:"低位轮动", inPool:true,  via:"连板池 · F10行业=光伏辅材"},
+  {code:"603232", name:"格尔软件", lb:2,  theme:"低位轮动", inPool:true,  via:"连板池 · 公开分类=软件开发（F10 无返回）"},
+  {code:"002692", name:"远程股份", lb:2,  theme:"低位轮动", inPool:true,  via:"连板池 · F10行业=线缆部件及其他"},
+  {code:"002696", name:"百洋股份", lb:2,  theme:"低位轮动", inPool:false, via:"F10行业=水产饲料（换手 3.83% 未达 5% 入池线）"},
+  {code:"605287", name:"德才股份", lb:2,  theme:"低位轮动", inPool:false, via:"公开分类=建筑装饰（F10 无返回）"},
+  {code:"605136", name:"丽人丽妆", lb:2,  theme:"低位轮动", inPool:false, via:"公开分类=美妆电商代运营（F10 无返回）"}
+]};
+/* ==== 数据注入区（技能运行时替换本区，共 9 块） ====
+   STOCKS   股池标的（risk=抢跑警示）          ← 第3步 fetch_pool_api + 分析
+   THEMES   题材聚类                           ← 第4步分析
+   NEWS     要闻（含原文地址）                 ← 第1/2步采集
+   EVENTS   跨题材关键事件日                   ← 第4步分析
+   TIMELINE 题材发酵链（★首发+时间戳；risk=抢跑警示，判定见 mapping-rules 第7节） ← 第4步分析
+   CONCEPTS F10 概念（行业/主营/风格）         ← 第3.7步 fetch_concepts
+   MACRO    宏观·市场消息时间线                ← 第4步分析
+   LADDER   全市场连板≥2天梯快照+归组          ← 第3步另查 + F10 归组
+   ==== 数据注入区结束（以下为渲染代码，勿改） ==== */
+
+
+const emQuote = code => "https://quote.eastmoney.com/" + (code.startsWith("6") ? "sh" : "sz") + code + ".html";
+const pctCls = v => v > 0 ? "up" : (v < 0 ? "down" : "");
+const pctTxt = (v, suf) => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + (suf || "%");
+const THEME_COLORS = {"固态电池":"#e8b64c","房地产":"#ff9f43","出版":"#7aa2f7","非白酒":"#c792ea","元件":"#4dd0e1","家居用品":"#9ccc65","宏观·市场":"#8a94a6"};
+
+const evMarkAreas = EVENTS.map(ev => [{xAxis: ev.d, itemStyle: {color: "rgba(232,182,76,.07)"}}, {xAxis: ev.d}]);
+
+
+
+function ladderHtml(theme) {
+  const rows = LADDER.rows.filter(r => r.theme === theme).sort((a, b) => b.lb - a.lb);
+  if (!rows.length) return `<div class="lad-empty">该题材当前无连板梯队（连板≥2 快照 ${LADDER.grabbedAt}）</div>`;
+  const lbs = [...new Set(rows.map(r => r.lb))].sort((a, b) => b - a);  // 自上而下板数递减（天梯：越往上越高）
+  const maxLb = lbs[0], minLb = lbs[lbs.length - 1];
+  const trs = lbs.map(lb => {
+    const grp = rows.filter(r => r.lb === lb);
+    const cells = grp.map(r =>
+      `<span class="lad-cell${r.inPool ? "" : " outpool"}" title="${r.via}"><a href="${emQuote(r.code)}" target="_blank" title="打开东方财富行情页">${r.name}${r.inPool ? "" : '<em>池外</em>'} ↗</a></span>`).join("");
+    const w = 12 + (lb - minLb + 1) / (maxLb - minLb + 1) * 88;
+    return `<div class="lad-trow">
+      <span class="lad-lb num">${lb}板<small>${grp.length}只</small></span>
+      <span class="lad-bar"><i style="width:${w.toFixed(0)}%"></i></span>
+      <span class="lad-cells">${cells}</span>
+    </div>`;
+  }).join("");
+  return `<div class="lad-table">${trs}</div>`;
+}
+
+/* ---------- 渲染题材区块 ---------- */
+const blocks = document.getElementById("blocks");
+const navChips = document.getElementById("navChips");
+const TL = [...TIMELINE, MACRO];
+
+TL.forEach((tl, bi) => {
+  const stocks = STOCKS.filter(s => s.theme === tl.theme);
+  const isMacro = tl.theme === "宏观·市场";
+  const block = document.createElement("div");
+  block.className = "theme-block"; block.id = "blk" + bi;
+  block.style.setProperty("--tc", THEME_COLORS[tl.theme] || "#e8b64c");
+
+
+  /* 个股行 */
+  const stocksHtml = stocks.map(s => {
+    const zt = Math.abs(s.pct) >= 9.9 ? (s.pct > 0 ? " 涨停" : " 跌停") : "";
+    return `<div class="s-row" data-code="${s.code}">
+      <div class="s-id">
+        <div class="nm"><span class="pool ${s.pool === "lb" ? "pool-lb" : "pool-m9"}">${s.pool === "lb" ? "连板" : "九月"}</span><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}${s.pool === "lb" ? "*" : ""} ↗</a>${s.risk ? `<span class="risk-chip" title="${s.riskNote || "首板涨停早于题材首发消息，疑似资金抢跑"}">⚠ 抢跑</span>` : ""}</div>
+        <div class="cd num">${s.code} · ${(CONCEPTS[s.code] || {}).industry || ""}</div>
+      </div>
+      <div class="s-pct num ${pctCls(s.pct)}">${pctTxt(s.pct)}${zt}<span class="lbinfo">${s.pool === "lb" ? "竞价 " + pctTxt(s.jj) + " · 换手 " + s.hs.toFixed(1) + "%" : "换手 " + s.hs.toFixed(1) + "%"}</span></div>
+    </div>`;
+  }).join("") || `<div class="msg-empty">该分组无股池标的（市场级消息）</div>`;
+
+  /* 消息序列 */
+  const newsNodes = tl.nodes.filter(nd => nd.kind === "news" || nd.kind === "note");
+  const newsHtml = newsNodes.map(nd => `
+    <div class="msg">
+      <div class="d num">${(() => { const ts = nd.ts || ("2026-" + nd.d); const pp = ts.split(" "); return `<b>${pp[0]}</b><span>${pp.slice(1).join(" ") || "当日"}</span>`; })()}</div>
+      <div class="body">
+        <div class="t">${nd.t}</div>
+        <div class="m">${nd.risk ? `<span class="tagchip risk" title="${nd.riskNote || "首发消息晚于该题材首板涨停"}">消息晚于首板</span>` : ""}${nd.tag ? `<span class="tagchip ${nd.tag === "利空" ? "bear" : ""}">${nd.tag}</span>` : ""}${nd.src ? `<span>${nd.src}</span>` : ""}${nd.url ? `<a href="${nd.url}" target="_blank">原文 ↗</a>` : ""}</div>
+      </div>
+    </div>`).join("") || `<div class="msg-empty">窗口内无直接催化报道（题材轮动/资金驱动）</div>`;
+
+  block.innerHTML = `
+    <div class="tb-head">
+      <span class="tb-dot"></span>
+      <span class="tb-name">${tl.theme}</span>
+      <span class="tb-span num">${tl.span}</span>
+      <span class="st st-${tl.st}">${tl.status}</span>
+      ${tl.risk ? `<span class="st st-risk" title="${tl.riskNote || ""}">⚠ ${tl.risk}</span>` : ""}
+    </div>
+    ${isMacro ? `
+    <div class="tb-ladder" style="border-top:none;padding-top:2px"><div class="h">未归入题材组的连板梯队<span>快照 ${LADDER.grabbedAt}</span></div>${ladderHtml("_other")}</div>
+    <div class="tb-body" style="grid-template-columns:1fr">
+      <div class="tb-news" style="border:none">${newsHtml}</div>
+    </div>` : `
+    <div class="tb-ladder"><div class="h">连板梯队（连板≥2，含同题材池外标的）<span>快照 ${LADDER.grabbedAt} · 悬停看归属依据</span></div>${ladderHtml(tl.theme)}</div>` + `
+    <div class="tb-body">
+      <div class="tb-stocks"><h4>个 股 · ${stocks.length} 只</h4>${stocksHtml}</div>
+      <div class="tb-news"><h4>消息序列 · 点击“原文”跳转首发/发酵报道</h4>${newsHtml}</div>
+    </div>`}`;
+  blocks.appendChild(block);
+
+  const chip = document.createElement("a");
+  chip.href = "#blk" + bi; chip.textContent = tl.theme;
+  navChips.appendChild(chip);
+
+});
+</script>
+</body>
+</html>
