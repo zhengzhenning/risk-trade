@@ -1870,6 +1870,8 @@ function topnSectionHtml() {
     tip.innerHTML = head + rows;
   };
   document.addEventListener("mouseover", e => {
+    /* 量价全景内使用联动气泡（.pn-tip），禁用全局气泡避免两者重叠 */
+    if (e.target.closest && e.target.closest(".mk-pano")) { tip.style.opacity = 0; active = null; return; }
     const host = find(e.target);
     if (!host) { tip.style.opacity = 0; active = null; return; }
     active = host;
