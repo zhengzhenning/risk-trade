@@ -20,6 +20,12 @@ HDR = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKi
 ULIST = ("https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2"
          "&fields=f1,f2,f3,f4,f6,f12,f13,f14&secids=")
 ZTPOOL = "https://push2ex.eastmoney.com/getTopicZTPool?ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=300&sort=fbt%3Aasc&date="
+KLINE = ("https://push2his.eastmoney.com/api/qt/stock/kline/get?fields1=f1,f2,f3,f4,f5"
+         "&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59&klt=101&fqt=1&lmt=2&end=20500101&secid=")
+POOL_COND = {
+    "month": "本月涨幅前十；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；竞价涨幅大于-11%",
+    "d60": "近60日涨幅前七；不要ST股；不要退市股；不要北交所；不要科创板；不要创业板；不要新股和次新股；竞价涨幅大于-11%",
+}
 
 
 def get(url, timeout=8):
@@ -73,6 +79,37 @@ def fetch_stocks(codes):
     return out
 
 
+def fetch_pools():
+    """月度前十 + 近60日前七（实时排名，用于矩阵今日列）"""
+    from fetch_pool_api import query as xq
+    out = {}
+    for key, cond in POOL_COND.items():
+        r = xq(cond, raw=True)
+        out[key] = [{"rank": int(x.get("序号") or i + 1), "code": str(x.get("代码")),
+                     "name": x.get("名称"), "rng": x.get("区间涨跌幅"),
+                     "pct": x.get("涨跌幅"), "hs": x.get("换手率")}
+                    for i, x in enumerate(r.get("pool") or [])]
+    return out
+
+
+def fetch_klines(codes):
+    """每只标的当日 K 线（盘中为动态最后一根）"""
+    out = {}
+    for c in codes:
+        try:
+            d = json.loads(get(KLINE + secid(c), timeout=8))
+            kl = ((d.get("data") or {}).get("klines")) or []
+            if not kl:
+                continue
+            f = kl[-1].split(",")
+            out[c] = {"d": f[0], "o": float(f[1]), "c": float(f[2]), "h": float(f[3]),
+                      "l": float(f[4]), "v": round(float(f[5]) / 1e4, 1), "amt": float(f[6]),
+                      "pct": float(f[8]) if len(f) > 8 else None}
+        except Exception:
+            pass
+    return out
+
+
 def fetch_zt(date):
     d = json.loads(get(ZTPOOL + date, timeout=10))
     pool = ((d.get("data") or {}).get("pool")) or []
@@ -114,6 +151,19 @@ def once(outdir, codes):
         data["zt"] = fetch_zt(now.strftime("%Y%m%d"))
     except Exception as e:
         errs.append("zt:" + type(e).__name__)
+    try:
+        data["pools"] = fetch_pools()
+    except Exception as e:
+        errs.append("pools:" + type(e).__name__)
+    try:
+        data["kline"] = fetch_klines(codes)
+    except Exception as e:
+        errs.append("kline:" + type(e).__name__)
+    try:
+        from fetch_unusual import build as build_alerts
+        data["alerts"] = build_alerts(set(codes)) if codes else {}
+    except Exception as e:
+        errs.append("alerts:" + type(e).__name__)
     if errs:
         data["err"] = errs
     write_atomic(os.path.join(outdir, "live.json"), data)
@@ -139,10 +189,12 @@ def main():
         st = session_state()
         if st == "closed":
             now = datetime.datetime.now()
-            write_atomic(os.path.join(args.out, "live.json"),
-                         {"ts": now.strftime("%Y-%m-%d %H:%M:%S"), "epoch": int(now.timestamp()),
-                          "session": "closed", "date": now.strftime("%Y-%m-%d")})
-            print("[INFO]", now.strftime("%H:%M"), "非交易时段，跳过抓取")
+            # 收盘后保留完整快照（不要用精简载荷覆盖，否则矩阵/全景/预警会丢字段）
+            try:
+                d = once(args.out, codes)
+                print("[INFO]", now.strftime("%H:%M"), "非交易时段，保留完整快照", d["ts"])
+            except Exception as e:
+                print("[WARN] 收盘后刷新失败，保留上次快照:", type(e).__name__)
         else:
             try:
                 d = once(args.out, codes)
