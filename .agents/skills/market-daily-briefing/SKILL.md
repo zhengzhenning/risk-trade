@@ -65,6 +65,28 @@ python3 skills/market-daily-briefing/scripts/fetch_stock_news.py --codes <前七
 
 东方财富搜索接口按代码取近期个股新闻（date/media/title/url/snippet），产出 `stock_news.json`；模型据此归纳**该股自身主升逻辑**（连板/龙虎榜/公告澄清/机构买卖/研报观点），写入 CATALYST 第一条 `tag=个股` 并附 `u` 原文链接。限频每码 ≥0.9s，只读接口不写历史库。
 
+### 第 4.1 步：分钟级实时层（可选，盘中可选开启）
+
+```bash
+# 1) 本地静态服务（file:// 下 fetch 被阻断，实时层必须走 HTTP）
+python3 skills/market-daily-briefing/scripts/serve_live.py --dir archives --port 8777
+# 2) 采集器：每 60s 写 archives/live.json（原子写；非交易时段自动跳过）
+python3 skills/market-daily-briefing/scripts/live_refresh.py --out archives --codes <前七代码> --watch 60 --min-interval 55
+# 3) 生成通用入口（实时看板 + 历史索引）
+python3 skills/market-daily-briefing/scripts/build_index.py --dir archives
+```
+
+**统一访问入口（不带日期后缀）**：
+- `http://127.0.0.1:8777/` → 实时看板（最新交易日，`live.html` 由最新 archive 复制并改写标题）
+- `http://127.0.0.1:8777/history` → 历史索引（全部交易日列表，最新一条标「实时」，其余「归档」）
+- `http://127.0.0.1:8777/d/YYYY-MM-DD` → 指定日期看板
+- 演进方向：入口层已按「实时 + 历史」双入口设计，后续可扩展为 `/api/briefing?date=` 之类的查询接口，页面无需改地址。
+
+- **只更新会动的数字**：指数点位/涨/成交额、今日两市成交额、前七个股涨跌幅（Tab 与个股行大字）、涨停池数量与名字系计数；**不重算**矩阵名次、VP 阶段、梯队、催化文本与新闻（这些随全量重建更新）。
+- 页面侧 poller 每 60s 拉 `live.json` 就地改写 DOM（`data-live-idx/close/chg/amt/pct/big` 钩子）；**数值变化时按方向做背景色闪动**（涨=红底 `rgba(214,52,80,.22)`、跌=绿底 `rgba(14,150,104,.22)`、成交额=金底，单次 0.9s ease-out 后回透明，圆角 4px；prefers-reduced-motion 时改为静态描边不闪）；涨跌方向同时由 +/- 号与文字色表达，不单靠颜色；右下角实时角标显示 `实时 HH:MM:SS`／`午休`／`已收盘`；失败指数退避（60→120→300s）并显示「数据延迟」；`file://` 打开自动禁用（保持纯静态可用）。
+- 口径：两市成交额＝上证 f6＋深证成指 f6（亿）；个股实时为最新价/涨幅（竞价、换手仍取快照值）。
+- 建议节奏：实时层 60s；矩阵/选股器类接口 5 分钟；全量重建每日 3 次（09:35 / 11:35 / 15:05）。
+
 ### 第 3.96 步：全市场涨停池抓取（名字系联动证据）
 
 ```bash

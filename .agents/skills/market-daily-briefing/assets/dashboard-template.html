@@ -643,6 +643,25 @@
 .vp-panels { position:relative; }
 .vp-panel[hidden] { display:none; }
 .vp-stockrow { padding:10px 18px 4px; border-bottom:1px solid var(--border); }
+  /* ---------- L1 实时层：角标 + 数字变动闪烁 ---------- */
+  .live-badge { position:fixed; right:16px; bottom:16px; z-index:200; display:inline-flex; align-items:center; gap:7px;
+    padding:6px 11px; border-radius:999px; background:rgba(15,23,42,.9); color:#fff; font-size:12px; font-weight:600;
+    box-shadow:0 6px 18px rgba(15,23,42,.28); font-variant-numeric:tabular-nums; }
+  .live-badge[hidden] { display:none; }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 0 rgba(74,222,128,.7); animation:livePulse 2s ease-out infinite; }
+  .live-badge.late .live-dot { background:#fbbf24; animation:none; }
+  .live-badge.off .live-dot { background:#94a3b8; animation:none; }
+  @keyframes livePulse { 0% { box-shadow:0 0 0 0 rgba(74,222,128,.55); } 70% { box-shadow:0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow:0 0 0 0 rgba(74,222,128,0); } }
+  .live-flash { animation:liveFlash .9s ease-out; border-radius:4px; }
+  .live-up { animation:liveUp .9s ease-out; border-radius:4px; }
+  .live-down { animation:liveDown .9s ease-out; border-radius:4px; }
+  @keyframes liveFlash { 0% { background:rgba(184,134,11,.26); } 100% { background:transparent; } }
+  @keyframes liveUp { 0% { background:rgba(214,52,80,.22); } 60% { background:rgba(214,52,80,.10); } 100% { background:transparent; } }
+  @keyframes liveDown { 0% { background:rgba(14,150,104,.22); } 60% { background:rgba(14,150,104,.10); } 100% { background:transparent; } }
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot, .live-flash, .live-up, .live-down { animation:none; }
+    .live-flash, .live-up, .live-down { box-shadow:inset 0 0 0 1px rgba(184,134,11,.55); }
+  }
   /* ---------- 图表统一悬浮提示（替代原生 <title> 的慢速气泡） ---------- */
   .chart-tip { position:fixed; left:0; top:0; z-index:999; pointer-events:none; opacity:0; transition:opacity .1s ease;
     padding:8px 10px; border-radius:8px; background:rgba(15,23,42,.94); color:#fff; white-space:nowrap;
@@ -1755,7 +1774,7 @@ function stockSectorHtml(s, tl, anchorS) {
     + '</div>'
     + '<div class="vsp-cd num">' + s.code + ' · ' + ind + '</div>'
     + '<div class="vsp-mx">'
-    + '<span class="vsp-big num ' + pctCls(s.pct) + '">' + pctTxt(s.pct) + (zt ? ' <em class="vsp-zt">' + zt + '</em>' : '') + '</span>'
+    + '<span class="vsp-big num ' + pctCls(s.pct) + '" data-live-big="' + s.code + '">' + pctTxt(s.pct) + (zt ? ' <em class="vsp-zt">' + zt + '</em>' : '') + '</span>'
     + '<span class="vsp-m">竞价 ' + jjHtml + '</span><span class="vsp-m">换手 <b class="num">' + hs + '</b></span>'
     + '</div></div>'
     + '<div class="vsp-m2">'
@@ -1781,7 +1800,7 @@ function topnSectionHtml() {
       + ' aria-selected="' + (i === 0 ? "true" : "false") + '" tabindex="' + (i === 0 ? 0 : -1) + '" data-code="' + s.code + '">'
       + (rk ? '<i class="rk-chip vsp-rk" style="border-color:' + RAINBOW[rk - 1].fg + ';color:' + RAINBOW[rk - 1].fg + '" title="本月第 ' + rk + ' 名（彩虹名次色与矩阵同色）">#' + rk + '</i>' : '')
       + '<span class="s-nm">' + s.name + '</span>'
-      + '<span class="s-pct num ' + pctCls(s.pct) + '">' + pctTxt(s.pct) + '</span>'
+      + '<span class="s-pct num ' + pctCls(s.pct) + '" data-live-pct="' + s.code + '">' + pctTxt(s.pct) + '</span>'
 
       + '</button>';
   }).join("");
@@ -1814,6 +1833,66 @@ function topnSectionHtml() {
   /* 等高锁定落在各面板上（而非滚动容器），滚动容器由象限高度约束 */
   els.forEach(p => { p.style.minHeight = maxH + "px"; });
   els.forEach((p, i) => { if (i > 0) p.hidden = true; });
+})();
+
+/* ---------- L1 实时层：轮询 live.json 就地更新数字（file:// 自动禁用） ---------- */
+(function(){
+  if (location.protocol === "file:") return;                 /* 静态打开不启用 */
+  const badge = document.createElement("div");
+  badge.className = "live-badge";
+  badge.innerHTML = '<i class="live-dot"></i><span>实时 连接中…</span>';
+  document.body.appendChild(badge);
+  const txt = t => badge.querySelector("span").textContent = t;
+  const flash = (el, dir) => {
+    if (!el) return;
+    el.classList.remove("live-flash", "live-up", "live-down");
+    void el.offsetWidth;                                  /* 强制回流以重放动画 */
+    el.classList.add(dir > 0 ? "live-up" : (dir < 0 ? "live-down" : "live-flash"));
+  };
+  const num = v => (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(2);
+  const setPct = (el, v) => { if (!el) return; const s = num(v) + "%"; if (el.textContent.trim() !== s) { el.textContent = s; el.classList.remove("up", "down"); el.classList.add(v > 0 ? "up" : (v < 0 ? "down" : "")); flash(el, v); } };
+  let fails = 0, last = 0;
+  const paint = d => {
+    if (!d || d.err) { badge.classList.add("late"); txt("数据延迟" + (d && d.ts ? " · " + d.ts.slice(11) : "")); return; }
+    if (d.session === "closed") { badge.classList.remove("late"); badge.classList.add("off"); txt("已收盘 · " + d.ts.slice(11)); }
+    else { badge.classList.remove("late", "off"); txt((d.session === "lunch" ? "午休 · " : "实时 ") + d.ts.slice(11)); }
+    if (d.idx) {
+      [["sh", d.idx.sh], ["kc50", d.idx.kc50]].forEach(([k, v]) => {
+        if (!v) return;
+        document.querySelectorAll('[data-live-idx="' + k + '"]').forEach(card => {
+          const c = card.querySelector('[data-live="close"]');
+          if (c) { const s = Number(v.p).toLocaleString("zh-CN", { minimumFractionDigits: 2 }); if (c.textContent !== s) { c.textContent = s; flash(c, v.chg); } }
+          const g = card.querySelector('[data-live="chg"]');
+          if (g) {
+            const html = num(v.chg) + "<small>" + num(v.pct) + "%</small>";
+            if (g.innerHTML !== html) { g.innerHTML = html; g.classList.remove("up", "down"); g.classList.add(v.chg >= 0 ? "up" : "down"); flash(g, v.chg); }
+          }
+        });
+      });
+    }
+    if (d.amt != null) {
+      const b = document.querySelector('[data-live="amt"]');
+      if (b) { const s = Math.round(d.amt).toLocaleString("zh-CN") + "亿"; if (b.textContent.split(" · ")[0] !== s) { b.textContent = s; flash(b); } }
+    }
+    if (d.stocks) Object.keys(d.stocks).forEach(code => {
+      const v = d.stocks[code];
+      document.querySelectorAll('[data-live-pct="' + code + '"]').forEach(el => setPct(el, v.pct));
+      document.querySelectorAll('[data-live-big="' + code + '"]').forEach(el => {
+        const zt = Math.abs(v.pct) >= 9.9 ? (v.pct > 0 ? " 涨停" : " 跌停") : "";
+        const s = num(v.pct) + "%" + zt;
+        if (el.textContent.trim() !== s) { el.textContent = s; el.classList.remove("up", "down"); el.classList.add(v.pct > 0 ? "up" : (v.pct < 0 ? "down" : "")); flash(el, v.pct); }
+      });
+    });
+  };
+  const tick = () => {
+    fetch("./live.json?ts=" + Date.now(), { cache: "no-store" })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
+      .then(d => { fails = 0; paint(d); })
+      .catch(() => { fails++; badge.classList.add("late"); txt("实时数据不可用" + (fails > 1 ? "（第" + fails + "次）" : "")); });
+  };
+  const loop = () => { tick(); setTimeout(loop, fails ? Math.min(60000 * fails, 300000) : 60000); };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+  loop();
 })();
 
 /* ---------- 图表统一悬浮提示：悬停即显数据（懒转换 SVG 原生 <title>） ---------- */
@@ -2363,7 +2442,7 @@ function heatTable(){
 
 /* ---- 3) 头部 chips / 图例 ---- */
   const chips = '<div class="mk-chips num">'
-    + '<span class="mk-chip ' + tierNow.chip + '">今日两市 <b>' + s.last.toLocaleString('zh-CN') + '亿 · ' + tierNow.name + '</b></span>'
+    + '<span class="mk-chip ' + tierNow.chip + '">今日两市 <b data-live="amt">' + s.last.toLocaleString('zh-CN') + '亿 · ' + tierNow.name + '</b></span>'
     + '<span class="mk-chip">5日均 <b>' + s.ma5.toLocaleString('zh-CN') + '亿</b></span>'
     + '<span class="mk-chip">3月均 <b>' + s.avg.toLocaleString('zh-CN') + '亿</b></span>'
     + '<span class="mk-chip hot">天量 <b>' + (s.max.v / 10000).toFixed(2) + '万亿</b>·' + s.max.d.slice(5).replace('-','/') + '</span>'
@@ -2397,11 +2476,12 @@ function heatTable(){
 function idxCard(o, asOfLabel){
   const cls = o.chg >= 0 ? "up" : "down";
   const sign = o.chg >= 0 ? "+" : "";
-  return '<div class="mkt-card" style="--ic:'+o.color+'">'
+  const lk = o.nm === "上证指数" ? "sh" : (o.nm === "科创50" ? "kc50" : "");
+  return '<div class="mkt-card" data-live-idx="'+lk+'" style="--ic:'+o.color+'">'
     + '<div class="mk-head"><span class="mk-name"><i></i>'+o.nm+'</span><span class="mk-en">'+o.en+' · 近3个月日K</span><span class="mk-asof num">'+asOfLabel+'</span></div>'
     + '<div class="mk-body"><div class="mk-numcol">'
-    + '<div><div class="mk-close num">'+o.close.toLocaleString("zh-CN",{minimumFractionDigits:2})+'</div>'
-    + '<div class="mk-chg num '+cls+'">'+sign+o.chg.toFixed(2)+'<small>'+sign+o.pct.toFixed(2)+'%</small></div></div>'
+    + '<div><div class="mk-close num" data-live="close">'+o.close.toLocaleString("zh-CN",{minimumFractionDigits:2})+'</div>'
+    + '<div class="mk-chg num '+cls+'" data-live="chg">'+sign+o.chg.toFixed(2)+'<small>'+sign+o.pct.toFixed(2)+'%</small></div></div>'
     + '<div class="mk-meta num"><span>'+o.amtLabel+' <b>'+o.amt.toLocaleString("zh-CN")+'亿</b></span><span>3月高(盘中) <b>'+o.hi.toFixed(2)+'</b></span><span>3月低(盘中) <b>'+o.lo.toFixed(2)+'</b></span></div>'
     + '</div>' + kline(o) + '</div></div>';
 }
