@@ -13,22 +13,24 @@
     --green:#0b7a55; --green-bg:rgba(14,150,104,.09);
     --radius:8px;
     --shadow:0 1px 2px rgba(15,23,42,.05);
-  }
+  
+  --info:#3b66d4;
+  --risk:#9f1239;}
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; scroll-padding-top:64px; }
-  body { background:var(--bg); color:var(--txt); font-family:"Inter","SF Pro Display",-apple-system,"PingFang SC","Segoe UI",Roboto,sans-serif; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  body { background:var(--bg); color:var(--txt); font-family:"Inter","SF Pro Display",-apple-system,"PingFang SC","Segoe UI",Roboto,sans-serif; font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; }
   .num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
   .up { color:var(--red); } .down { color:var(--green); }
 
   nav { position:sticky; top:0; z-index:100; background:rgba(255,255,255,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
   .nav-inner { display:flex; align-items:center; gap:16px; padding:0 24px; height:52px; }
-  .nav-logo { font-size:15px; font-weight:700; white-space:nowrap; }
+  .nav-logo { font-size:16px; font-weight:700; white-space:nowrap; }
   .nav-logo em { color:var(--accent); font-style:normal; }
   .nav-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-left:auto; }
   .nav-chips::-webkit-scrollbar { display:none; }
-  .nav-chips a { flex:none; font-size:12px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
+  .nav-chips a { flex:none; font-size:13px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
   .nav-chips a:hover { color:var(--txt); border-color:var(--border2); background:var(--surface2); }
-  .nav-date { font-size:12px; color:var(--faint); white-space:nowrap; margin-left:auto; }
+  .nav-date { font-size:13px; color:var(--faint); white-space:nowrap; margin-left:auto; }
   @media (max-width:700px){
     .nav-date { display:none; }               /* 快照时间已在 hero 徽章呈现，窄屏让位给导航锚点 */
     .nav-inner { padding:0 16px; }
@@ -40,14 +42,15 @@
 
   .wrap { padding:24px 24px 80px; }
 
-  .hero { margin-bottom:28px; }
+  .hero { margin-bottom:0; }
+  .hero:not(:has(.hero-pane:not([hidden]))) { display:none; }
   .hero-pane { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; }
   .hero-pane[hidden] { display:none; }
-  .hero h1 { font-size:26px; font-weight:700; }
+  .hero h1 { font-size:28px; font-weight:700; }
   .hero h1 span { color:var(--accent); font-weight:500; }
-  .hero .sub { color:var(--sub); font-size:13px; margin-top:6px; }
+  .hero .sub { color:var(--sub); font-size:14px; margin-top:6px; }
   .badges { display:flex; gap:8px; flex-wrap:wrap; }
-  .badge { font-size:12px; color:var(--sub); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px 12px; }
+  .badge { font-size:13px; color:var(--sub); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px 12px; }
   .badge b { color:var(--txt); font-weight:600; }
   .badge.live { border-color:rgba(232,182,76,.4); color:var(--accent); }
   .badge.live b { color:var(--accent); }
@@ -57,7 +60,7 @@
   @media (max-width:980px){ .mkt-strip { grid-template-columns:1fr; } }
   /* ---------- 四象限看板（情绪周期） ---------- */
   .quad-grid { display:grid; grid-template-columns:minmax(360px,34fr) minmax(620px,66fr);
-    grid-template-rows:auto clamp(980px,74dvh,1220px); gap:16px; margin-bottom:36px; }
+    grid-template-rows:auto auto; gap:16px; margin-bottom:36px; }
   .quad { min-height:0; display:flex; }
   .quad-card { flex:1; min-height:0; display:flex; flex-direction:column; background:var(--surface);
     border:1px solid var(--border); border-radius:8px; box-shadow:0 1px 2px rgba(15,23,42,.05); overflow:hidden; }
@@ -70,8 +73,7 @@
   /* 右上：量价全景撑满（内容超高时区内滚动） */
   #mktheat { flex:1; min-height:0; display:flex; flex-direction:column; }
   #mktheat .mkt-card.mkt-heat { flex:1; min-height:0; display:flex; flex-direction:column; margin:0; border:none; box-shadow:none; }
-  #mktheat .mkt-card.mkt-heat > div:last-child { flex:1; min-height:0; overflow:auto; }
-  #mktheat .mh-band { flex:1; display:flex; flex-direction:column; justify-content:center; }
+  #mktheat .mkt-card.mkt-heat > .mk-pano { flex:1 1 auto; min-height:0; }
   /* 左下：双矩阵均分 + 表体滚动填满 */
   .mx-col { gap:16px; }
   .mx-col > div { flex:0 0 auto; min-height:0; display:flex; flex-direction:column; }
@@ -79,12 +81,16 @@
   .mx-col .mx-block { flex:1; min-height:0; display:flex; flex-direction:column; margin:0; border:none; border-radius:0; box-shadow:none; --tc:var(--txt); }
   .mx-col .mx-wrap { flex:1; min-height:0; overflow:auto; clip-path:none; }
   /* 右下：TOPN 头（题材chips+Tab条）固定，面板区内滚动，无留白 */
+  #q-br .quad-card { overflow:visible; }
   #topnvp { flex:1; min-height:0; display:flex; flex-direction:column; }
+  #topnvp .vp-top { position:sticky; top:52px; z-index:26; background:var(--surface);
+    border:1px solid var(--border); border-bottom:1px solid var(--border); border-radius:8px;
+    box-shadow:0 6px 16px rgba(15,23,42,.08); }
   #topnvp .vp-sticky { flex:none; background:var(--surface); border-bottom:1px solid var(--border); padding:0; width:100%; }
   #topnvp .vp-stabs { display:flex; align-items:stretch; flex-wrap:nowrap; padding:0; gap:0; width:100%;
     border:0; border-right:0; border-left:0; border-radius:0; background:var(--surface); overflow:hidden; }
   #topnvp .vp-stab { flex:1 1 0; min-width:0; display:inline-flex; align-items:center; justify-content:center; gap:3px;
-    border:none; border-radius:0; background:transparent; color:var(--sub); padding:7px 4px; font-size:11px; cursor:pointer;
+    border:none; border-radius:0; background:transparent; color:var(--sub); padding:7px 4px; font-size:12px; cursor:pointer;
     white-space:nowrap; overflow:hidden; }
   #topnvp .vp-stab > * { flex:none; }
   #topnvp .vp-stab .s-nm { overflow:hidden; text-overflow:ellipsis; }
@@ -96,35 +102,35 @@
   #topnvp .vp-stab[aria-selected="true"] .s-pct { color:var(--rb-fg, var(--txt)); }
   #topnvp .vp-stab[aria-selected="true"] .vsp-rk { background:var(--rb-bg, #eef2f7); }
   #topnvp .vp-stab[aria-selected="true"] + .vp-stab { border-left-color:transparent; }
-  #topnvp .vp-stab .vsp-rk { font-size:9px; padding:0 2px; margin-left:0; }
-  #topnvp .vp-stab .s-pct { font-size:10px; min-width:0; text-align:left; font-weight:600; }
-  #topnvp .vp-stab .vst-star { color:#b8860b; font-size:10px; }
-  #topnvp .vp-stab .vst-lb { font-size:9.5px; color:var(--faint); }
-  #topnvp .vp-stab .vst-dist { font-size:9.5px; color:#9f1239; }
+  #topnvp .vp-stab .vsp-rk { font-size:11px; padding:0 2px; margin-left:0; }
+  #topnvp .vp-stab .s-pct { font-size:11px; min-width:0; text-align:left; font-weight:600; }
+  #topnvp .vp-stab .vst-star { color:#b8860b; font-size:11px; }
+  #topnvp .vp-stab .vst-lb { font-size:11px; color:var(--faint); }
+  #topnvp .vp-stab .vst-dist { font-size:11px; color:var(--risk); }
   #topnvp .vp-stab[aria-selected="true"] .vst-star { color:var(--rb-fg, #b8860b); opacity:.9; }
-  #topnvp .vp-panels.vp-scroll { flex:1; min-height:0; overflow:auto; scrollbar-gutter:stable; }
+  #topnvp .vp-panels.vp-scroll { flex:1; min-height:0; overflow:visible; }
   @media (max-width:1200px){
     .quad-grid { grid-template-columns:1fr; grid-template-rows:auto; }
     #topnvp .vp-panels.vp-scroll { overflow:visible; }
   }
   .mkt-card { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 18px 12px; overflow:hidden; }
-  .mkt-card::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--ic,#3b66d4),transparent 60%); opacity:.75; }
+  .mkt-card::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--ic,var(--info)),transparent 60%); opacity:.75; }
   .mkt-heat { grid-column:1 / -1; }
   .mk-head { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-  .mk-name { font-size:13px; font-weight:700; }
+  .mk-name { font-size:14px; font-weight:700; }
   .mk-name i { font-style:normal; display:inline-block; width:3px; height:12px; border-radius:2px; background:var(--ic); margin-right:6px; vertical-align:-1px; }
-  .mk-en { font-size:9px; color:var(--faint); letter-spacing:1px; }
-  .mk-asof { margin-left:auto; font-size:9.5px; color:var(--faint); }
+  .mk-en { font-size:11px; color:var(--faint); letter-spacing:1px; }
+  .mk-asof { margin-left:auto; font-size:11px; color:var(--faint); }
   .mk-body { display:grid; grid-template-columns:132px 1fr; gap:16px; align-items:stretch; margin-top:6px; }
   .mk-numcol { display:flex; flex-direction:column; justify-content:space-between; padding:2px 0; min-width:0; }
-  .mk-close { font-size:25px; font-weight:700; letter-spacing:.3px; line-height:1.15; }
-  .mk-chg { font-size:13.5px; font-weight:700; margin-top:1px; }
-  .mk-chg small { font-weight:600; margin-left:6px; }
-  .mk-meta { display:flex; flex-direction:column; gap:3px; margin-top:8px; font-size:11px; color:var(--sub); }
+  .mk-close { font-size:26px; font-weight:700; letter-spacing:.3px; line-height:1.15; }
+  .mk-chg { font-size:15px; font-weight:700; margin-top:1px; }
+  .mk-chg small { font-size:12px; font-weight:600; margin-left:6px; }
+  .mk-meta { display:flex; flex-direction:column; gap:3px; margin-top:8px; font-size:12px; color:var(--sub); }
   .mk-meta b { color:var(--txt); font-weight:600; }
   .mk-k { width:100%; height:auto; display:block; }
   .mk-chips { display:flex; flex-wrap:wrap; gap:6px 8px; margin:2px 0 6px; }
-  .mk-chip { font-size:11px; color:var(--sub); border:1px solid var(--border); border-radius:999px; padding:2px 10px; background:var(--surface); white-space:nowrap; }
+  .mk-chip { font-size:12px; color:var(--sub); border:1px solid var(--border); border-radius:999px; padding:2px 10px; background:var(--surface); white-space:nowrap; }
   .mk-chip b { color:var(--txt); font-weight:700; }
   .mk-chip.hot { border-color:rgba(214,52,80,.4); color:var(--red); }
   .mk-chip.hot b { color:var(--red); }
@@ -132,25 +138,25 @@
   .mk-chip.cold b { color:var(--green); }
   .mk-chip.gold { border-color:rgba(184,134,11,.4); color:var(--accent); }
   .mk-chip.gold b { color:var(--accent); }
-  .mk-axis { font-size:9.5px; fill:var(--faint); }
-  .mk-note { font-size:10px; color:var(--faint); margin-top:4px; }
+  .mk-axis { font-size:11px; fill:var(--faint); }
+  .mk-note { font-size:11px; color:var(--faint); margin-top:4px; }
   .mh-band { margin-top:10px; }
-  .mh-range { font-size:9.5px; color:var(--faint); margin:0 0 4px 122px; }
+  .mh-range { font-size:11px; color:var(--faint); margin:0 0 4px 122px; }
   .mh-grid { display:grid; grid-template-columns:112px repeat(30, 1fr); gap:3px 3px; align-items:stretch; min-width:max-content; }
-  .mh-lab { font-size:11px; font-weight:600; color:var(--sub); display:flex; align-items:center; gap:6px; padding-right:8px; }
+  .mh-lab { font-size:12px; font-weight:600; color:var(--sub); display:flex; align-items:center; gap:6px; padding-right:8px; }
   .mh-lab i { font-style:normal; width:8px; height:8px; border-radius:3px; flex:none; }
-  .mh-cell { font-size:10px; text-align:center; border-radius:4px; padding:4px 0; line-height:1.3; white-space:nowrap; }
+  .mh-cell { font-size:11px; text-align:center; border-radius:4px; padding:4px 0; line-height:1.3; white-space:nowrap; }
   .mh-cell.mh-today { outline:1.5px solid rgba(184,134,11,.8); outline-offset:0; font-weight:700; }
   .mh-cell.mh-newmonth { margin-left:5px; }
   .mh-vcell { position:relative; height:128px; display:flex; align-items:flex-end; justify-content:center; border-bottom:1px solid #cfd8e5; background-image:repeating-linear-gradient(to right, #c3cedd 0 4px, transparent 4px 9px), repeating-linear-gradient(to right, #98a2b3 0 4px, transparent 4px 9px); background-size:100% 1px, 100% 1px; background-position:left calc(100% - 60px), left calc(100% - 90px); background-repeat:no-repeat, no-repeat; }
-  .mh-vcell i { display:flex; align-items:flex-start; justify-content:center; width:74%; border-radius:2px 2px 0 0; min-height:3px; font-style:normal; font-size:10px; font-weight:700; color:#fff; padding-top:2px; line-height:1.2; }
+  .mh-vcell i { display:flex; align-items:flex-start; justify-content:center; width:74%; border-radius:2px 2px 0 0; min-height:3px; font-style:normal; font-size:11px; font-weight:700; color:#fff; padding-top:2px; line-height:1.2; }
   .mh-vcell.mh-vtoday { outline:1.5px solid rgba(184,134,11,.85); outline-offset:-1px; }
   .mh-vcell.mh-newmonth { margin-left:5px; }
   .mh-dh { display:flex; flex-direction:column; align-items:center; line-height:1.3; padding-bottom:1px; white-space:nowrap; }
-  .mh-dh b { font-size:9.5px; font-weight:600; color:var(--sub); }
-  .mh-dh span { font-size:8.5px; color:var(--faint); }
+  .mh-dh b { font-size:11px; font-weight:600; color:var(--sub); }
+  .mh-dh span { font-size:11px; color:var(--faint); }
   .mh-dh.mh-today b, .mh-dh.mh-today span { color:var(--accent); font-weight:700; }
-  .mh-legend { display:flex; flex-wrap:wrap; gap:4px 10px; font-size:10px; color:var(--sub); margin-top:8px; align-items:center; }
+  .mh-legend { display:flex; flex-wrap:wrap; gap:4px 10px; font-size:11px; color:var(--sub); margin-top:8px; align-items:center; }
   .mh-legend i { font-style:normal; display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
 
   /* ---------- 题材区块 ---------- */
@@ -160,53 +166,60 @@
   .tb-head::before { content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:18px;
     border-radius:0 3px 3px 0; background:var(--tc, var(--txt)); }
   .tb-dot { display:none; }
-  .tb-name { font-size:14.5px; font-weight:700; letter-spacing:.01em; color:var(--txt); }
-  .tb-span { font-size:11.5px; color:var(--faint); }
-  .st { display:inline-block; font-size:11px; font-weight:600; border-radius:6px; padding:3px 10px; }
+  .tb-name { font-size:16px; font-weight:700; letter-spacing:.01em; color:var(--txt); }
+  .tb-span { font-size:13px; color:var(--faint); }
+  .st { display:inline-block; font-size:12px; font-weight:600; border-radius:6px; padding:3px 10px; }
   .st-hot { color:var(--red); background:var(--red-bg); }
   .st-mid { color:var(--accent); background:rgba(232,182,76,.12); }
   .st-cool { color:var(--green); background:var(--green-bg); }
-  .st-risk { color:#d63450; background:rgba(214,52,80,.08); border:1px solid rgba(214,52,80,.35); }
+  .st-risk { color:var(--red); background:rgba(214,52,80,.08); border:1px solid rgba(214,52,80,.35); }
 
 
   .tb-body { display:grid; grid-template-columns:400px 1fr; border-top:1px solid var(--border); }
   @media (max-width:1100px){ .tb-body { grid-template-columns:1fr; } }
   .tb-stocks { padding:14px 18px; border-right:1px solid var(--border); }
   @media (max-width:1100px){ .tb-stocks { border-right:none; border-bottom:1px solid var(--border); } }
-  .tb-stocks h4, .tb-news h4 { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:10px; }
+  .tb-stocks h4, .tb-news h4 { font-size:12px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:10px; }
   .s-row { display:grid; grid-template-columns:minmax(104px,auto) 1fr; align-items:center; gap:12px; padding:7px 10px; border-radius:10px; cursor:pointer; transition:background .12s; }
   .s-row:hover { background:var(--surface2); }
   .s-row.active { background:var(--surface3); outline:1px solid var(--tc); }
-  .s-id .nm { font-weight:600; font-size:13.5px; white-space:nowrap; }
+  .s-id .nm { font-weight:600; font-size:15px; white-space:nowrap; }
   .s-id .nm a, .lad-cell a { color:inherit; text-decoration:none; }
-  .s-id .nm a:hover, .lad-cell a:hover { color:#3b66d4; text-decoration:underline; }
-  .s-id .cd { font-size:10.5px; color:var(--faint); }
-  .pool { font-size:10.5px; border-radius:4px; padding:0 4px; margin-right:5px; vertical-align:1px; }
+  .s-id .nm a:hover, .lad-cell a:hover { color:var(--info); text-decoration:underline; }
+  .s-id .cd { font-size:12px; color:var(--faint); }
+  .pool { font-size:12px; border-radius:4px; padding:0 4px; margin-right:5px; vertical-align:1px; }
   .pool-lb { color:#b26000; border:1px solid rgba(178,96,0,.45); }
   .pool-m9 { color:#4263d8; border:1px solid rgba(66,99,216,.45); }
-  .risk-chip { display:inline-block; font-size:10.5px; font-weight:600; color:#d63450; border:1px solid rgba(214,52,80,.4); background:rgba(214,52,80,.06); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .risk-chip { display:inline-block; font-size:12px; font-weight:600; color:var(--red); border:1px solid rgba(214,52,80,.4); background:rgba(214,52,80,.06); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
   .pool-mo { color:#4263d8; border:1px solid rgba(66,99,216,.45); }
   .pool-out { color:var(--sub); border:1px dashed var(--border2); cursor:help; }
   .pool-d10 { color:#b26000; border:1px solid rgba(178,96,0,.45); }
-  .top-chip { display:inline-block; font-size:10.5px; font-weight:700; color:var(--accent); border:1px solid rgba(184,134,11,.45); background:rgba(184,134,11,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
-  .rk-chip { display:inline-block; font-style:normal; font-size:10.5px; font-weight:700; border:1px solid; border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .top-chip { display:inline-block; font-size:12px; font-weight:700; color:var(--accent); border:1px solid rgba(184,134,11,.45); background:rgba(184,134,11,.08); border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
+  .rk-chip { display:inline-block; font-style:normal; font-size:12px; font-weight:700; border:1px solid; border-radius:4px; padding:0 4px; margin-left:5px; vertical-align:1px; cursor:help; }
   .jjv { font-weight:700; text-decoration:underline dotted rgba(184,134,11,.6); text-underline-offset:3px; }
-  .jj-tag { font-style:normal; font-size:10.5px; color:var(--accent); border:1px solid rgba(184,134,11,.4); border-radius:4px; padding:0 3px; margin-left:3px; vertical-align:1px; }
+  .jj-tag { font-style:normal; font-size:12px; color:var(--accent); border:1px solid rgba(184,134,11,.4); border-radius:4px; padding:0 3px; margin-left:3px; vertical-align:1px; }
   /* 月度前七全景矩阵 */
   .mx-block { margin-bottom:26px; }
   .mx-wrap { overflow-x:auto; overflow-y:hidden; clip-path:inset(0); padding:6px 18px 14px; }
   .mx-grid { display:grid; width:100%; }
-  .mx-hc, .mx-hd { font-size:10.5px; color:var(--faint); letter-spacing:.5px; padding:5px 6px 8px; border-bottom:1px solid var(--border); text-align:center;
+  .mx-hc, .mx-hd { font-size:12px; color:var(--faint); letter-spacing:.5px; padding:5px 6px 8px; border-bottom:1px solid var(--border); text-align:center;
     position:sticky; top:0; z-index:3; background:var(--surface); }
   .mx-hc { left:0; z-index:4; }
   .mx-hd.mx-today { color:var(--accent); font-weight:700; background:#fbf3dd; border-bottom-color:rgba(184,134,11,.45); }
-  .mx-rk { position:sticky; left:0; z-index:2; background:var(--surface); font-weight:700; color:var(--sub); display:flex; align-items:center; justify-content:center; border-right:1px solid var(--border); border-bottom:1px dashed rgba(29,36,48,.6); font-size:12px; }
-  .mx-rk-out { color:var(--faint); font-size:10.5px; font-weight:600; }
-  .mx-cell { display:flex; flex-wrap:nowrap; align-items:center; gap:4px; padding:5px 6px; border-bottom:1px dashed rgba(22,32,52,.14); border-right:1px dashed rgba(22,32,52,.10); border-left:3px solid var(--mxc,#e2e8f0); min-height:34px; font-size:12px; min-width:0; }
+  .mx-rk { position:sticky; left:0; z-index:2; background:var(--surface); display:flex; align-items:center; justify-content:center;
+    border-right:1px solid var(--border); border-bottom:1px dashed var(--border2); padding:3px 0; }
+  .rkpill { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:22px; padding:0 6px;
+    border-radius:6px; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums;
+    background:var(--rb-bg,#F1F5F9); color:var(--rb-fg,#64748B); box-shadow:inset 0 0 0 1px rgba(15,23,42,.07); }
+  .mx-rk[data-rank="1"] .rkpill { min-width:30px; height:25px; font-size:13px; box-shadow:inset 0 0 0 1.5px currentColor; }
+  .mx-rk[data-rank="2"] .rkpill, .mx-rk[data-rank="3"] .rkpill { min-width:28px; height:23px; box-shadow:inset 0 0 0 1px currentColor; }
+  .mx-rk-out { color:var(--faint); font-size:12px; font-weight:600; }
+  .rkpill-out { background:var(--surface2); color:var(--faint); box-shadow:inset 0 0 0 1px var(--border); }
+  .mx-cell { display:flex; flex-wrap:nowrap; align-items:center; gap:4px; padding:5px 6px; border-bottom:1px dashed rgba(22,32,52,.14); border-right:1px dashed rgba(22,32,52,.10); border-left:3px solid var(--mxc,#e2e8f0); min-height:34px; font-size:13px; min-width:0; }
   .mx-cell.mx-today { border-right:1px solid rgba(184,134,11,.5); box-shadow:inset 0 0 0 1px rgba(184,134,11,.18); }
   .mx-cell a { color:inherit; text-decoration:none; font-weight:600; white-space:nowrap; flex:none; }
-  .mx-cell a:hover { color:#3b66d4; text-decoration:underline; }
-  .mx-th { flex:0 1 auto; min-width:0; max-width:52%; font-size:9.5px; font-weight:600; line-height:1.5; color:#fff; background:var(--mxc); border-radius:4px; padding:0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mx-cell a:hover { color:var(--info); text-decoration:underline; }
+  .mx-th { flex:0 1 auto; min-width:0; max-width:52%; font-size:11px; font-weight:600; line-height:1.5; color:#fff; background:var(--mxc); border-radius:4px; padding:0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .mx-th-ghost { background:transparent; color:var(--mxc); border:1px solid var(--mxc); padding:0 5px; }
   .mx-pct { margin-left:auto; flex:none; white-space:nowrap; }
   .mx-cell[data-code] { cursor:pointer; }
@@ -215,58 +228,58 @@
   .mx-grid.mx-focus .mx-cell.mx-today:not(.mx-hit) { box-shadow:none; }
   .mx-cell.mx-hit { outline:2px solid var(--mxc); outline-offset:-2px; }
   .mx-cell.mx-hit a { text-decoration:underline; }
-  .mx-new { font-style:normal; font-size:10.5px; color:var(--red); border:1px solid rgba(214,52,80,.5); border-radius:4px; padding:0 3px; margin-left:2px; vertical-align:1px; flex:none; }
-  .mx-rem-tag { font-size:10px; color:var(--faint); border:1px dashed var(--border2); border-radius:4px; padding:1px 6px; }
+  .mx-new { font-style:normal; font-size:12px; color:var(--red); border:1px solid rgba(214,52,80,.5); border-radius:4px; padding:0 3px; margin-left:2px; vertical-align:1px; flex:none; }
+  .mx-rem-tag { font-size:11px; color:var(--faint); border:1px dashed var(--border2); border-radius:4px; padding:1px 6px; }
   .mx-out { opacity:.9; }
-  .mx-pr { font-style:normal; font-size:9.5px; color:var(--faint); margin-left:5px; }
-  .s-pct { font-size:13px; font-weight:700; text-align:right; min-width:120px; }
-  .s-pct .lbinfo { display:block; font-size:10px; font-weight:400; color:var(--faint); }
-  .s-sep { font-size:10.5px; color:var(--faint); }
+  .mx-pr { font-style:normal; font-size:11px; color:var(--faint); margin-left:5px; }
+  .s-pct { font-size:14px; font-weight:700; text-align:right; min-width:120px; }
+  .s-pct .lbinfo { display:block; font-size:11px; font-weight:400; color:var(--faint); }
+  .s-sep { font-size:12px; color:var(--faint); }
 
   .tb-news { padding:14px 18px; }
   .msg { display:flex; gap:10px; padding:9px 10px; border-radius:10px; transition:background .12s; }
   .msg:hover { background:var(--surface2); }
   .msg + .msg { margin-top:4px; }
-  .msg .d { flex:none; width:58px; font-size:11px; color:var(--accent); font-weight:600; padding-top:2px; }
-  .msg .body .t { font-size:13px; line-height:1.5; }
-  .msg .body .m { font-size:11px; color:var(--sub); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .msg .m a { color:#3b66d4; text-decoration:none; }
+  .msg .d { flex:none; width:58px; font-size:12px; color:var(--accent); font-weight:600; padding-top:2px; }
+  .msg .body .t { font-size:14px; line-height:1.5; }
+  .msg .body .m { font-size:12px; color:var(--sub); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .msg .m a { color:var(--info); text-decoration:none; }
   .msg .m a:hover { text-decoration:underline; }
-  .msg .tagchip { color:var(--accent); border:1px solid rgba(232,182,76,.35); border-radius:4px; padding:0 5px; font-size:10px; }
+  .msg .tagchip { color:var(--accent); border:1px solid rgba(232,182,76,.35); border-radius:4px; padding:0 5px; font-size:11px; }
   .msg .tagchip.bear { color:var(--green); border-color:rgba(46,189,133,.35); }
-  .msg .tagchip.kline { color:#3b66d4; border-color:rgba(59,102,212,.35); }
-  .msg .tagchip.risk { color:#d63450; border-color:rgba(214,52,80,.4); }
-  .msg-empty { font-size:12px; color:var(--faint); padding:10px; }
+  .msg .tagchip.kline { color:var(--info); border-color:rgba(59,102,212,.35); }
+  .msg .tagchip.risk { color:var(--red); border-color:rgba(214,52,80,.4); }
+  .msg-empty { font-size:13px; color:var(--faint); padding:10px; }
 
 
 
   .tb-ladder { padding:10px 18px 12px; border-top:1px solid var(--border); }
-  .tb-ladder .h { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:8px; }
+  .tb-ladder .h { font-size:12px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-bottom:8px; }
   .tb-ladder .h span { font-weight:400; letter-spacing:0; margin-left:8px; }
-  .tb-anchor { margin-left:auto; font-size:11px; color:var(--accent); border:1px solid rgba(184,134,11,.35); border-radius:999px; padding:2px 10px; white-space:nowrap; }
+  .tb-anchor { margin-left:auto; font-size:12px; color:var(--accent); border:1px solid rgba(184,134,11,.35); border-radius:999px; padding:2px 10px; white-space:nowrap; }
   .tb-eco { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; padding:9px 18px 11px; border-bottom:1px dashed var(--border); }
-  .tb-eco .h { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-right:4px; }
+  .tb-eco .h { font-size:12px; font-weight:600; color:var(--faint); letter-spacing:1.5px; margin-right:4px; }
   .tb-eco .h span { font-weight:400; letter-spacing:0; color:var(--sub); margin-left:8px; }
-  .eco-chip { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; border:1px solid var(--border); border-radius:8px; padding:2px 8px; background:var(--surface); }
+  .eco-chip { display:inline-flex; align-items:center; gap:5px; font-size:13px; border:1px solid var(--border); border-radius:8px; padding:2px 8px; background:var(--surface); }
   .eco-chip a { color:inherit; text-decoration:none; font-weight:600; }
-  .eco-chip a:hover { color:#3b66d4; text-decoration:underline; }
-  .eco-chip b { font-size:10.5px; }
+  .eco-chip a:hover { color:var(--info); text-decoration:underline; }
+  .eco-chip b { font-size:12px; }
   .eco-chip.tail { border-style:dashed; color:var(--sub); }
   .lad-table { display:flex; flex-direction:column; gap:6px; }
   .lad-trow { display:grid; grid-template-columns:64px minmax(70px, 220px) 1fr; align-items:center; gap:12px; padding:4px 0; }
   .lad-trow + .lad-trow { border-top:1px dashed rgba(22,32,52,.14); }
-  .lad-lb { font-size:12.5px; font-weight:700; color:var(--red); text-align:center; background:var(--red-bg); border-radius:6px; padding:3px 0; }
-  .lad-lb small { display:block; font-size:10px; color:var(--faint); font-weight:400; }
+  .lad-lb { font-size:14px; font-weight:700; color:var(--red); text-align:center; background:var(--red-bg); border-radius:6px; padding:3px 0; }
+  .lad-lb small { display:block; font-size:11px; color:var(--faint); font-weight:400; }
   .lad-bar { height:10px; }
   .lad-bar i { display:block; height:100%; border-radius:5px; background:linear-gradient(90deg, rgba(246,70,93,.9), rgba(246,70,93,.3)); }
   .lad-cells { display:flex; flex-wrap:wrap; gap:6px; }
-  .lad-cell { font-size:12.5px; font-weight:600; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:3px 10px; white-space:nowrap; }
+  .lad-cell { font-size:14px; font-weight:600; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:3px 10px; white-space:nowrap; }
   .lad-cell.outpool { color:var(--sub); font-weight:500; border-style:dashed; }
-  .lad-cell em { font-style:normal; font-size:10px; color:var(--faint); margin-left:5px; vertical-align:1px; }
-  .lad-empty { font-size:11.5px; color:var(--faint); }
+  .lad-cell em { font-style:normal; font-size:11px; color:var(--faint); margin-left:5px; vertical-align:1px; }
+  .lad-empty { font-size:13px; color:var(--faint); }
   .msg .d { width:104px; line-height:1.35; }
-  .msg .d b { display:block; font-size:10.5px; color:var(--accent); }
-  .msg .d span { font-size:9.5px; color:var(--faint); }
+  .msg .d b { display:block; font-size:12px; color:var(--accent); }
+  .msg .d span { font-size:11px; color:var(--faint); }
 
   /* ---------- 历史行情专栏（HISTORY） ---------- */
   .hx-block { margin-top:26px; }
@@ -275,16 +288,16 @@
          font-family:'Inter','SF Pro Display',-apple-system,'PingFang SC',sans-serif; color:var(--ink); }
   .hx2 * { box-sizing:border-box; }
   .hx2-head { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; padding:0 0 16px; }
-  .hx2-head h2 { margin:0; font-size:24px; font-weight:700; letter-spacing:-.01em; line-height:1.5; }
-  .hx2-head .sub { font-size:12px; color:var(--sub); }
-  .hx2-range { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--sub); }
-  .hx2-range select, .hx2-mobsel select { font-family:inherit; font-size:12px; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 10px; outline:none; cursor:pointer; }
+  .hx2-head h2 { margin:0; font-size:26px; font-weight:700; letter-spacing:-.01em; line-height:1.5; }
+  .hx2-head .sub { font-size:13px; color:var(--sub); }
+  .hx2-range { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--sub); }
+  .hx2-range select, .hx2-mobsel select { font-family:inherit; font-size:13px; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 10px; outline:none; cursor:pointer; }
   .hx2-cyc { display:flex; gap:8px; overflow-x:auto; padding:2px 2px 12px; }
   .hx2-cyc::-webkit-scrollbar { height:6px; }
   .hx2-cyc::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
   .hx2-cyc .pill { flex:none; display:flex; flex-direction:column; gap:2px; align-items:flex-start; border:1px solid var(--line); background:#fff; border-radius:8px; padding:8px 14px; cursor:pointer; min-width:88px; transition:background .15s,border-color .15s; font:inherit; text-align:left; }
-  .hx2-cyc .pill b { font-size:14px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; }
-  .hx2-cyc .pill span { font-size:12px; color:var(--sub); font-variant-numeric:tabular-nums; }
+  .hx2-cyc .pill b { font-size:15px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; }
+  .hx2-cyc .pill span { font-size:13px; color:var(--sub); font-variant-numeric:tabular-nums; }
   .hx2-cyc .pill:hover { border-color:var(--ink); }
   .hx2-cyc .pill.on { background:var(--ink); border-color:var(--ink); }
   .hx2-cyc .pill.on b, .hx2-cyc .pill.on span { color:#fff; }
@@ -293,47 +306,47 @@
   .hx2-card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:24px; margin-top:4px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
   .hx2-tt { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
   .hx2-tt h3 { margin:0; font-size:16px; font-weight:650; line-height:1.5; }
-  .hx2-tt .badge { font-size:12px; color:var(--sub); background:var(--bgp); border:1px solid var(--line); border-radius:999px; padding:2px 10px; }
-  .hx2-tt .dates { font-size:12px; color:var(--sub); margin-left:auto; font-variant-numeric:tabular-nums; }
+  .hx2-tt .badge { font-size:13px; color:var(--sub); background:var(--bgp); border:1px solid var(--line); border-radius:999px; padding:2px 10px; }
+  .hx2-tt .dates { font-size:13px; color:var(--sub); margin-left:auto; font-variant-numeric:tabular-nums; }
   .hx2-chartwrap { position:relative; }
   .hx2-chartwrap svg { width:100%; height:auto; display:block; }
-  .hx2-tip { position:absolute; pointer-events:none; background:var(--ink); color:#fff; border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.5; transform:translate(-50%,-120%); white-space:nowrap; display:none; z-index:3; box-shadow:0 4px 16px rgba(15,23,42,.24); }
-  .hx2-tip b { font-size:14px; font-variant-numeric:tabular-nums; }
+  .hx2-tip { position:absolute; pointer-events:none; background:var(--ink); color:#fff; border-radius:8px; padding:8px 10px; font-size:13px; line-height:1.5; transform:translate(-50%,-120%); white-space:nowrap; display:none; z-index:3; box-shadow:0 4px 16px rgba(15,23,42,.24); }
+  .hx2-tip b { font-size:15px; font-variant-numeric:tabular-nums; }
   .hx2-metrics { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-top:16px; }
   .hx2-m { border:1px solid var(--line); border-radius:8px; padding:12px 14px; background:#fff; }
-  .hx2-m .k { font-size:12px; color:var(--sub); line-height:1.5; }
-  .hx2-m .v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:4px; font-variant-numeric:tabular-nums; line-height:1.3; }
-  .hx2-m .d { font-size:12px; color:var(--faint); margin-top:2px; font-variant-numeric:tabular-nums; }
+  .hx2-m .k { font-size:13px; color:var(--sub); line-height:1.5; }
+  .hx2-m .v { font-size:26px; font-weight:700; letter-spacing:-.01em; margin-top:4px; font-variant-numeric:tabular-nums; line-height:1.3; }
+  .hx2-m .d { font-size:13px; color:var(--faint); margin-top:2px; font-variant-numeric:tabular-nums; }
   .hx2-m.up .v { color:var(--up); } .hx2-m.dn .v { color:var(--dn); }
-  .hx2-alt { font-size:12px; color:var(--sub); margin-top:12px; line-height:1.6; }
+  .hx2-alt { font-size:13px; color:var(--sub); margin-top:12px; line-height:1.6; }
   .hx2-ins { display:grid; grid-template-columns:5fr 7fr; gap:32px; margin-top:24px; padding-top:24px; border-top:1px solid var(--line); height:352px; }
-  .hx2-ins h4 { margin:0 0 12px; font-size:12px; font-weight:600; color:var(--sub); letter-spacing:.08em; }
+  .hx2-ins h4 { margin:0 0 12px; font-size:13px; font-weight:600; color:var(--sub); letter-spacing:.08em; }
   .hx2-evs { height:296px; overflow-y:auto; scrollbar-gutter:stable; padding-right:8px; }
   .hx2-evs::-webkit-scrollbar { width:6px; } .hx2-evs::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
   .hx2-ev { display:flex; gap:12px; padding:8px 0; border-bottom:1px dashed var(--line); }
   .hx2-ev:last-child { border-bottom:none; }
-  .hx2-ev b { flex:none; font-size:12px; color:var(--sub); font-weight:500; font-variant-numeric:tabular-nums; padding-top:2px; }
-  .hx2-ev div { font-size:14px; line-height:1.5; }
-  .hx2-ev a { font-size:12px; color:var(--faint); text-decoration:none; white-space:nowrap; }
+  .hx2-ev b { flex:none; font-size:13px; color:var(--sub); font-weight:500; font-variant-numeric:tabular-nums; padding-top:2px; }
+  .hx2-ev div { font-size:15px; line-height:1.5; }
+  .hx2-ev a { font-size:13px; color:var(--faint); text-decoration:none; white-space:nowrap; }
   .hx2-ev a:hover { color:var(--ink); }
   .hx2-ana { display:flex; flex-direction:column; gap:16px; height:296px; overflow-y:auto; scrollbar-gutter:stable; padding-right:8px; }.hx2-ana::-webkit-scrollbar { width:6px; } .hx2-ana::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
   .hx2-ana .row { display:flex; gap:12px; }
-  .hx2-ana .tag { flex:none; font-size:12px; color:var(--sub); border:1px solid var(--line); background:var(--bgp); border-radius:6px; padding:2px 8px; height:fit-content; margin-top:2px; }
-  .hx2-ana p { margin:0; font-size:14px; line-height:1.7; color:#1E293B; }
+  .hx2-ana .tag { flex:none; font-size:13px; color:var(--sub); border:1px solid var(--line); background:var(--bgp); border-radius:6px; padding:2px 8px; height:fit-content; margin-top:2px; }
+  .hx2-ana p { margin:0; font-size:15px; line-height:1.7; color:#1E293B; }
   .hx2-ths { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
-  .hx2-ths i { font-style:normal; font-size:12px; color:var(--sub); background:var(--bgp); border:1px solid var(--line); border-radius:999px; padding:2px 10px; }
-  .hx2-note { font-size:12px; color:var(--faint); margin-top:8px; line-height:1.6; }
+  .hx2-ths i { font-style:normal; font-size:13px; color:var(--sub); background:var(--bgp); border:1px solid var(--line); border-radius:999px; padding:2px 10px; }
+  .hx2-note { font-size:13px; color:var(--faint); margin-top:8px; line-height:1.6; }
   .hx2-fade { animation:hx2fade .28s ease; }
   @keyframes hx2fade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
   @media (max-width:900px) {
     .hx2-cyc { display:none; }
     .hx2-mobsel { display:block; margin-bottom:16px; }
-    .hx2-mobsel select { width:100%; font-size:14px; padding:10px; }
+    .hx2-mobsel select { width:100%; font-size:15px; padding:10px; }
     .hx2-ins { grid-template-columns:1fr; gap:24px; }
     .hx2-metrics { grid-template-columns:repeat(3,1fr); }
     .hx2-card { padding:16px; }
-    .hx2-m .v { font-size:20px; }
-    .hx2-head h2 { font-size:20px; }
+    .hx2-m .v { font-size:22px; }
+    .hx2-head h2 { font-size:22px; }
   }
 
 
@@ -341,37 +354,37 @@
 #etfflow{margin:14px 0}
 .ef-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;position:relative;padding-left:11px}
 .ef-head::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 3px 3px 0;background:var(--accent)}
-.ef-title{font-size:15px;font-weight:700;letter-spacing:.01em}
-.ef-cap{font-size:12px;color:var(--faint)}
+.ef-title{font-size:16px;font-weight:700;letter-spacing:.01em}
+.ef-cap{font-size:13px;color:var(--faint)}
 .ef-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
 @media(max-width:1100px){.ef-grid{grid-template-columns:repeat(2,1fr)}}
 .ef-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .ef-card:hover{border-color:var(--accent)}
 .ef-card.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,102,212,.18),var(--shadow)}
-.ef-card .nm{font-size:13.5px;font-weight:700}
-.ef-card .cd{font-size:11px;color:var(--faint);margin-left:6px;font-weight:600;font-variant-numeric:tabular-nums}
-.ef-card .idx{font-size:11px;color:var(--faint);margin-left:6px}
-.ef-card .main{font-size:27px;font-weight:800;margin:7px 0 4px;font-variant-numeric:tabular-nums}
+.ef-card .nm{font-size:15px;font-weight:700}
+.ef-card .cd{font-size:12px;color:var(--faint);margin-left:6px;font-weight:600;font-variant-numeric:tabular-nums}
+.ef-card .idx{font-size:12px;color:var(--faint);margin-left:6px}
+.ef-card .main{font-size:28px;font-weight:800;margin:7px 0 4px;font-variant-numeric:tabular-nums}
 .ef-card .main.up{color:var(--red)} .ef-card .main.down{color:var(--green)}
-.ef-card .main small{font-size:13px;font-weight:600;color:var(--sub);margin-left:2px}
-.ef-card .sub{font-size:11.5px;color:var(--sub);line-height:1.75}
+.ef-card .main small{font-size:14px;font-weight:600;color:var(--sub);margin-left:2px}
+.ef-card .sub{font-size:13px;color:var(--sub);line-height:1.75}
 .ef-card .sub b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
-.ef-spark-empty{margin-top:7px;font-size:10.5px;color:var(--faint);border-top:1px dashed var(--border);padding-top:5px}
+.ef-spark-empty{margin-top:7px;font-size:12px;color:var(--faint);border-top:1px dashed var(--border);padding-top:5px}
 .ef-chart{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px 10px;margin-bottom:12px}
-.ef-chart h4{margin:0 0 10px;font-size:14.5px}
+.ef-chart h4{margin:0 0 10px;font-size:16px}
 .ef-chart svg{width:100%;height:auto;display:block}
-.ef-axis-note{font-size:11px;color:var(--faint);margin-top:4px;text-align:right}
+.ef-axis-note{font-size:12px;color:var(--faint);margin-top:4px;text-align:right}
 .ef-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
-.ef-tab{border:1px solid var(--border);border-radius:999px;padding:4px 13px;font-size:12.5px;color:var(--sub);background:var(--surface2);cursor:pointer;user-select:none}
+.ef-tab{border:1px solid var(--border);border-radius:999px;padding:4px 13px;font-size:14px;color:var(--sub);background:var(--surface2);cursor:pointer;user-select:none}
 .ef-tab:hover{border-color:var(--accent)}
-.ef-tab.on{background:#3b66d4;border-color:#3b66d4;color:#fff;font-weight:600}
-.ef-sum{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--sub);margin:0 0 6px}
+.ef-tab.on{background:var(--info);border-color:var(--info);color:#fff;font-weight:600}
+.ef-sum{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--sub);margin:0 0 6px}
 .ef-sum b{font-weight:700;font-variant-numeric:tabular-nums}
 .ef-sum b.up{color:var(--red)} .ef-sum b.down{color:var(--green)}
-.ef-back{border:1px solid var(--border);border-radius:999px;padding:4px 13px;font-size:12.5px;color:var(--sub);background:var(--surface2);cursor:pointer}
+.ef-back{border:1px solid var(--border);border-radius:999px;padding:4px 13px;font-size:14px;color:var(--sub);background:var(--surface2);cursor:pointer}
 .ef-back:hover{border-color:var(--accent)}
-.ef-khead{font-size:12px;color:var(--sub);margin:12px 0 6px;font-weight:600}
-.ef-knote{font-size:11px;color:var(--faint);margin:-3px 0 4px;line-height:1.6;font-weight:400}
+.ef-khead{font-size:13px;color:var(--sub);margin:12px 0 6px;font-weight:600}
+.ef-knote{font-size:12px;color:var(--faint);margin:-3px 0 4px;line-height:1.6;font-weight:400}
 .ef-isec{margin-top:16px;padding-top:6px;border-top:1px dashed var(--border2)}
 .ef-indlay{position:relative;display:flex;gap:12px;align-items:flex-start;margin-top:6px;padding-left:324px}
 @media(max-width:1100px){.ef-indlay{flex-direction:column;padding-left:0}}
@@ -380,99 +393,99 @@
 .ef-indsel::-webkit-scrollbar{width:8px}
 .ef-indsel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 .ef-indsel::-webkit-scrollbar-track{background:transparent}
-.ef-iscat{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:5px 10px 5px 8px;font-size:11px;color:var(--sub);border-left:4px solid}
-.ef-iscat b{font-size:12.5px;font-weight:800}
-.ef-iscat .cnt{margin-left:auto;font-size:10.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border2);border-radius:999px;padding:0 8px;line-height:16px;font-variant-numeric:tabular-nums}
+.ef-iscat{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:5px 10px 5px 8px;font-size:12px;color:var(--sub);border-left:4px solid}
+.ef-iscat b{font-size:14px;font-weight:800}
+.ef-iscat .cnt{margin-left:auto;font-size:12px;color:var(--faint);background:var(--surface);border:1px solid var(--border2);border-radius:999px;padding:0 8px;line-height:16px;font-variant-numeric:tabular-nums}
 .ef-isitem{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 9px;cursor:pointer;border-left:3px solid transparent;transition:background .12s}
 .ef-isitem:hover{background:var(--surface2)}
 .ef-isitem.on{background:var(--surface2)}
 .ef-isitem .nm{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
-.ef-isitem .nm b{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ef-isitem .nm .cd{font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums;flex:none}
-.ef-isitem .v1{width:64px;flex:none;text-align:right;font-size:12px;font-variant-numeric:tabular-nums}
-.ef-isitem .v1 i{font-style:normal;font-size:10px;color:var(--faint);margin-left:1px}
-.ef-isitem .v2{width:56px;flex:none;text-align:right;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.ef-isitem .nm b{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ef-isitem .nm .cd{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;flex:none}
+.ef-isitem .v1{width:64px;flex:none;text-align:right;font-size:13px;font-variant-numeric:tabular-nums}
+.ef-isitem .v1 i{font-style:normal;font-size:11px;color:var(--faint);margin-left:1px}
+.ef-isitem .v2{width:56px;flex:none;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .ef-isitem .v2.up{color:var(--red)} .ef-isitem .v2.down{color:var(--green)}
-.ef-isarrow{font-style:normal;font-size:10px;color:transparent;flex:none;width:10px}
+.ef-isarrow{font-style:normal;font-size:11px;color:transparent;flex:none;width:10px}
 .ef-isitem.on .ef-isarrow{color:var(--accent)}
 .ef-hdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:baseline}
 .ef-isall{border-bottom:1px solid var(--border)}
 .ef-indchart{flex:1;min-width:0;margin-bottom:0}
 @media(max-width:1100px){.ef-indchart{position:static}}
-.ef-ktag{font-size:11px;color:#3b66d4;border:1px solid #3b66d4;border-radius:4px;padding:1px 6px;font-weight:600}
-.ef-foot{font-size:11.5px;color:var(--faint);margin-top:10px;line-height:1.8}
+.ef-ktag{font-size:12px;color:var(--info);border:1px solid var(--info);border-radius:4px;padding:1px 6px;font-weight:600}
+.ef-foot{font-size:13px;color:var(--faint);margin-top:10px;line-height:1.8}
 
   /* ===================== Linear 一致性层（全站视觉统一：字号阶梯/选中态深色化/8px 规范） ===================== */
-  h1, h2 { font-size:24px; letter-spacing:-.01em; }
+  h1, h2 { font-size:26px; letter-spacing:-.01em; }
   h3 { font-size:16px; }
-  h4 { font-size:14px; }
+  h4 { font-size:15px; }
   .theme-block { border-radius:8px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
-  .tb-name { font-size:14px; font-weight:650; }
-  .tb-span { font-size:12px; color:var(--faint); }
+  .tb-name { font-size:15px; font-weight:650; }
+  .tb-span { font-size:13px; color:var(--faint); }
   nav { background:var(--surface); border-bottom:1px solid var(--border); }
   .nav-logo { font-size:16px; font-weight:700; letter-spacing:-.01em; }
-  .nav-logo em { font-size:12px; color:var(--faint); }
-  .nav-chips a { font-size:12px; color:var(--sub); border:1px solid transparent; border-radius:8px; padding:3px 9px; text-decoration:none; transition:all .12s; }
+  .nav-logo em { font-size:13px; color:var(--faint); }
+  .nav-chips a { font-size:13px; color:var(--sub); border:1px solid transparent; border-radius:8px; padding:3px 9px; text-decoration:none; transition:all .12s; }
   .nav-chips a:hover { color:var(--txt); border-color:var(--border); background:var(--surface2); }
-  .hero h1 { font-size:24px; }
-  .hero .sub { font-size:12px; color:var(--sub); }
+  .hero h1 { font-size:26px; }
+  .hero .sub { font-size:13px; color:var(--sub); }
   .badge { border-radius:8px; }
   .badge b { font-variant-numeric:tabular-nums; }
   /* 选中态统一深色反白（原品牌蓝） */
-  .ef-tab.on { background:#0F172A; border-color:#0F172A; }
-  .ef-tab { border-radius:8px; font-size:12px; }
+  .ef-tab.on { background:var(--txt); border-color:var(--txt); }
+  .ef-tab { border-radius:8px; font-size:13px; }
   .ef-tab:hover { border-color:var(--txt); color:var(--txt); }
-  .ef-back { border-radius:8px; font-size:12px; }
+  .ef-back { border-radius:8px; font-size:13px; }
   .ef-back:hover { border-color:var(--txt); color:var(--txt); }
-  .ef-title { font-size:15px; font-weight:700; letter-spacing:.01em; }
-  .ef-cap { font-size:12px; color:var(--faint); }
-  .ef-khead { font-size:12px; font-weight:600; color:var(--sub); }
-  .ef-knote { font-size:10.5px; color:var(--faint); }
+  .ef-title { font-size:16px; font-weight:700; letter-spacing:.01em; }
+  .ef-cap { font-size:13px; color:var(--faint); }
+  .ef-khead { font-size:13px; font-weight:600; color:var(--sub); }
+  .ef-knote { font-size:12px; color:var(--faint); }
   .ef-card { border-radius:8px; }
-  .ef-card .nm { font-size:14px; font-weight:600; }
+  .ef-card .nm { font-size:15px; font-weight:600; }
   .ef-indsel { border-radius:8px; }
   .ef-chart { border-radius:8px; }
-  .ef-sum { font-size:12px; color:var(--sub); }
-  .ef-sum b { font-size:14px; }
-  .ef-ktag { border-radius:6px; font-size:12px; }
-  .ef-axis-note { font-size:10.5px; color:var(--faint); }
+  .ef-sum { font-size:13px; color:var(--sub); }
+  .ef-sum b { font-size:15px; }
+  .ef-ktag { border-radius:6px; font-size:13px; }
+  .ef-axis-note { font-size:12px; color:var(--faint); }
   .mk-card, .mk-wrap table { border-radius:8px; }
-  .mk-chg { font-size:24px; font-weight:700; letter-spacing:-.01em; }
-  .mk-meta { font-size:12px; color:var(--sub); }
-  footer a { display:inline-block; font-size:12px; color:var(--sub); text-decoration:none; border:1px solid var(--border); border-radius:8px; padding:3px 10px; margin:2px 2px; transition:all .12s; }
+  .mk-chg { font-size:16px; font-weight:700; letter-spacing:-.01em; }
+  .mk-meta { font-size:13px; color:var(--sub); }
+  footer a { display:inline-block; font-size:13px; color:var(--sub); text-decoration:none; border:1px solid var(--border); border-radius:8px; padding:3px 10px; margin:2px 2px; transition:all .12s; }
   footer a:hover { color:var(--txt); border-color:var(--txt); }
-  footer b { font-size:12px; color:var(--txt); }
+  footer b { font-size:13px; color:var(--txt); }
   ::-webkit-scrollbar { width:8px; height:8px; }
-  *:focus-visible { outline:2px solid #0F172A; outline-offset:1px; }
-  .risk-pop { position:fixed; z-index:200; max-width:340px; background:var(--txt); color:#fff; font-size:12px; line-height:1.7; border-radius:8px; padding:10px 12px; box-shadow:0 4px 16px rgba(15,23,42,.24); display:none; }
+  *:focus-visible { outline:2px solid var(--txt); outline-offset:1px; }
+  .risk-pop { position:fixed; z-index:200; max-width:340px; background:var(--txt); color:#fff; font-size:13px; line-height:1.7; border-radius:8px; padding:10px 12px; box-shadow:0 4px 16px rgba(15,23,42,.24); display:none; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
     html { scroll-behavior:auto; }
   }
   ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:4px; }
   ::-webkit-scrollbar-track { background:transparent; }
-  .s-row .cd { font-size:12px; color:var(--faint); }
-  .st { font-size:12px; border-radius:8px; }
-  .msg .d b { font-size:12px; }
-  .msg .tt { font-size:12px; }
-  .msg .bx { font-size:12px; color:var(--sub); }
-  .msg .tx { font-size:14px; line-height:1.6; color:#1E293B; }
-  .lad-lb { font-size:14px; }
-  .lad-cell { font-size:12px; }
-  .mx-rk { font-size:12px; }
-  .mx-th { font-size:11px; }
+  .s-row .cd { font-size:13px; color:var(--faint); }
+  .st { font-size:13px; border-radius:8px; }
+  .msg .d b { font-size:13px; }
+  .msg .tt { font-size:13px; }
+  .msg .bx { font-size:13px; color:var(--sub); }
+  .msg .tx { font-size:15px; line-height:1.6; color:#1E293B; }
+  .lad-lb { font-size:15px; }
+  .lad-cell { font-size:13px; }
+  .mx-rk { font-size:13px; }
+  .mx-th { font-size:12px; }
 
 
 /* ---------- 板块梯队 + 个股量价阶段（K线/成交量/筹码供需） ---------- */
 .sl-wrap { border-top:1px solid var(--border); padding:14px 18px 12px; }
-.sl-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:13px; font-weight:600; margin-bottom:9px; }
-.sl-head span { font-size:11px; font-weight:400; color:var(--sub); }
+.sl-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:14px; font-weight:600; margin-bottom:9px; }
+.sl-head span { font-size:12px; font-weight:400; color:var(--sub); }
 .sl-rows { display:flex; flex-wrap:wrap; gap:6px; }
-.sl-chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:4px 10px; font-size:12px; color:var(--sub); }
+.sl-chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:4px 10px; font-size:13px; color:var(--sub); }
 .sl-chip a { color:var(--txt); text-decoration:none; font-weight:600; }
 .sl-chip a:hover { color:var(--accent); }
-.sl-chip .sl-bd { font-style:normal; font-size:10px; color:var(--faint); border:1px solid var(--border); border-radius:3px; padding:0 3px; }
-.sl-chip .sl-tag { font-style:normal; font-size:10px; color:#7c2d12; background:#ffedd5; border-radius:3px; padding:0 4px; }
+.sl-chip .sl-bd { font-style:normal; font-size:11px; color:var(--faint); border:1px solid var(--border); border-radius:3px; padding:0 3px; }
+.sl-chip .sl-tag { font-style:normal; font-size:11px; color:#7c2d12; background:#ffedd5; border-radius:3px; padding:0 4px; }
 .sl-chip.anchor { border-color:#cbd5e1; background:var(--surface2); }
 .sl-chip.pool { border-color:var(--accent); }
 .tb-news.wide { border-top:1px solid var(--border); padding:14px 18px 6px; }
@@ -480,113 +493,113 @@
 .vp-card { border-top:1px solid var(--border); padding:14px 18px 16px; }
 .vp-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
 .vp-name { font-size:16px; font-weight:700; text-decoration:none; }
-.vp-head .vp-sub { font-size:11px; color:var(--sub); }
-.vp-head .vp-kpis { margin-left:auto; display:flex; gap:14px; font-size:11px; color:var(--sub); flex-wrap:wrap; }
-.vp-head .vp-kpis b { font-size:13px; }
+.vp-head .vp-sub { font-size:12px; color:var(--sub); }
+.vp-head .vp-kpis { margin-left:auto; display:flex; gap:14px; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+.vp-head .vp-kpis b { font-size:14px; }
 .vp-chart-body svg { width:100%; height:auto; display:block; }
-.vp-legend { display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:var(--sub); margin:4px 0 0; }
+.vp-legend { display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--sub); margin:4px 0 0; }
 .vp-legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
 .vp-phases { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 8px; }
-.vp-phase { display:inline-flex; align-items:center; gap:6px; font-size:11px; border:1px solid var(--border); border-radius:999px; padding:4px 9px; color:var(--sub); cursor:help; }
+.vp-phase { display:inline-flex; align-items:center; gap:6px; font-size:12px; border:1px solid var(--border); border-radius:999px; padding:4px 9px; color:var(--sub); cursor:help; }
 .vp-phase b { font-weight:600; color:var(--txt); }
 .vp-phase .num { color:var(--faint); }
-.vp-read { font-size:13px; line-height:1.75; color:var(--txt); background:var(--surface2); border-radius:8px; padding:10px 12px; }
-.vp-empty { font-size:12px; color:var(--sub); padding:10px 0; }
+.vp-read { font-size:14px; line-height:1.75; color:var(--txt); background:var(--surface2); border-radius:8px; padding:10px 12px; }
+.vp-empty { font-size:13px; color:var(--sub); padding:10px 0; }
 
 
 /* ---------- 梯队（月度涨幅分层）与可折叠消息序列 ---------- */
 .news-fold { border-top:1px solid var(--border); }
-.news-fold summary { cursor:pointer; list-style:none; display:flex; align-items:baseline; gap:10px; padding:13px 18px; font-size:13px; color:var(--txt); }
+.news-fold summary { cursor:pointer; list-style:none; display:flex; align-items:baseline; gap:10px; padding:13px 18px; font-size:14px; color:var(--txt); }
 .news-fold summary::-webkit-details-marker { display:none; }
-.news-fold summary:before { content:"▸"; color:var(--sub); font-size:11px; }
+.news-fold summary:before { content:"▸"; color:var(--sub); font-size:12px; }
 .news-fold[open] summary:before { content:"▾"; }
 .news-fold[open] summary { border-bottom:1px solid var(--border); }
-.news-fold summary span { margin-left:auto; font-size:11px; color:var(--sub); font-weight:400; }
+.news-fold summary span { margin-left:auto; font-size:12px; color:var(--sub); font-weight:400; }
 .news-fold .news-body { padding:6px 18px 12px; }
 .tier-wrap .sl-head { margin-bottom:4px; }
 .tier-row { display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-top:1px dashed var(--border); }
 .tier-row:first-of-type { border-top:none; }
-.tier-label { flex:none; width:62px; font-size:11px; color:var(--sub); padding-top:4px; font-variant-numeric:tabular-nums; }
+.tier-label { flex:none; width:62px; font-size:12px; color:var(--sub); padding-top:4px; font-variant-numeric:tabular-nums; }
 .tier-chips { display:flex; flex-wrap:wrap; gap:6px; }
-.tier-chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:3px 9px; font-size:11.5px; color:var(--sub); }
+.tier-chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:3px 9px; font-size:13px; color:var(--sub); }
 .tier-chip a { color:var(--txt); text-decoration:none; font-weight:600; }
 .tier-chip a:hover { color:var(--accent); }
 .tier-chip.anchor { border-color:var(--accent); background:#fffdf7; }
-.tier-more { font-size:11px; color:var(--sub); padding:4px 2px; }
+.tier-more { font-size:12px; color:var(--sub); padding:4px 2px; }
 
 
 /* ---------- 阶段依据 ---------- */
 .vp-plist { margin-top:6px; }
-.vp-plist-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--txt); padding:4px 0 2px; }
-.vp-plist-h span { font-size:11px; color:var(--sub); font-weight:400; }
-.vp-prow { display:flex; align-items:baseline; gap:10px; padding:7px 0; border-top:1px dashed var(--border); font-size:12px; }
+.vp-plist-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:13px; color:var(--txt); padding:4px 0 2px; }
+.vp-plist-h span { font-size:12px; color:var(--sub); font-weight:400; }
+.vp-prow { display:flex; align-items:baseline; gap:10px; padding:7px 0; border-top:1px dashed var(--border); font-size:13px; }
 .vp-prow > i { flex:none; width:8px; height:8px; border-radius:2px; margin-top:5px; }
 .vp-prow > b { flex:none; width:66px; }
-.vp-prow .dt { flex:none; width:96px; color:var(--sub); font-size:11px; }
+.vp-prow .dt { flex:none; width:96px; color:var(--sub); font-size:12px; }
 .vp-prow .why { flex:1; color:var(--txt); line-height:1.6; }
-.vp-prow .conf { flex:none; font-size:10.5px; border:1px solid var(--border); border-radius:3px; padding:1px 6px; color:var(--sub); }
-.conf.strong { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
+.vp-prow .conf { flex:none; font-size:12px; border:1px solid var(--border); border-radius:3px; padding:1px 6px; color:var(--sub); }
+.conf.strong { color:var(--green); border-color:#a7d7c5; background:#eefaf4; }
 .conf.mid { color:#8a5a00; border-color:#e6d3a3; background:#fdf6e3; }
-.conf.weak { color:#68758C; background:var(--surface2); }
+.conf.weak { color:var(--faint); background:var(--surface2); }
 
 
 /* ---------- 周线交叉验证 ---------- */
 .wk-block { margin-top:10px; border-top:1px dashed var(--border); padding-top:8px; }
-.wk-head { font-size:12px; font-weight:600; color:var(--txt); }
+.wk-head { font-size:13px; font-weight:600; color:var(--txt); }
 .vp-chart-body svg { width:100%; height:auto; display:block; }
 .wk-verdict { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; padding:2px 0 2px; }
-.wk-tag { flex:none; font-size:10.5px; border:1px solid var(--border); border-radius:3px; padding:1px 6px; }
-.wk-tag.ok { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
+.wk-tag { flex:none; font-size:12px; border:1px solid var(--border); border-radius:3px; padding:1px 6px; }
+.wk-tag.ok { color:var(--green); border-color:#a7d7c5; background:#eefaf4; }
 .wk-tag.mid { color:#8a5a00; border-color:#e6d3a3; background:#fdf6e3; }
-.wk-tag.bad { color:#9f1239; border-color:#fecdd3; background:#fff1f2; }
-.wk-why { font-size:11.5px; color:var(--sub); flex:1 1 420px; line-height:1.6; }
-.vp-prow .dur { flex:none; width:72px; color:var(--faint); font-size:11px; text-align:right; }
+.wk-tag.bad { color:var(--risk); border-color:#fecdd3; background:#fff1f2; }
+.wk-why { font-size:13px; color:var(--sub); flex:1 1 420px; line-height:1.6; }
+.vp-prow .dur { flex:none; width:72px; color:var(--faint); font-size:12px; text-align:right; }
 
 
 /* ---------- 三 TAB 页 ---------- */
 .nav-inner .tabbar { display:flex; gap:0; margin:0; margin-left:14px; align-self:stretch; align-items:stretch; overflow-x:auto; scrollbar-width:none; }
 .nav-inner .tabbar::-webkit-scrollbar { display:none; }
-.nav-inner .tab { flex:none; display:flex; align-items:center; font-size:13px; font-weight:600; color:var(--sub); text-decoration:none; padding:0 14px; border-bottom:2px solid transparent; white-space:nowrap; }
+.nav-inner .tab { flex:none; display:flex; align-items:center; font-size:14px; font-weight:600; color:var(--sub); text-decoration:none; padding:0 14px; border-bottom:2px solid transparent; white-space:nowrap; }
 .nav-inner .tab:hover { color:var(--txt); }
-.nav-inner .tab[aria-selected="true"] { color:#0F172A; border-bottom-color:#0F172A; }
-.nav-inner .tab:focus-visible { outline:2px solid #0F172A; outline-offset:-2px; }
+.nav-inner .tab[aria-selected="true"] { color:var(--txt); border-bottom-color:var(--txt); }
+.nav-inner .tab:focus-visible { outline:2px solid var(--txt); outline-offset:-2px; }
 .tab-pane[hidden] { display:none; }
 .tab-subchips { display:flex; gap:6px; overflow-x:auto; margin-bottom:24px; padding-bottom:2px; scrollbar-width:none; }
 .tab-subchips::-webkit-scrollbar { display:none; }
-.tab-subchips a { flex:none; font-size:12px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
+.tab-subchips a { flex:none; font-size:13px; color:var(--sub); text-decoration:none; padding:5px 11px; border-radius:999px; border:1px solid var(--border); transition:.15s; }
 .tab-subchips a:hover { color:var(--txt); border-color:var(--border2); background:var(--surface2); }
 
 
 /* ---------- 规则命中（R1–R4） ---------- */
 .vp-prow { flex-wrap:wrap; }
 .vp-rules { flex-basis:100%; display:flex; flex-wrap:wrap; gap:6px; margin:5px 0 0 18px; }
-.rule { font-size:11px; border:1px solid var(--border); border-radius:3px; padding:1px 7px; color:var(--sub); background:var(--surface); }
+.rule { font-size:12px; border:1px solid var(--border); border-radius:3px; padding:1px 7px; color:var(--sub); background:var(--surface); }
 .rule b { font-weight:600; color:var(--txt); }
-.rule.ok { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
-.rule.miss { color:#68758C; background:var(--surface2); }
+.rule.ok { color:var(--green); border-color:#a7d7c5; background:#eefaf4; }
+.rule.miss { color:var(--faint); background:var(--surface2); }
 .rule.miss b { color:var(--sub); }
-.hits { flex:none; font-size:10.5px; color:var(--sub); border:1px solid var(--border); border-radius:3px; padding:1px 6px; }
-.wk-phase { flex:none; font-size:10.5px; border:1px solid; border-radius:3px; padding:1px 7px; font-weight:600; }
+.hits { flex:none; font-size:12px; color:var(--sub); border:1px solid var(--border); border-radius:3px; padding:1px 6px; }
+.wk-phase { flex:none; font-size:12px; border:1px solid; border-radius:3px; padding:1px 7px; font-weight:600; }
 
 
-.trend-badge { flex:none; font-size:10.5px; border:1px solid var(--border); border-radius:3px; padding:1px 7px; color:var(--sub); }
-.trend-badge.t-up { color:#0b7a55; border-color:#a7d7c5; background:#eefaf4; }
-.trend-badge.t-down { color:#9f1239; border-color:#fecdd3; background:#fff1f2; }
-.trend-badge.t-mid { color:#68758C; background:var(--surface2); }
+.trend-badge { flex:none; font-size:12px; border:1px solid var(--border); border-radius:3px; padding:1px 7px; color:var(--sub); }
+.trend-badge.t-up { color:var(--green); border-color:#a7d7c5; background:#eefaf4; }
+.trend-badge.t-down { color:var(--risk); border-color:#fecdd3; background:#fff1f2; }
+.trend-badge.t-mid { color:var(--faint); background:var(--surface2); }
 
 
 /* ---------- 阶段行：可折叠证据 ---------- */
 .vp-ph { border-top:1px dashed var(--border); }
 .vp-ph summary { display:flex; align-items:baseline; gap:10px; padding:8px 0; cursor:pointer; list-style:none; }
 .vp-ph summary::-webkit-details-marker { display:none; }
-.vp-ph summary:focus-visible { outline:2px solid #0F172A; outline-offset:2px; }
+.vp-ph summary:focus-visible { outline:2px solid var(--txt); outline-offset:2px; }
 .vp-ph summary > i { flex:none; width:8px; height:8px; border-radius:2px; margin-top:5px; }
 .vp-ph summary > b { flex:none; width:66px; }
-.vp-ph summary .dt { flex:none; width:96px; color:var(--sub); font-size:11px; }
-.vp-ph summary .dur { flex:none; width:72px; color:var(--faint); font-size:11px; text-align:right; }
+.vp-ph summary .dt { flex:none; width:96px; color:var(--sub); font-size:12px; }
+.vp-ph summary .dur { flex:none; width:72px; color:var(--faint); font-size:12px; text-align:right; }
 .vp-ph summary .hits { flex:none; }
 .vp-ph summary .conf { flex:none; }
-.vp-ph summary .chev { margin-left:auto; color:var(--sub); font-size:11px; }
+.vp-ph summary .chev { margin-left:auto; color:var(--sub); font-size:12px; }
 .vp-ph summary .chev:before { content:"▸"; }
 .vp-ph[open] summary .chev:before { content:"▾"; }
 .vp-ph[open] summary { border-bottom:1px dashed var(--border); }
@@ -596,35 +609,35 @@
 /* ---------- 日/周 K 切换 ---------- */
 .vp-chartbar { display:flex; align-items:center; gap:12px; margin:4px 0 2px; flex-wrap:wrap; }
 .vp-seg { display:inline-flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-.vp-seg button { font:inherit; font-size:12px; color:var(--sub); background:var(--surface); border:none; padding:4px 12px; cursor:pointer; }
+.vp-seg button { font:inherit; font-size:13px; color:var(--sub); background:var(--surface); border:none; padding:4px 12px; cursor:pointer; }
 .vp-seg button + button { border-left:1px solid var(--border); }
-.vp-seg button[aria-pressed="true"] { background:#0F172A; color:#fff; }
-.vp-seg button:focus-visible { outline:2px solid #0F172A; outline-offset:-2px; }
-.vp-chartnote { font-size:11px; color:var(--faint); }
+.vp-seg button[aria-pressed="true"] { background:var(--txt); color:#fff; }
+.vp-seg button:focus-visible { outline:2px solid var(--txt); outline-offset:-2px; }
+.vp-chartnote { font-size:12px; color:var(--faint); }
 .vp-chart-body[hidden] { display:none; }
 .wk-line { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; padding:8px 0 4px; border-top:1px dashed var(--border); margin-top:6px; }
-.wk-line .wk-why { flex:1 1 380px; font-size:11.5px; color:var(--sub); line-height:1.6; }
-.wk-detail summary { cursor:pointer; font-size:11px; color:var(--sub); }
+.wk-line .wk-why { flex:1 1 380px; font-size:13px; color:var(--sub); line-height:1.6; }
+.wk-detail summary { cursor:pointer; font-size:12px; color:var(--sub); }
 .wk-detail .vp-rules { margin:6px 0 0; }
 
 
 
 
 /* ---------- 东财式 K 线：MA 数值图例 + 十字光标 ---------- */
-.vp-ma { display:flex; gap:14px; font-size:11px; color:var(--sub); margin:4px 0 0; }
+.vp-ma { display:flex; gap:14px; font-size:12px; color:var(--sub); margin:4px 0 0; }
 .vp-ma .ma5 { color:#d97706; } .vp-ma .ma10 { color:#2563eb; } .vp-ma .ma20 { color:#7c3aed; }
-.vp-tip { position:absolute; pointer-events:none; background:rgba(15,23,42,.92); color:#fff; font-size:11px; line-height:1.6; padding:6px 9px; border-radius:4px; white-space:nowrap; display:none; z-index:5; }
+.vp-tip { position:absolute; pointer-events:none; background:rgba(15,23,42,.92); color:#fff; font-size:12px; line-height:1.6; padding:6px 9px; border-radius:4px; white-space:nowrap; display:none; z-index:5; }
 .vp-chart-body { position:relative; }
 
 /* ---------- 个股 Tab 切换（多股题材：Tab 条切换单卡展示 + 容器等高锁定防跳动） ---------- */
 .vp-stabs { display:flex; align-items:center; gap:8px; padding:12px 18px 0; flex-wrap:wrap; }
-.vp-stab { display:inline-flex; align-items:center; gap:6px; font:inherit; font-size:12.5px; color:var(--sub);
+.vp-stab { display:inline-flex; align-items:center; gap:6px; font:inherit; font-size:14px; color:var(--sub);
   background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:6px 12px; cursor:pointer; }
 .vp-stab:hover { color:var(--txt); border-color:var(--border2); }
-.vp-stab[aria-selected="true"] { background:#0F172A; border-color:#0F172A; color:#fff; font-weight:600; }
-.vp-stab:focus-visible { outline:2px solid #0F172A; outline-offset:2px; }
+.vp-stab[aria-selected="true"] { background:var(--txt); border-color:var(--txt); color:#fff; font-weight:600; }
+.vp-stab:focus-visible { outline:2px solid var(--txt); outline-offset:2px; }
 .vp-stab .s-nm { font-weight:600; }
-.vp-stab .s-pct { font-size:11.5px; font-variant-numeric:tabular-nums; }
+.vp-stab .s-pct { font-size:13px; font-variant-numeric:tabular-nums; }
 .vp-stab[aria-selected="true"] .s-pct.up { color:#ffb3bd; }
 .vp-stab[aria-selected="true"] .s-pct.down { color:#7fd4b0; }
 .vp-panels { position:relative; }
@@ -633,45 +646,91 @@
   /* ---------- 图表统一悬浮提示（替代原生 <title> 的慢速气泡） ---------- */
   .chart-tip { position:fixed; left:0; top:0; z-index:999; pointer-events:none; opacity:0; transition:opacity .1s ease;
     padding:8px 10px; border-radius:8px; background:rgba(15,23,42,.94); color:#fff; white-space:nowrap;
-    font-size:10.5px; line-height:1.6; box-shadow:0 6px 18px rgba(15,23,42,.3); font-variant-numeric:tabular-nums; min-width:132px; }
-  .chart-tip .ct-h { font-size:11.5px; font-weight:700; margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,.16); }
+    font-size:12px; line-height:1.6; box-shadow:0 6px 18px rgba(15,23,42,.3); font-variant-numeric:tabular-nums; min-width:132px; }
+  .chart-tip .ct-h { font-size:13px; font-weight:700; margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,.16); }
   .chart-tip .ct-r { display:flex; align-items:baseline; justify-content:space-between; gap:18px; }
   .chart-tip .ct-r span { color:rgba(255,255,255,.62); font-weight:400; }
   .chart-tip .ct-r b { color:#fff; font-weight:600; }
   .chart-tip .ct-wide { justify-content:flex-start; }
   .chart-tip .ct-wide span { color:rgba(255,255,255,.72); }
+  /* ---------- 大盘量价全景（双图：成交额柱 + 指数涨跌幅折线） ---------- */
+  #mktheat .mkt-card.mkt-heat { padding-left:8px; padding-right:8px; }
+  .mk-pano { display:flex; flex-direction:column; gap:4px; flex:1; min-height:0; padding-top:4px; position:relative; }
+  .pn-cross { stroke:#94a3b8; stroke-width:1; stroke-dasharray:3 3; opacity:0; pointer-events:none; }
+  .abn-glow { transform-box:fill-box; transform-origin:center; opacity:.18; animation:abnPulse 1.9s ease-in-out infinite; }
+  @keyframes abnPulse { 0%,100% { opacity:.12; transform:scale(1); } 50% { opacity:.5; transform:scale(2.1); } }
+  @media (prefers-reduced-motion: reduce) { .abn-glow { animation:none; opacity:.3; } }
+  .pn-tip { position:absolute; z-index:6; pointer-events:none; opacity:0; transition:opacity .08s;
+    background:rgba(15,23,42,.94); color:#fff; border-radius:8px; padding:7px 9px; font-size:11px; line-height:1.55;
+    box-shadow:0 6px 18px rgba(15,23,42,.3); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .pn-tip b { font-weight:700; } .pn-tip i { font-style:normal; color:rgba(255,255,255,.62); margin-right:6px; }
+  .pn-tip .up { color:#ff8095; } .pn-tip .dn { color:#6ee7b7; }
+  .mk-pano-h { display:flex; align-items:baseline; gap:8px; padding:6px 2px 2px; }
+  .mk-pano-h b { font-size:13px; font-weight:700; color:var(--txt); }
+  .mk-pano-h em { font-style:normal; font-size:11px; color:var(--faint); }
+  .mk-pano-svg { width:100%; height:100%; min-height:0; display:block; }
+  .mk-pano-svg:nth-of-type(1) { flex:464 1 0; }
+  .mk-pano-svg:nth-of-type(2) { flex:342 1 0; }
+  .mh-legend-v2 { display:flex; flex-direction:column; align-items:stretch; flex:none; align-self:stretch; gap:3px; padding:6px 2px 2px; }
+  .mh-lg-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; text-align:left; width:100%; gap:2px 12px; }
+  .mh-lg-row > b { font-size:11px; font-weight:600; color:var(--faint); min-width:40px; }
+  .mh-legend-v2 span { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--sub); }
+  .mh-legend-v2 i { width:9px; height:9px; border-radius:2px; flex:none; }
+  .mh-lg-line i { width:16px; height:0; border-radius:0; }
+  .mh-lg-solid { border-top:2px solid var(--info); }
+  .mh-lg-dash { border-top:2px dashed var(--red); }
   /* ---------- 个股复盘内聚块：题材行 + 个股｜板块分布｜主升催化 ---------- */
   .vsp { display:grid; grid-template-columns:minmax(290px,1fr) minmax(250px,.82fr) minmax(330px,1.28fr); border-bottom:1px solid var(--border); }
   .vsp-theme { grid-column:1/-1; display:flex; align-items:center; gap:9px; padding:9px 18px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
   .vsp-tk { width:3px; height:15px; border-radius:2px; background:var(--tc, var(--txt)); flex:none; }
-  .vsp-tname { font-size:13.5px; font-weight:700; }
-  .vsp-tspan { font-size:11px; color:var(--faint); font-weight:600; }
+  .vsp-tname { font-size:15px; font-weight:700; }
+  .vsp-tspan { font-size:12px; color:var(--faint); font-weight:600; }
   .vsp-l { padding:12px 18px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:5px; min-width:0; }
-  .vsp-nm { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; white-space:nowrap; }
+  .vsp-nm { display:flex; align-items:center; gap:8px; font-size:16px; font-weight:700; white-space:nowrap; }
   .vsp-nm a { color:inherit; text-decoration:none; }
-  .vsp-nm a:hover { color:#3b66d4; text-decoration:underline; }
-  .vsp-cd { font-size:11px; color:var(--faint); }
+  .vsp-nm a:hover { color:var(--info); text-decoration:underline; }
+  .vsp-cd { font-size:12px; color:var(--faint); }
   .vsp-mx { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-top:2px; }
-  .vsp-big { font-size:24px; font-weight:700; }
-  .vsp-zt { font-style:normal; font-size:11px; font-weight:600; color:#fff; background:var(--red); border-radius:4px; padding:1px 6px; vertical-align:middle; }
-  .vsp-m { font-size:11.5px; color:var(--sub); }
-  .vsp-m2 { padding:12px 16px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .vsp-big { font-size:26px; font-weight:700; }
+  .vsp-zt { font-style:normal; font-size:12px; font-weight:600; color:#fff; background:var(--red); border-radius:4px; padding:1px 6px; vertical-align:middle; }
+  .vsp-m { font-size:13px; color:var(--sub); }
+  .vsp-m2 { padding:6px 14px 8px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .vsp-m2 .vsp-h { flex-wrap:nowrap; overflow:hidden; font-size:13px; line-height:1.25; }
+  .vsp-m2 .vsp-h em { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .vsp-cat { padding:12px 16px; display:flex; flex-direction:column; gap:7px; min-width:0; }
-  .vsp-h { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-size:13px; font-weight:600; }
-  .vsp-h em { font-style:normal; font-size:10.5px; font-weight:400; color:var(--faint); }
-  .vsp-row { display:grid; grid-template-columns:52px 1fr 24px; align-items:center; gap:9px; }
-  .vsp-lab { font-size:11px; color:var(--sub); font-variant-numeric:tabular-nums; }
-  .vsp-track { height:7px; border-radius:4px; background:var(--surface2); overflow:hidden; }
-  .vsp-track i { display:block; height:100%; border-radius:4px; background:#0F172A; opacity:.7; }
-  .vsp-n { font-size:12px; font-weight:700; text-align:right; }
+  .vsp-h { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-size:14px; font-weight:600; }
+  .vsp-h em { font-style:normal; font-size:12px; font-weight:400; color:var(--faint); }
+  .vsp-dist { flex:1; min-height:0; display:flex; flex-direction:column; gap:6px; padding:2px 0 0; }
+  .vsp-row { display:grid; grid-template-columns:52px 1fr 26px; align-items:stretch; gap:9px; flex:1; min-height:15px; }
+  .vsp-lab { font-size:13px; color:var(--sub); font-variant-numeric:tabular-nums; display:flex; align-items:center; }
+  .vsp-track { height:100%; border-radius:5px; background:var(--surface2); overflow:hidden; display:flex; align-items:center; }
+  .vsp-track i { display:block; height:78%; min-height:6px; border-radius:5px; background:var(--txt); opacity:.72; }
+  .vsp-n { font-size:14px; font-weight:700; text-align:right; display:flex; align-items:center; justify-content:flex-end; }
   .vsp-cx { display:grid; grid-template-columns:32px 1fr; gap:8px; align-items:start; }
-  .vsp-ct { font-style:normal; font-size:9px; font-weight:700; text-align:center; border-radius:3px; padding:2px 0; letter-spacing:.02em; }
+  .vsp-main { padding:2px 0 7px; margin-bottom:5px; border-bottom:1px dashed var(--border); }
+  .vsp-core { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .vsp-core b { font-size:14px; font-weight:700; color:var(--txt); line-height:1.35; }
+  .vsp-core b a { color:inherit; text-decoration:none; }
+  .vsp-core b a:hover { color:var(--info); text-decoration:underline; }
+  .vsp-chain { display:grid; grid-template-columns:13px 1fr; gap:5px; font-size:12px; color:var(--sub); line-height:1.5; margin-top:2px; }
+  .vsp-chain em { font-style:normal; font-size:11px; font-weight:700; color:#fff; background:var(--txt); border-radius:3px; height:13px; line-height:13px; text-align:center; }
+  .vsp-evid, .vsp-risk { font-size:12px; line-height:1.5; color:var(--sub); margin-top:3px; }
+  .vsp-evid span { font-weight:700; color:var(--txt); margin-right:4px; }
+  .vsp-risk { color:var(--risk); }
+  .vsp-risk span { font-weight:700; color:var(--risk); margin-right:4px; }
+  .vsp-ct { font-style:normal; font-size:11px; font-weight:700; text-align:center; border-radius:3px; padding:2px 0; letter-spacing:.02em; }
+  .vsp-ct-stk { color:#fff; background:var(--txt); }
+  .vsp-ct-nat { color:#1d4ed8; background:#e8efff; }
   .vsp-ct-pol { color:#1d4ed8; background:#e8efff; }
   .vsp-ct-ind { color:#a35609; background:#fff3e0; }
   .vsp-ct-evt { color:#6f42c1; background:#f1ebfa; }
   .vsp-ct-cap { color:#16835c; background:#e3f5ec; }
-  .vsp-cb b { display:block; font-size:11.5px; font-weight:600; color:var(--txt); line-height:1.35; }
-  .vsp-cb span { display:block; font-size:10.5px; color:var(--sub); line-height:1.45; margin-top:1px; }
+  .vsp-cb b { display:block; font-size:13px; font-weight:600; color:var(--txt); line-height:1.35; }
+  .vsp-cb b a { color:inherit; text-decoration:none; }
+  .vsp-cb b a:hover { color:var(--info); text-decoration:underline; }
+  .vsp-cx-main .vsp-cb b { font-size:13px; font-weight:700; }
+  .vsp-cx-main { padding-bottom:2px; border-bottom:1px dashed var(--border); margin-bottom:2px; }
+  .vsp-cb span { display:block; font-size:12px; color:var(--sub); line-height:1.45; margin-top:1px; }
   @media (max-width:1200px){ .vsp { grid-template-columns:1fr 1fr; } .vsp-cat { grid-column:1/-1; border-top:1px dashed var(--border); } }
   @media (max-width:900px){ .vsp { grid-template-columns:1fr; } .vsp-l, .vsp-m2 { border-right:none; border-bottom:1px solid var(--border); } }
 
@@ -691,15 +750,6 @@
 
 <div class="wrap">
   <div class="hero">
-    <div class="hero-pane" data-hero="cycle">
-      <div>
-        <h1>题材分组 <span>× 个股量价 × 消息时间链</span></h1>
-        <div class="sub">四象限看板：指数｜大盘量价全景｜近60日前7 / 月度前7 矩阵｜TOPN 个股复盘（月度前七 7 只 · 交集标★最强）</div>
-      </div>
-      <div class="badges" id="heroBadges">
-        <span class="badge live">快照 <b>09:41 盘前</b></span>
-      </div>
-    </div>
     <div class="hero-pane" data-hero="etf" hidden>
       <div>
         <h1>ETF 申赎 <span>× 资金流</span></h1>
@@ -1104,7 +1154,8 @@ function themeColorOf(t) {
   let grid = `<div class="mx-hc">排名</div>` + dates.map(d =>
     `<div class="mx-hd${d === today ? " mx-today" : ""}">${(P.labels || {})[d] || d.slice(5).replace("-", "")}</div>`).join("");
   (P.rankRows || []).forEach(r => {
-    grid += `<div class="mx-rk num">#${r.rank}</div>` + dates.map(d => {
+    const rb = r.rank <= 7 ? RAINBOW[r.rank - 1] : null;
+    grid += `<div class="mx-rk num" data-rank="${r.rank}"><span class="rkpill"${rb ? ` style="--rb-bg:${rb.bg};--rb-fg:${rb.fg}"` : ''}>#${r.rank}</span></div>` + dates.map(d => {
       const c = (r.cells || {})[d];
       const td = d === today ? " mx-today" : "";
       if (!c) return `<div class="mx-cell${td}"></div>`;
@@ -1141,7 +1192,7 @@ function themeColorOf(t) {
   let remShown = [], remNote = "";
   if (tailRowMode) {
     (P.tailRows || []).forEach(r => {
-      grid += `<div class="mx-rk mx-rk-out" title="榜外名次行：当日第 ${r.rank} 名实际标的（灰色系置灰）">#${r.rank}</div>` + dates.map(d => {
+      grid += `<div class="mx-rk mx-rk-out" data-rank="${r.rank}" title="榜外名次行：当日第 ${r.rank} 名实际标的（灰色系置灰）"><span class="rkpill rkpill-out">#${r.rank}</span></div>` + dates.map(d => {
         const c = (r.cells || {})[d];
         const td = d === today ? " mx-today" : "";
         if (!c) return `<div class="mx-cell${td}" style="display:flex;align-items:center;justify-content:center"><span class="mx-rem-tag" title="该日无第 ${r.rank} 名数据（接口未返回）">—</span></div>`;
@@ -1174,7 +1225,7 @@ function themeColorOf(t) {
       const exitD = tailMode ? s.exitD : (lastSeen[s.code] || prevDate);
       const rkLabel = tailMode ? ("#" + s.rk810) : "移除";
       const status = exitD ? (exitD === prevDate ? "今日退出前七" : labelOf(exitD) + " 退出前七") : "未入前七";
-      grid += `<div class="mx-rk mx-rk-out" title="${exitD ? "最后在榜前七 " + labelOf(exitD) : "本月在榜外"}">${rkLabel}</div>` + dates.map(d => {
+      grid += `<div class="mx-rk mx-rk-out" title="${exitD ? "最后在榜前七 " + labelOf(exitD) : "本月在榜外"}"><span class="rkpill rkpill-out">${rkLabel}</span></div>` + dates.map(d => {
         if (d === today && tailMode) {
           const C = themeOf(th(s.code));
           return `<div class="mx-cell mx-today mx-out" data-code="${s.code}" role="button" tabindex="0" style="--mxc:${C.vivid};color:${NEUTRAL.fg}" title="${s.name} · 榜外第${s.rk810}名 · ${th(s.code)} · 本月${s.month_pct}% · ${status} · 点击联动高亮同一标的"><a href="${emQuote(s.code)}" target="_blank" title="打开东方财富行情页">${s.name}</a><span class="mx-th mx-th-ghost">${th(s.code)}</span><span class="mx-pct num">${pct(s.month_pct)}</span></div>`;
@@ -1256,7 +1307,8 @@ function themeColorOf(t) {
   let grid = `<div class="mx-hc">排名</div>` + dates.map(d =>
     `<div class="mx-hd${d === today ? " mx-today" : ""}">${(P.labels || {})[d] || d.slice(5).replace("-", "")}</div>`).join("");
   (P.rankRows || []).forEach(r => {
-    grid += `<div class="mx-rk num">#${r.rank}</div>` + dates.map(d => {
+    const rb = r.rank <= 7 ? RAINBOW[r.rank - 1] : null;
+    grid += `<div class="mx-rk num" data-rank="${r.rank}"><span class="rkpill"${rb ? ` style="--rb-bg:${rb.bg};--rb-fg:${rb.fg}"` : ''}>#${r.rank}</span></div>` + dates.map(d => {
       const c = (r.cells || {})[d];
       const td = d === today ? " mx-today" : "";
       if (!c) return `<div class="mx-cell${td}"></div>`;
@@ -1449,14 +1501,14 @@ function vpChartHtml(v, name) {
     if (dv(K[i][0]) - dv(K[i - 1][0]) > 10 * 864e5) {
       const gx = x(i) - step / 2;
       g += '<line x1="' + gx + '" y1="' + T + '" x2="' + gx + '" y2="' + (vTop + vh) + '" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>'
-        + '<text x="' + (gx + 3) + '" y="' + (T - 8) + '" font-size="9.5" fill="#475569" style="paint-order:stroke" stroke="#fff" stroke-width="2.5">停牌</text>';
+        + '<text x="' + (gx + 3) + '" y="' + (T - 8) + '" font-size="11" fill="#475569" style="paint-order:stroke" stroke="#fff" stroke-width="2.5">停牌</text>';
     }
   }
   /* 价格网格（5 级）+ 右轴 */
   for (let k = 0; k <= 4; k++) {
     const p = phh - (phh - pl) * k / 4, yy = y(p);
     g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#eef2f6" stroke-width="1"/>';
-    axis += '<text x="' + (W - R + 10) + '" y="' + (yy + 3.5) + '" font-size="10" fill="var(--faint)">' + p.toFixed(2) + '</text>';
+    axis += '<text x="' + (W - R + 10) + '" y="' + (yy + 3.5) + '" font-size="11" fill="var(--faint)">' + p.toFixed(2) + '</text>';
   }
   /* 价格区与成交量区分隔线 */
   g += '<line x1="' + L + '" y1="' + vTop + '" x2="' + (W - R) + '" y2="' + vTop + '" stroke="var(--border)" stroke-width="1"/>';
@@ -1484,7 +1536,7 @@ function vpChartHtml(v, name) {
       + r[0] + (tag ? ' [' + tag + ']' : '') + '\n开 ' + o + '\n高 ' + h + '\n低 ' + l + '\n收 ' + c + '\n涨 ' + r[6] + '%\n换手 ' + r[7] + '%\n量 ' + r[5] + '万手</title></rect>';
     vol += '<rect x="' + (x(i) - bw / 2) + '" y="' + yv(r[5]) + '" width="' + bw + '" height="' + Math.max(1, vTop + vh - yv(r[5])) + '" fill="' + dirCol + '" opacity=".38"><title>' + r[0] + '\n成交 ' + r[5] + ' 万手</title></rect>';
     if (i === 0 || i === n - 1 || i % Math.ceil(n / 8) === 0)
-      axis += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + r[0].slice(5) + '</text>';
+      axis += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="var(--faint)">' + r[0].slice(5) + '</text>';
   });
   /* 均线 */
   const ma = (k, col) => {
@@ -1502,9 +1554,9 @@ function vpChartHtml(v, name) {
     : "无显著阶段";
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + name + ' 近40个交易日K线与成交量，阶段：' + lbl + '">'
     + bands + g + vol + maHtml
-    + '<text x="' + (W - R) + '" y="' + (T - 8) + '" text-anchor="end" font-size="10" fill="var(--faint)">黄=涨停 · 黑=跌停 · 蓝=炸板</text>'
+    + '<text x="' + (W - R) + '" y="' + (T - 8) + '" text-anchor="end" font-size="11" fill="var(--faint)">黄=涨停 · 黑=跌停 · 蓝=炸板</text>'
     + axis
-    + '<text x="' + L + '" y="' + (vTop - 4) + '" font-size="9" fill="var(--faint)">成交量（万手）</text></svg>';
+    + '<text x="' + L + '" y="' + (vTop - 4) + '" font-size="10.5" fill="var(--faint)">成交量（万手）</text></svg>';
 }
 
 /* ---------- 各阶段依据（固化口径） ---------- */
@@ -1554,7 +1606,7 @@ function wkChartHtml(v, name) {
   for (let k = 0; k <= 4; k++) {
     const p = ph - (ph - pl) * k / 4, yy = y(p);
     g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#eef2f6"/>';
-    axis += '<text x="' + (W - R + 10) + '" y="' + (yy + 3.5) + '" font-size="10" fill="var(--faint)">' + p.toFixed(2) + '</text>';
+    axis += '<text x="' + (W - R + 10) + '" y="' + (yy + 3.5) + '" font-size="11" fill="var(--faint)">' + p.toFixed(2) + '</text>';
   }
   g += '<line x1="' + L + '" y1="' + vTop + '" x2="' + (W - R) + '" y2="' + vTop + '" stroke="var(--border)" stroke-width="1"/>';
   K.forEach((r, i) => {
@@ -1564,7 +1616,7 @@ function wkChartHtml(v, name) {
       + r[0] + '\n开 ' + o + '\n收 ' + c + '\n高 ' + h + '\n低 ' + l + '\n量 ' + r[5] + '万手</title></rect>';
     vol += '<rect x="' + (x(i) - bw / 2) + '" y="' + yv(r[5]) + '" width="' + bw + '" height="' + Math.max(1, vTop + vh - yv(r[5])) + '" fill="' + col + '" opacity=".38"><title>' + r[0] + '\n周成交 ' + r[5] + ' 万手</title></rect>';
     if (i === 0 || i === n - 1 || i % Math.ceil(n / 6) === 0)
-      axis += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + r[0].slice(2, 7) + '</text>';
+      axis += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="11" fill="var(--faint)">' + r[0].slice(2, 7) + '</text>';
   });
   const ma = k => {
     let pts = [];
@@ -1678,10 +1730,21 @@ function stockSectorHtml(s, tl, anchorS) {
     + '</div>' : '';
   /* 主升催化（AI 归因，2-3 条：政策/行业/事件/资金） */
   const catList = (typeof CATALYST !== "undefined" && CATALYST && CATALYST[s.code]) || [];
-  const TAGL = { "政策": "pol", "行业": "ind", "事件": "evt", "资金": "cap" };
-  const catRows = catList.map(c => '<div class="vsp-cx"><i class="vsp-ct vsp-ct-' + (TAGL[c.tag] || "ind") + '">' + c.tag + '</i>'
-    + '<div class="vsp-cb"><b>' + c.t + '</b><span>' + c.n + '</span></div></div>').join("");
-  const catCol = '<div class="vsp-cat"><div class="vsp-h"><span>主升催化 · AI 归因</span><em>政策 / 行业 / 事件 / 资金</em></div>'
+  const TAGL = { "个股": "stk", "国家": "nat", "政策": "pol", "行业": "ind", "事件": "evt", "资金": "cap" };
+  const catRows = catList.map(c => {
+    /* 主升逻辑主块（内核 + 逻辑链 + 证据 + 证伪） */
+    if (c.kind === "main" || c.core) {
+      const link = v => c.u ? '<a href="' + c.u + '" target="_blank" title="个股资讯原文（东方财富）">' + v + ' ↗</a>' : v;
+      return '<div class="vsp-main"><div class="vsp-core"><i class="vsp-ct vsp-ct-stk">内核</i><b>' + link(c.core || c.t || "") + '</b></div>'
+        + (c.chain || []).map((x, i) => '<div class="vsp-chain"><em>' + (i + 1) + '</em><span>' + x + '</span></div>').join("")
+        + (c.evid ? '<div class="vsp-evid"><span>证据</span>' + c.evid + '</div>' : "")
+        + (c.risk ? '<div class="vsp-risk"><span>证伪</span>' + c.risk + '</div>' : "")
+        + '</div>';
+    }
+    return '<div class="vsp-cx"><i class="vsp-ct vsp-ct-' + (TAGL[c.tag] || "ind") + '">' + c.tag + '</i>'
+      + '<div class="vsp-cb"><b>' + (c.u ? '<a href="' + c.u + '" target="_blank" title="个股资讯原文（东方财富）">' + c.t + ' ↗</a>' : c.t) + '</b><span>' + c.n + '</span></div></div>';
+  }).join("");
+  const catCol = '<div class="vsp-cat"><div class="vsp-h"><span>主升催化 · AI 归因</span><em>个股逻辑 → 国家 / 行业 / 资金</em></div>'
     + (catRows || '<div class="vsp-cb"><span>暂无可归因催化</span></div>') + '</div>';
   return '<div class="vsp">' + themeRow
     + '<div class="vsp-l">'
@@ -1698,7 +1761,7 @@ function stockSectorHtml(s, tl, anchorS) {
     + '</div></div>'
     + '<div class="vsp-m2">'
     + '<div class="vsp-h"><span>板块 · ' + board + '</span><em class="num">共 ' + n + ' 只 · 区间涨跌幅分布</em></div>'
-    + dist + '</div>' + catCol + '</div>';
+    + '<div class="vsp-dist">' + dist + '</div></div>' + catCol + '</div>';
 }
 
 function topnSectionHtml() {
@@ -1731,10 +1794,11 @@ function topnSectionHtml() {
     const body = stockSectorHtml(s, tl, anchorS) + vpCardHtml(s, v);
     return '<div class="vp-panel" role="tabpanel" id="vppanel-' + s.code + '" aria-labelledby="vptab-' + s.code + '"' + (i > 0 ? ' hidden' : '') + '>' + body + '</div>';
   }).join("");
-  return '<div class="tb-head"><span class="tb-dot"></span><span class="tb-name">个股复盘</span>'
+  return '<div class="vp-top">'
+    + '<div class="tb-head"><span class="tb-name">个股复盘</span>'
     + '<span class="tb-span num">月度前七 · TOPN 切换（#1 红 → #7 紫）</span></div>'
     + '<div class="vp-sticky">'
-    + '<div class="vp-stabs" role="tablist" aria-label="月度前七个股切换">' + tabs + '</div></div>'
+    + '<div class="vp-stabs" role="tablist" aria-label="月度前七个股切换">' + tabs + '</div></div></div>'
     + '<div class="vp-panels vp-scroll">' + panels + '</div>';
 }
 
@@ -2199,10 +2263,10 @@ function kline(o){
   }
   const lastY = py(o.C[n-1]);
   const lastLine = '<line x1="'+L+'" y1="'+lastY.toFixed(1)+'" x2="'+(W-R)+'" y2="'+lastY.toFixed(1)+'" stroke="'+o.color+'" stroke-width="0.8" stroke-dasharray="4 3" opacity=".65"/>';
-  const pl = (v,y,fill,w) => '<text x="'+(W-R+5)+'" y="'+(y+3).toFixed(1)+'" font-size="10" fill="'+(fill||'#68758C')+'"'+(w?' font-weight="700"':'')+' class="num">'+v+'</text>';
+  const pl = (v,y,fill,w) => '<text x="'+(W-R+5)+'" y="'+(y+3).toFixed(1)+'" font-size="11" fill="'+(fill||'#68758C')+'"'+(w?' font-weight="700"':'')+' class="num">'+v+'</text>';
   const priceTags = pl(hi.toFixed(2), py(hi)) + pl(lo.toFixed(2), py(lo)) + pl(o.C[n-1].toFixed(2), lastY, o.color, 1);
   const maLine = '<polyline points="'+maPts.join(' ')+'" fill="none" stroke="#b8860b" stroke-width="1.4" stroke-linejoin="round" opacity=".85"/>';
-  const maTag = '<text x="'+(L+4)+'" y="'+(T+9)+'" font-size="9.5" font-weight="600" fill="#b8860b">MA5</text>';
+  const maTag = '<text x="'+(L+4)+'" y="'+(T+9)+'" font-size="11" font-weight="600" fill="#b8860b">MA5</text>';
   const volPanel = '<line x1="'+L+'" y1="'+(VT-4)+'" x2="'+(W-R)+'" y2="'+(VT-4)+'" stroke="#e2e8f0" stroke-width="1"/>'
     + '<text class="mk-axis" x="'+(L+4)+'" y="'+(VT+7)+'">量·峰值 '+fmtYi(vmax)+'</text>';
   return '<svg class="mk-k" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.nm+' 近3个月日K线与成交额">'+grid+ticks+candles+volbars+lastLine+maLine+maTag+volPanel+priceTags+'</svg>';
@@ -2210,60 +2274,123 @@ function kline(o){
 
 function heatTable(){
   const d = MKT.days, n = d.length, today = MKT.asOf;
-  const aAll = d.map(x=>x.amt);
-  const iMaxAll = aAll.indexOf(Math.max.apply(null,aAll)), iMinAll = aAll.indexOf(Math.min.apply(null,aAll));
   const WD = ['日','一','二','三','四','五','六'];
-  function band(from, to, label){
-    let h = '<div class="mh-band"><div class="mh-range num">' + label + '</div><div class="mh-grid">';
-    h += '<div></div>';
-    for (let i=from; i<to; i++) h += '<div class="mh-dh num' + (d[i].d===today?' mh-today':'') + '"><b>' + d[i].d.slice(5).replace('-','/') + '</b><span>周' + WD[new Date(d[i].d).getDay()] + '</span></div>';
-    function row(name, dot, cells){
-      return '<div class="mh-lab"><i style="background:' + dot + '"></i>' + name + '</div>' + cells;
-    }
-    function pctCell(i, v){
-      const up = v >= 0, a = (0.10 + 0.85*Math.min(Math.abs(v)/3, 1)).toFixed(2);
-      const bg = up ? 'rgba(214,52,80,'+a+')' : 'rgba(14,150,104,'+a+')';
-      const strong = Math.abs(v) >= 1.2;
-      const nm = i>from && d[i].d.slice(5,7) !== d[i-1].d.slice(5,7);
-      return '<div class="mh-cell num'+(d[i].d===today?' mh-today':'')+(nm?' mh-newmonth':'')+'" style="background:'+bg+';color:'+(strong?'#fff':(up?'#a8243c':'#0a7550'))+'" title="'+d[i].d+' 周'+WD[new Date(d[i].d).getDay()]+'\n涨跌 '+(v>=0?'+':'')+v+'%\n两市成交 '+d[i].amt.toLocaleString('zh-CN')+'亿">'+(v>=0?'+':'')+v.toFixed(2)+'</div>';
-    }
-    let c1 = '', c2 = '';
-    for (let i=from; i<to; i++){ c1 += pctCell(i, d[i].pct); c2 += pctCell(i, d[i].kcPct); }
-    function volRow(){
-      const SCALE = 32000;   /* 满刻度 3.2 万亿 */
-      let cells = '';
-      for (let i=from; i<to; i++){
-        const v = d[i].amt, t = TIER[tierOf(v)];
-        const isMax = i === iMaxAll, isMin = i === iMinAll;
-        const bg = isMax ? '#6f42c1' : (isMin ? '#3b66d4' : t.fill);
-        const tag = isMax ? '天量' : (isMin ? '地量' : '');
-        const hp = Math.max(5, Math.round(v/SCALE*100));
-        const nm = i>from && d[i].d.slice(5,7) !== d[i-1].d.slice(5,7);
-        cells += '<div class="mh-vcell'+(d[i].d===today?' mh-vtoday':'')+(nm?' mh-newmonth':'')+'" title="'+d[i].d+' 周'+WD[new Date(d[i].d).getDay()]+'\n两市成交 '+v.toLocaleString('zh-CN')+'亿\n量级 '+(v/10000).toFixed(2)+'万亿 · '+t.name+(isMax?' · 窗口天量':(isMin?' · 窗口地量':''))+'"><i style="height:'+hp+'%;background:'+bg+'">'+tag+'</i></div>';
-      }
-      return '<div class="mh-lab"><i style="background:#b8860b"></i>全A成交额<small>0–3.2万亿 · 虚线2/3万亿</small></div>' + cells;
-    }
-    h += volRow() + row('上证指数', '#3b66d4', c1) + row('科创50', '#d63450', c2);
-    h += '</div></div>';
-    return h;
-  }
-  const half = Math.floor(n/2);
-  const s = MKT.stat, todayTier = TIER[tierOf(s.last)];
+  const wd = x => '周' + WD[new Date(x.d).getDay()];
+  const dstr = x => x.d.slice(5).replace('-','/');
+  const aAll = d.map(x => x.amt);
+  const closedDay = !!(MKT && MKT.closed);                /* 当日是否已收盘（未收盘则成交量待确认） */
+  const candIdx = d.map((r, i) => i).filter(i => closedDay || d[i].d !== today);
+  const iMax = candIdx.reduce((a, i) => d[i].amt > d[a].amt ? i : a, candIdx[0]);
+  const iMin = candIdx.reduce((a, i) => d[i].amt < d[a].amt ? i : a, candIdx[0]);
+  const s = MKT.stat, tierNow = TIER[tierOf(s.last)];
+  const SCALE = 32000;                                  /* 满刻度 3.2 万亿 */
+  const W = 604, L = 6, R = 6, BAND = 430, BAND2 = 330, GAP = 26;
+  const pw = W - L - R;
+  const x = i => L + pw * (i + .5) / n;
+  const bw = Math.max(2, pw / n - 2.2);
+  /* ---- 1) 成交额柱（三档色 + 天量/地量 + 2/3 万亿档线） ---- */
+  let g1 = '', bars = '', labs1 = '', ticks1 = '';
+  [10000, 20000, 30000].forEach(v => {
+    const y = BAND - (BAND - 30) * v / SCALE + 8;
+    g1 += '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '" stroke="' + (v === 20000 || v === 30000 ? '#c3cedd' : '#eef2f7') + '" stroke-width="1" stroke-dasharray="' + (v === 20000 || v === 30000 ? '3 3' : '0') + '"/>'
+      + '<text x="' + (W - R - 3) + '" y="' + (y - 3).toFixed(1) + '" text-anchor="end" font-size="10.5" fill="#94a3b8" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + (v / 10000).toFixed(0) + '万亿</text>';
+  });
+  d.forEach((r, i) => {
+    const t = TIER[tierOf(r.amt)], isMax = i === iMax, isMin = i === iMin;
+    const isToday = r.d === today && !closedDay;
+    const isMaxC = isMax && !isToday, isMinC = isMin && !isToday;
+    const fill = isMaxC ? '#6f42c1' : (isMinC ? '#3b66d4' : t.fill);
+    const hh = Math.max(2, (BAND - 38) * Math.min(r.amt, SCALE) / SCALE);
+    const y = BAND - 8 - hh;
+    const nm = i > 0 && r.d.slice(5, 7) !== d[i - 1].d.slice(5, 7);
+    bars += '<rect x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hh.toFixed(1) + '" rx="1.5" fill="' + fill + '"'
+      + (r.d === today ? (closedDay ? ' stroke="#b8860b" stroke-width="1.2"' : ' stroke="#b8860b" stroke-width="1.3" stroke-dasharray="4 3"') : '') + '><title>' + r.d + ' ' + wd(r) + '\n两市成交 ' + r.amt.toLocaleString('zh-CN') + '亿\n量级 ' + (r.amt / 10000).toFixed(2) + '万亿 · ' + t.name
+      + (isMaxC ? ' · 窗口天量' : (isMinC ? ' · 窗口地量' : '')) + (isToday ? '\n盘中未收盘：成交量待确认，暂不判天量/地量' : '') + '</title></rect>';
+    if ((isMaxC || isMinC) && !isToday) ticks1 += '<text x="' + x(i).toFixed(1) + '" y="' + (y - 4).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="700" fill="' + fill + '">' + (isMaxC ? '天量' : '地量') + '</text>';
+    if (i % 5 === 0 || i === n - 1) labs1 += '<text x="' + x(i).toFixed(1) + '" y="' + (BAND + 14) + '" text-anchor="middle" font-size="10.5" fill="#94a3b8">' + dstr(r) + '</text>';
+    if (nm) g1 += '<line x1="' + (L + pw * i / n).toFixed(1) + '" y1="26" x2="' + (L + pw * i / n).toFixed(1) + '" y2="' + (BAND + 4) + '" stroke="#e2e8f0" stroke-width="1"/>';
+    if (nm) labs1 += '<text x="' + (L + pw * i / n + 3).toFixed(1) + '" y="' + (BAND + 26) + '" font-size="10.5" fill="#b8860b">' + r.d.slice(5, 7) + '月</text>';
+  });
+  const chart1 = '<svg class="mk-pano-svg" viewBox="0 0 ' + W + ' ' + (BAND + 34) + '" role="img" aria-label="全A成交额近' + n + '个交易日柱状图">'
+    + g1 + bars + ticks1 + labs1
+    + '<text x="' + (L - 6) + '" y="20" text-anchor="end" font-size="10.5" fill="#68758C">亿/万亿</text></svg>';
+  /* ---- 2) 指数日涨跌幅：上证 + 科创50 同图叠加（共享刻度），红涨绿跌幅度着色 ---- */
+  const all = d.map(r => r.pct).concat(d.map(r => r.kcPct));
+  const mx = Math.max(1, Math.ceil(Math.max.apply(null, all.map(Math.abs)) * 1.06 * 10) / 10);
+  const PH2 = 330, PTOP2 = 8;
+  const yTop2 = PTOP2, yMid2 = PTOP2 + PH2 / 2, yBot2 = PTOP2 + PH2;
+  const yv2 = v => yMid2 - (PH2 / 2 - 6) * v / mx;
+  const zPct2 = ((yMid2 - yTop2) / PH2 * 100).toFixed(2);
+  const defs2 = '<linearGradient id="mkArea" x1="0" y1="' + yTop2 + '" x2="0" y2="' + yBot2 + '" gradientUnits="userSpaceOnUse">'
+    + '<stop offset="0%" stop-color="#d63450" stop-opacity=".5"/>'
+    + '<stop offset="' + (parseFloat(zPct2) - 0.5).toFixed(2) + '%" stop-color="#d63450" stop-opacity=".05"/>'
+    + '<stop offset="' + (parseFloat(zPct2) + 0.5).toFixed(2) + '%" stop-color="#0b7a55" stop-opacity=".05"/>'
+    + '<stop offset="100%" stop-color="#0b7a55" stop-opacity=".5"/></linearGradient>';
+  let g2 = '', pA = [], pB = [], dots2 = '', abn2 = '', lab2 = '';
+  [-mx, -mx / 2, 0, mx / 2, mx].forEach(v => {
+    const z = v === 0;
+    g2 += '<line x1="' + L + '" y1="' + yv2(v).toFixed(1) + '" x2="' + (W - R) + '" y2="' + yv2(v).toFixed(1) + '" stroke="' + (z ? '#94a3b8' : '#eef2f7') + '" stroke-width="1"' + (z ? '' : ' stroke-dasharray="2 3"') + '/>';
+    if (!z) g2 += '<text x="' + (L + 2) + '" y="' + (yv2(v) - 2).toFixed(1) + '" font-size="10.5" fill="#94a3b8" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</text>';
+  });
+  d.forEach((r, i) => {
+    pA.push(x(i).toFixed(1) + ',' + yv2(r.pct).toFixed(1));
+    pB.push(x(i).toFixed(1) + ',' + yv2(r.kcPct).toFixed(1));
+    const nm = i > 0 && r.d.slice(5, 7) !== d[i - 1].d.slice(5, 7);
+    if (nm) g2 += '<line x1="' + (L + pw * i / n).toFixed(1) + '" y1="' + yTop2 + '" x2="' + (L + pw * i / n).toFixed(1) + '" y2="' + yBot2 + '" stroke="#e2e8f0" stroke-width="1"/>';
+    if (i % 5 === 0 || i === n - 1) lab2 += '<text x="' + x(i).toFixed(1) + '" y="' + (yBot2 + 13) + '" text-anchor="middle" font-size="10.5" fill="#94a3b8">' + dstr(r) + '</text>';
+    if (nm) lab2 += '<text x="' + (L + pw * i / n + 3).toFixed(1) + '" y="' + (yBot2 + 24) + '" font-size="10.5" fill="var(--accent)">' + r.d.slice(5, 7) + '月</text>';
+    /* 上证：悬停 + 异动标注 */
+    dots2 += '<circle cx="' + x(i).toFixed(1) + '" cy="' + yv2(r.pct).toFixed(1) + '" r="' + Math.max(3.2, pw / n / 2).toFixed(1) + '" fill="transparent"><title>' + r.d + ' ' + wd(r) + '\n上证 ' + (r.pct > 0 ? '+' : '') + r.pct.toFixed(2) + '%\n科创50 ' + (r.kcPct > 0 ? '+' : '') + r.kcPct.toFixed(2) + '%\n两市成交 ' + r.amt.toLocaleString('zh-CN') + '亿</title></circle>';
+    [['pct', 2.6, 3.4, '上证'], ['kcPct', 2.1, 3.0, '科创50']].forEach(kv => {
+      const v = r[kv[0]];
+      const pre = d.slice(Math.max(0, i - 5), i).map(x => Math.abs(x[kv[0]]));
+      const avg5 = pre.length ? pre.reduce((a, b) => a + b, 0) / pre.length : Math.abs(v);
+      if (Math.abs(v) <= Math.max(0.8, 1.5 * avg5)) return;
+      const col = v > 0 ? '#d63450' : '#0b7a55';
+      abn2 += '<circle class="abn-glow" cx="' + x(i).toFixed(1) + '" cy="' + yv2(v).toFixed(1) + '" r="' + kv[2] + '" fill="' + col + '"/>'
+        + '<circle cx="' + x(i).toFixed(1) + '" cy="' + yv2(v).toFixed(1) + '" r="' + kv[1] + '" fill="' + col + '" stroke="#fff" stroke-width="1"><title>' + r.d + ' ' + wd(r) + '\n' + kv[3] + ' ' + (v > 0 ? '+' : '') + v.toFixed(2) + '%（异动）</title></circle>';
+    });
+  });
+  const area2 = '<polygon points="' + x(0).toFixed(1) + ',' + yMid2.toFixed(1) + ' ' + pA.join(' ') + ' ' + x(n - 1).toFixed(1) + ',' + yMid2.toFixed(1) + '" fill="url(#mkArea)"/>';
+  const lastA = d[n - 1];
+  const chart2 = '<svg class="mk-pano-svg" viewBox="0 0 ' + W + ' ' + (yBot2 + 30) + '" role="img" aria-label="上证指数与科创50 日涨跌幅叠加图（红涨绿跌，幅度越深）">'
+    + '<defs>' + defs2 + '</defs>' + area2 + g2
+    + '<polyline points="' + pA.join(' ') + '" fill="none" stroke="#0F172A" stroke-width="1.7" stroke-linejoin="round"/>'
+    + '<polyline points="' + pB.join(' ') + '" fill="none" stroke="#6f42c1" stroke-width="1.5" stroke-dasharray="5 3" stroke-linejoin="round" opacity=".95"/>'
+    + abn2 + dots2 + lab2
+    + '</svg>';
+
+/* ---- 3) 头部 chips / 图例 ---- */
   const chips = '<div class="mk-chips num">'
-    + '<span class="mk-chip '+todayTier.chip+'">今日两市 <b>'+s.last.toLocaleString('zh-CN')+'亿 · '+todayTier.name+'</b></span>'
-    + '<span class="mk-chip">5日均 <b>'+s.ma5.toLocaleString('zh-CN')+'亿</b></span>'
-    + '<span class="mk-chip">3月均 <b>'+s.avg.toLocaleString('zh-CN')+'亿</b></span>'
-    + '<span class="mk-chip hot">天量 <b>'+(s.max.v/10000).toFixed(2)+'万亿</b>·'+s.max.d.slice(5).replace('-','/')+'</span>'
-    + '<span class="mk-chip cold">地量 <b>'+(s.min.v/10000).toFixed(2)+'万亿</b>·'+s.min.d.slice(5).replace('-','/')+'</span></div>';
-  const legend = '<div class="mh-legend"><span><i style="background:rgba(214,52,80,.75)"></i>红＝上涨（深浅∝涨幅）</span><span><i style="background:rgba(14,150,104,.72)"></i>绿＝下跌（深浅∝跌幅）</span><span><i style="background:rgba(184,134,11,.72)"></i>成交量柱（三档）：绿&lt;2万亿 存量博弈｜金 2–3万亿 增量博弈｜红 ≥3万亿 风险警示</span><span><i style="background:#6f42c1"></i>紫＝天量日</span><span><i style="background:#3b66d4"></i>蓝＝地量日</span><span>横虚线＝2/3万亿档线；悬停查看精确值；金框＝当日</span></div>';
-  const note = '<div class="mk-note">口径：全A成交额＝沪深两市合计（上证指数沪市＋深证综指深市日成交额），柱高满刻度 3.2 万亿；指数卡日K副图为沪市/板块成交额（红涨绿跌）。数据源：东方财富日K（push2his），快照 '+MKT.asOf+'。</div>';
+    + '<span class="mk-chip ' + tierNow.chip + '">今日两市 <b>' + s.last.toLocaleString('zh-CN') + '亿 · ' + tierNow.name + '</b></span>'
+    + '<span class="mk-chip">5日均 <b>' + s.ma5.toLocaleString('zh-CN') + '亿</b></span>'
+    + '<span class="mk-chip">3月均 <b>' + s.avg.toLocaleString('zh-CN') + '亿</b></span>'
+    + '<span class="mk-chip hot">天量 <b>' + (s.max.v / 10000).toFixed(2) + '万亿</b>·' + s.max.d.slice(5).replace('-','/') + '</span>'
+    + '<span class="mk-chip cold">地量 <b>' + (s.min.v / 10000).toFixed(2) + '万亿</b>·' + s.min.d.slice(5).replace('-','/') + '</span></div>';
+  const legend = '<div class="mh-legend mh-legend-v2">'
+    + '<div class="mh-lg-row"><b>成交额</b>'
+    + '<span><i style="background:#0b7a55"></i>&lt;2万亿 存量</span>'
+    + '<span><i style="background:#b8860b"></i>2–3万亿 增量</span>'
+    + '<span><i style="background:#d63450"></i>≥3万亿 风险</span></div>'
+    + '<div class="mh-lg-row"><b>特殊态</b>'
+    + '<span><i style="background:#6f42c1"></i>天量</span>'
+    + '<span><i style="background:#3b66d4"></i>地量</span>'
+    + (closedDay ? '' : '<span><i style="background:#fff;border:1.5px dashed #b8860b;border-radius:2px"></i>当日未收盘（量能待确认）</span>')
+    + '</div>'
+    + '<div class="mh-lg-row"><b>涨跌</b>'
+    + '<span><i style="background:linear-gradient(180deg,#d63450,#0b7a55)"></i>红=涨 / 绿=跌（越深幅度越大）</span>'
+    + '<span class="mh-lg-line"><i class="mh-lg-solid"></i>上证</span>'
+    + '<span class="mh-lg-line"><i style="border-top:2px dashed #6f42c1;width:16px;height:0"></i>科创50</span>'
+    + '<span><i style="background:#0F172A;border-radius:50%;width:7px;height:7px"></i>圆点=异动（|涨跌| &gt; 1.5×前5日均幅，且≥0.8%）</span></div>'
+    + '</div>';
   return '<div class="mkt-card mkt-heat" style="--ic:#8a6d1f">'
     + '<div class="mk-head"><span class="mk-name"><i></i>大盘量价全景 · 近 ' + n + ' 个交易日</span><span class="mk-en">VOLUME + DAILY CHANGE</span><span class="mk-asof num">' + MKT.window.from.slice(5).replace('-','/') + ' – ' + MKT.asOf.slice(5).replace('-','/') + '</span></div>'
     + chips
-    + '<div style="padding-top:6px;overflow-x:auto;-webkit-overflow-scrolling:touch">'
-    + band(0, half, '前段　' + d[0].d.slice(5).replace('-','/') + ' – ' + d[half-1].d.slice(5).replace('-','/') + '（第 1–' + half + ' 日）')
-    + band(half, n, '近段　' + d[half].d.slice(5).replace('-','/') + ' – ' + d[n-1].d.slice(5).replace('-','/') + '（第 ' + (half+1) + '–' + n + ' 日）')
-    + legend + note + '</div></div>';
+    + '<div class="mk-pano">'
+    + '<div class="mk-pano-h"><b>两市成交额</b><em>柱高 ∝ 成交额 · 金框=当日 · 悬停看明细</em></div>' + chart1
+    + '<div class="mk-pano-h"><b>指数日涨跌幅</b><em>上证（墨线）＋科创50（紫虚线）同图叠加 · 面积按幅度红涨绿跌 · 悬停看当日两指数</em></div>' + chart2
+    + '</div>'
+    + legend + '</div>';
 }
 
 function idxCard(o, asOfLabel){
@@ -2284,7 +2411,57 @@ if (elIdx) {
   elIdx.innerHTML = idxCard(MKT.idx[0], asOfLabel) + idxCard(MKT.idx[1], asOfLabel);
 }
 const elHeat = document.getElementById('mktheat');
-if (elHeat) elHeat.innerHTML = heatTable();
+if (elHeat) { elHeat.innerHTML = heatTable(); panoLink(elHeat); }
+
+/* ---------- 大盘量价全景：上下图共享横轴 + 联动十字线/气泡 ---------- */
+function panoLink(root){
+  const pano = root.querySelector(".mk-pano");
+  if (!pano) return;
+  const svgs = [...pano.querySelectorAll(".mk-pano-svg")];
+  if (svgs.length < 2) return;
+  const d = (MKT && MKT.days) || [], n = d.length;
+  const W = 604, L = 6, R = 6, pw = W - L - R;
+  const tip = document.createElement("div");
+  tip.className = "pn-tip";
+  pano.appendChild(tip);
+  const lines = svgs.map(svg => {
+    const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    ln.setAttribute("class", "pn-cross");
+    ln.setAttribute("y1", "0");
+    ln.setAttribute("y2", svg.viewBox.baseVal.height);
+    svg.appendChild(ln);
+    return ln;
+  });
+  const WD = ["日","一","二","三","四","五","六"];
+  let cur = -1;
+  const move = e => {
+    const r = svgs[0].getBoundingClientRect();
+    const sx = (e.clientX - r.left) / r.width * W;
+    let i = Math.round((sx - L) / pw * n - 0.5);
+    i = Math.max(0, Math.min(n - 1, i));
+    if (!d[i]) return;
+    const cx = (L + pw * (i + 0.5) / n).toFixed(1);
+    lines.forEach(ln => { ln.setAttribute("x1", cx); ln.setAttribute("x2", cx); ln.style.opacity = 1; });
+    if (i !== cur) {
+      cur = i;
+      const r0 = d[i], up = v => '<span class="' + (v >= 0 ? "up" : "dn") + '">' + (v > 0 ? "+" : "") + v.toFixed(2) + "%</span>";
+      tip.innerHTML = '<b>' + r0.d + ' 周' + WD[new Date(r0.d).getDay()] + '</b><br>'
+        + '<i>两市成交</i>' + r0.amt.toLocaleString("zh-CN") + '亿（' + (r0.amt/10000).toFixed(2) + '万亿）<br>'
+        + '<i>上证</i>' + up(r0.pct) + '<br>'
+        + '<i>科创50</i>' + up(r0.kcPct);
+    }
+    const pr = pano.getBoundingClientRect();
+    let left = e.clientX - pr.left + 14, top = e.clientY - pr.top + 14;
+    if (left + tip.offsetWidth > pr.width - 6) left = e.clientX - pr.left - tip.offsetWidth - 14;
+    if (top + tip.offsetHeight > pr.height - 6) top = e.clientY - pr.top - tip.offsetHeight - 14;
+    tip.style.left = Math.max(4, left) + "px";
+    tip.style.top = Math.max(4, top) + "px";
+    tip.style.opacity = 1;
+  };
+  const leave = () => { tip.style.opacity = 0; lines.forEach(ln => { ln.style.opacity = 0; }); cur = -1; };
+  pano.addEventListener("mousemove", move);
+  pano.addEventListener("mouseleave", leave);
+}
 })();
 
 /* ==== ETF 申赎渲染（六类 Tab 双轴图 + 重点 ETF 卡片点击联动） ==== */
@@ -2346,24 +2523,24 @@ function typeChart(t){
   [-mx, -mx / 2, 0, mx / 2, mx].forEach(v => {
     const z = v === 0;
     g += '<line x1="' + L + '" y1="' + yv(v) + '" x2="' + (W - R) + '" y2="' + yv(v) + '" stroke="' + (z ? '#68758C' : 'var(--border)') + '" stroke-width="1"' + (z ? '' : ' opacity=".55"') + '/>'
-      + '<text x="' + (L - 6) + '" y="' + (yv(v) + 3.5) + '" text-anchor="end" font-size="9.5" fill="var(--faint)">' + v.toFixed(0) + '</text>';
+      + '<text x="' + (L - 6) + '" y="' + (yv(v) + 3.5) + '" text-anchor="end" font-size="11" fill="var(--faint)">' + v.toFixed(0) + '</text>';
   });
-  g += '<text x="' + (L - 6) + '" y="' + (T - 8) + '" text-anchor="end" font-size="9" fill="var(--faint)">亿</text>';
+  g += '<text x="' + (L - 6) + '" y="' + (T - 8) + '" text-anchor="end" font-size="10.5" fill="var(--faint)">亿</text>';
   D.forEach((r, i) => {
     const up = r[1] >= 0, av = Math.abs(r[1]), hh = Math.max(1, Math.min(av, mx) / mx * ph / 2);
     bars += '<rect x="' + (x(i) - bw / 2) + '" y="' + (up ? yv(Math.min(av, mx)) : yv(0)) + '" width="' + bw + '" height="' + hh + '" fill="' + (up ? 'var(--red)' : 'var(--green)') + '" opacity=".8"><title>' + r[0] + '\n净流入 ' + fmt(r[1]) + '亿\n60日累计 ' + fmt(r[2]) + '亿\n指数收盘 ' + r[3] + '</title></rect>';
-    if (av > mx) bars += '<text x="' + x(i).toFixed(1) + '" y="' + (up ? yv(mx) + 10 : yv(-mx) - 3) + '" text-anchor="middle" font-size="9" fill="#68758C">▲<title>' + r[0] + '\n净流入 ' + fmt(r[1]) + '亿\n注：超出轴顶已截断</title></text>';
+    if (av > mx) bars += '<text x="' + x(i).toFixed(1) + '" y="' + (up ? yv(mx) + 10 : yv(-mx) - 3) + '" text-anchor="middle" font-size="10.5" fill="#68758C">▲<title>' + r[0] + '\n净流入 ' + fmt(r[1]) + '亿\n注：超出轴顶已截断</title></text>';
     pts.push(x(i).toFixed(1) + ',' + yi(r[3]).toFixed(1));
     if (i % Math.ceil(n / 9) === 0 || i === n - 1)
-      labs += '<text x="' + x(i) + '" y="' + (H - 16) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + r[0].slice(5) + '</text>';
+      labs += '<text x="' + x(i) + '" y="' + (H - 16) + '" text-anchor="middle" font-size="11" fill="var(--faint)">' + r[0].slice(5) + '</text>';
   });
   for (let k = 0; k < 4; k++) {
     const v = imx - (imx - imn) * k / 3;
-    g += '<text x="' + (W - R + 10) + '" y="' + (yi(v) + 3.5) + '" font-size="9.5" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fx(v) + '</text>';
+    g += '<text x="' + (W - R + 10) + '" y="' + (yi(v) + 3.5) + '" font-size="11" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fx(v) + '</text>';
   }
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + g + bars
     + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#3b66d4" stroke-width="1.8"/>' + labs
-    + '<text x="' + (W - R + 10) + '" y="' + (T - 8) + '" font-size="9.5" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">指数</text></svg>';
+    + '<text x="' + (W - R + 10) + '" y="' + (T - 8) + '" font-size="11" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">指数</text></svg>';
 }
 
 /* 单只模式：按天净流入柱（本地库逐日积累）+ ETF 收盘价线（右轴，可回溯） */
@@ -2384,9 +2561,9 @@ function fundChart(f, withSum){
   [-mx, -mx / 2, 0, mx / 2, mx].forEach(v => {
     const z = v === 0;
     g += '<line x1="' + L + '" y1="' + yv(v) + '" x2="' + (W - R) + '" y2="' + yv(v) + '" stroke="' + (z ? '#68758C' : 'var(--border)') + '" stroke-width="1"' + (z ? '' : ' opacity=".55"') + '/>'
-      + '<text x="' + (L - 6) + '" y="' + (yv(v) + 3.5) + '" text-anchor="end" font-size="9.5" fill="var(--faint)">' + v.toFixed(0) + '</text>';
+      + '<text x="' + (L - 6) + '" y="' + (yv(v) + 3.5) + '" text-anchor="end" font-size="11" fill="var(--faint)">' + v.toFixed(0) + '</text>';
   });
-  g += '<text x="' + (L - 6) + '" y="' + (T - 8) + '" text-anchor="end" font-size="9" fill="var(--faint)">亿</text>';
+  g += '<text x="' + (L - 6) + '" y="' + (T - 8) + '" text-anchor="end" font-size="10.5" fill="var(--faint)">亿</text>';
   K.forEach((r, i) => {
     const d = r[0], v = nmap[d];
     if (v != null) {
@@ -2395,15 +2572,15 @@ function fundChart(f, withSum){
     }
     pts.push(x(i).toFixed(1) + ',' + yc(r[1]).toFixed(1));
     if (i % Math.ceil(n / 9) === 0 || i === n - 1)
-      labs += '<text x="' + x(i) + '" y="' + (H - 16) + '" text-anchor="middle" font-size="9.5" fill="var(--faint)">' + d.slice(5) + '</text>';
+      labs += '<text x="' + x(i) + '" y="' + (H - 16) + '" text-anchor="middle" font-size="11" fill="var(--faint)">' + d.slice(5) + '</text>';
   });
   for (let k = 0; k < 4; k++) {
     const v = cmx - (cmx - cmn) * k / 3;
-    g += '<text x="' + (W - R + 10) + '" y="' + (yc(v) + 3.5) + '" font-size="9.5" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fxp(v) + '</text>';
+    g += '<text x="' + (W - R + 10) + '" y="' + (yc(v) + 3.5) + '" font-size="11" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">' + fxp(v) + '</text>';
   }
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + g + bars
     + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#3b66d4" stroke-width="1.8"/>' + labs
-    + '<text x="' + (W - R + 10) + '" y="' + (T - 8) + '" font-size="9.5" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">价格</text></svg>'
+    + '<text x="' + (W - R + 10) + '" y="' + (T - 8) + '" font-size="11" fill="#3b66d4" style="paint-order:stroke" stroke="#fff" stroke-width="3">价格</text></svg>'
     + (withSum === false ? '' : '<div class="ef-sum" style="margin:8px 0 2px"><span>净流入 近1日 <b class="' + cls(f.netIn1) + '">' + fmt(f.netIn1) + '</b></span>'
     + '<span>近5日 <b class="' + cls(f.netIn5) + '">' + fmt(f.netIn5) + '</b></span>'
     + '<span>近20日 <b class="' + cls(f.netIn20) + '">' + fmt(f.netIn20) + '</b></span>'
