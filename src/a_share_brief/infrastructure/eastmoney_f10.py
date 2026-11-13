@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 import urllib.request
 from collections.abc import Callable, Iterable
 
@@ -34,9 +35,32 @@ class EastmoneyThemeAdapter:
         max_labels: 每只股票保留的题材数量。
     """
 
-    def __init__(self, fetch: Fetch | None = None, max_labels: int = 1) -> None:
+    def __init__(self, fetch: Fetch | None = None, max_labels: int = 1,
+                 delay: float = 0.2) -> None:
         self._fetch = fetch or _default_fetch
         self._max_labels = max_labels
+        self._delay = delay
+
+    def sectors_of(self, codes: Iterable[str]) -> dict[str, str]:
+        """取股票所属最细行业板块代码。
+
+        Args:
+            codes: 股票代码集合。
+
+        Returns:
+            代码到板块代码（如 ``BK1613``）的映射。
+        """
+        result: dict[str, str] = {}
+        for code in codes:
+            time.sleep(self._delay)
+            try:
+                payload = json.loads(self._fetch(_URL.format(symbol=_symbol(code))))
+                board = _board(payload.get("ssbk") or [])
+            except (OSError, ValueError, KeyError):
+                continue
+            if board:
+                result[code] = board
+        return result
 
     def themes_of(self, codes: Iterable[str]) -> dict[str, tuple[str, ...]]:
         """取多只股票的题材标签。
@@ -49,6 +73,7 @@ class EastmoneyThemeAdapter:
         """
         result: dict[str, tuple[str, ...]] = {}
         for code in codes:
+            time.sleep(self._delay)
             try:
                 payload = json.loads(self._fetch(_URL.format(symbol=_symbol(code))))
                 labels = _labels(payload.get("ssbk") or [])
@@ -80,3 +105,26 @@ def _labels(boards: list[dict]) -> tuple[str, ...]:
         if name and not any(word in name for word in _NOISE):
             return (name,)
     return ()
+
+
+def _board(boards: list[dict]) -> str:
+    """取最细一级行业对应的板块代码。
+
+    东财一级行业板块（如 BK478 有色金属）常返回 rc=102 无成分，三级板块可用，
+    故取前三条中最细的一条。
+
+    Args:
+        boards: F10 板块条目。
+
+    Returns:
+        板块代码；无有效行业返回空串。
+    """
+    candidates = [
+        item for item in boards[:3]
+        if str(item.get("BOARD_NAME") or "")
+        and not any(word in str(item.get("BOARD_NAME")) for word in _NOISE)
+    ]
+    if not candidates:
+        return ""
+    code = str(candidates[-1].get("BOARD_CODE") or "")
+    return f"BK{code}" if code else ""

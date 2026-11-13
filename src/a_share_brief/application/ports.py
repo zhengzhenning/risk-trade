@@ -51,6 +51,15 @@ class ThemePort(Protocol):
 
     def themes_of(self, codes: Iterable[str]) -> dict[str, tuple[str, ...]]: ...
 
+    def sectors_of(self, codes: Iterable[str]) -> dict[str, str]: ...
+
+
+@runtime_checkable
+class SectorPort(Protocol):
+    """板块端口：取同行业成分股。"""
+
+    def constituents(self, board_code: str, limit: int = 6) -> list[tuple[str, str]]: ...
+
 
 @runtime_checkable
 class SnapshotRepo(Protocol):

@@ -10,6 +10,7 @@ from ..infrastructure.eastmoney_alert import EastmoneyAlertAdapter
 from ..infrastructure.eastmoney_f10 import EastmoneyThemeAdapter
 from ..infrastructure.eastmoney_index import EastmoneyIndexAdapter
 from ..infrastructure.eastmoney_pool import EastmoneyPoolAdapter
+from ..infrastructure.eastmoney_sector import EastmoneySectorAdapter
 from ..infrastructure.fallback import FallbackQuotes
 from ..infrastructure.file_repo import FileRepoAdapter
 from ..infrastructure.html_renderer import HtmlRendererAdapter
@@ -47,12 +48,15 @@ def build_snapshot_usecase(root: Path) -> BuildSnapshot:
     Returns:
         已注入真实适配器的用例。
     """
+    theme_adapter = EastmoneyThemeAdapter()
+    sectors_adapter = EastmoneySectorAdapter()
     return BuildSnapshot(
         pools=EastmoneyPoolAdapter(),
         quotes=quotes_port(),
         repo=snapshot_store(root),
         alerts=EastmoneyAlertAdapter(),
-        themes=EastmoneyThemeAdapter(),
+        themes=theme_adapter,
+        sectors=sectors_adapter,
         indexes=EastmoneyIndexAdapter(),
     )
 

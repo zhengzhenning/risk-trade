@@ -11,7 +11,15 @@ from ...domain.aggregates import Briefing, PoolRanking, PoolWindow
 from ...domain.services.pool import diff
 from ...domain.services.theme_cluster import cluster_themes
 from ..mappers import labeled, merge, with_theme
-from ..ports import AlertPort, IndexQuotePort, PoolPort, QuotePort, SnapshotRepo, ThemePort
+from ..ports import (
+    AlertPort,
+    IndexQuotePort,
+    PoolPort,
+    QuotePort,
+    SectorPort,
+    SnapshotRepo,
+    ThemePort,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -32,6 +40,7 @@ class BuildSnapshot:
         repo: SnapshotRepo,
         alerts: AlertPort | None = None,
         themes: ThemePort | None = None,
+        sectors: SectorPort | None = None,
         indexes: IndexQuotePort | None = None,
         index_codes: tuple[str, ...] = ("000001", "399001", "000688"),
     ) -> None:
@@ -40,6 +49,7 @@ class BuildSnapshot:
         self._repo = repo
         self._alerts = alerts
         self._themes = themes
+        self._sectors = sectors
         self._indexes = indexes
         self._index_codes = index_codes
 
@@ -80,7 +90,7 @@ class BuildSnapshot:
             diffs=diffs,
             indexes=tuple(index_map[c] for c in self._index_codes if c in index_map),
             stocks=merged,
-            themes=cluster_themes(labeled(month_entries), PoolWindow.MONTH),
+            themes=build_themes(self._themes, self._sectors, labeled(month_entries), month_entries),
             revision=revision,
         )
         self._repo.save(briefing)
@@ -104,3 +114,40 @@ def _ranking_of(briefing: Briefing | None, window: PoolWindow) -> PoolRanking | 
         if item.window is window:
             return item
     return None
+
+
+def build_themes(themes_port, sectors_port, labeled_entries, all_entries):
+    """聚类题材并用同行业成分股补全成员。
+
+    Args:
+        labeled_entries: 有题材标签的条目。
+        all_entries: 全部条目，用于排除已在池内的标的。
+
+    Returns:
+        题材元组；未注入板块端口时只含锚点。
+    """
+    from dataclasses import replace
+
+    from ...domain.aggregates import ThemeMember
+
+    themes = cluster_themes(labeled_entries, PoolWindow.MONTH)
+    if not sectors_port or not themes_port:
+        return themes
+
+    in_pool = {item.code for item in all_entries}
+    # 只扩前三个题材，控制外部请求量（东财板块接口有频控）
+    ranked = themes[:3]
+    boards = themes_port.sectors_of([item.anchor_code for item in ranked])
+    expanded = []
+    for theme in ranked:
+        board = boards.get(theme.anchor_code)
+        if not board:
+            expanded.append(theme)
+            continue
+        peers = [
+            ThemeMember(code=code, name=name, via="同行业")
+            for code, name in sectors_port.constituents(board, limit=6)
+            if code not in in_pool
+        ]
+        expanded.append(replace(theme, members=theme.members + tuple(peers)))
+    return tuple(expanded)
