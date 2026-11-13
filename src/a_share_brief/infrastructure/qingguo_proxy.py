@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Optional
 
-_EXTRACT = "https://share.proxy.qg.net/get?key={key}&num=1"
+_EXTRACT = "https://share.proxy.qg.net/get?key={key}&password={password}&num=1"
 Fetch = Callable[[str], str]
 
 
@@ -26,7 +26,7 @@ class ProxyLease:
     ip: str
     port: int
     acquired_at: float
-    ttl: float = 170.0
+    ttl: float = 120.0
     failures: int = 0
 
     def alive(self, now: float | None = None, ttl: float = 170.0) -> bool:
@@ -45,8 +45,9 @@ class QingguoProxyPool:
     """
 
     key: Optional[str] = None
+    password: Optional[str] = None
     fetch: Fetch | None = None
-    ttl: float = 170.0
+    ttl: float = 120.0
     _lease: Optional[ProxyLease] = None
     _bad: set[str] = field(default_factory=set)
     _deadline: float | None = None
@@ -70,8 +71,10 @@ class QingguoProxyPool:
             key = self._key()
         except RuntimeError:
             return None
+        password = self.password or os.environ.get("QG_PASSWORD", "")
         try:
-            raw = (self.fetch or _default_fetch)(_EXTRACT.format(key=urllib.parse.quote(key)))
+            raw = (self.fetch or _default_fetch)(_EXTRACT.format(key=urllib.parse.quote(key, safe=""),
+                                                password=urllib.parse.quote(password, safe="")))
         except (OSError, ValueError):
             return None
         try:  # 官方返回 {"code":"SUCCESS","data":[{"server":"ip:port","deadline":...}]}
