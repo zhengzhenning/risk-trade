@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Optional
 
-_EXTRACT = "https://proxy.qg.net/allocate?Key={key}&num=1"
+_EXTRACT = "https://share.proxy.qg.net/get?key={key}&num=1"
 Fetch = Callable[[str], str]
 
 
@@ -49,6 +49,7 @@ class QingguoProxyPool:
     ttl: float = 170.0
     _lease: Optional[ProxyLease] = None
     _bad: set[str] = field(default_factory=set)
+    _deadline: float | None = None
 
     def _key(self) -> str:
         value = self.key or os.environ.get("QG_KEY", "")
@@ -73,14 +74,24 @@ class QingguoProxyPool:
             raw = (self.fetch or _default_fetch)(_EXTRACT.format(key=urllib.parse.quote(key)))
         except (OSError, ValueError):
             return None
-        try:  # 官方返回 {"Code":0,"Data":[{"proxy":"ip:port",...}]}
+        try:  # 官方返回 {"code":"SUCCESS","data":[{"server":"ip:port","deadline":...}]}
             payload = json.loads(raw)
         except json.JSONDecodeError:
             payload = None
         if payload is not None:
-            rows = payload.get("Data") or payload.get("data") or []
-            proxy = str((rows[0] or {}).get("proxy") or "") if rows else ""
-            raw = proxy
+            if payload.get("code") not in (None, "SUCCESS"):
+                return None
+            rows = payload.get("data") or []
+            first = rows[0] if rows else {}
+            raw = str(first.get("server") or "")
+            expiry = str(first.get("deadline") or "")
+            if expiry:
+                try:
+                    from datetime import datetime
+
+                    self._deadline = datetime.fromisoformat(expiry).timestamp()
+                except ValueError:
+                    self._deadline = None
         ip, _, port = raw.strip().partition(":")
         if not ip or not port.isdigit():
             return None
