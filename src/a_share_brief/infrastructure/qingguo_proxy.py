@@ -1,6 +1,7 @@
 """青果代理池：3 分钟租约内复用同一出口，失败才换 IP。"""
 from __future__ import annotations
 
+import json
 import os
 import time
 import urllib.parse
@@ -9,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Optional
 
-_EXTRACT = "https://proxy.qg.net/extract?key={key}&num=1&format=txt"
+_EXTRACT = "https://proxy.qg.net/allocate?Key={key}&num=1"
 Fetch = Callable[[str], str]
 
 
@@ -72,6 +73,14 @@ class QingguoProxyPool:
             raw = (self.fetch or _default_fetch)(_EXTRACT.format(key=urllib.parse.quote(key)))
         except (OSError, ValueError):
             return None
+        try:  # 官方返回 {"Code":0,"Data":[{"proxy":"ip:port",...}]}
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            payload = None
+        if payload is not None:
+            rows = payload.get("Data") or payload.get("data") or []
+            proxy = str((rows[0] or {}).get("proxy") or "") if rows else ""
+            raw = proxy
         ip, _, port = raw.strip().partition(":")
         if not ip or not port.isdigit():
             return None
