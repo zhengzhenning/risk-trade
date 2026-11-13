@@ -11,10 +11,8 @@ from datetime import date
 from pathlib import Path
 
 from ..application.usecases.build_snapshot import BuildSnapshot
-from ..application.usecases.build_view import BuildView
 from ..domain.errors import SnapshotNotFound
-from ..infrastructure.file_repo import FileRepoAdapter
-from ..infrastructure.html_renderer import HtmlRendererAdapter
+from .composition import build_snapshot_usecase, build_view_usecase, snapshot_store
 
 _LOG = logging.getLogger("a_share_brief")
 
@@ -59,20 +57,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("cmd", choices=["build", "view"])
     parser.add_argument("--day", default=date.today().isoformat())
     parser.add_argument("--root", default="work/store")
+    parser.add_argument("--demo", action="store_true", help="用空适配器离线演示")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
     _configure_logging(args.verbose)
     day = date.fromisoformat(args.day)
-    repo = FileRepoAdapter(Path(args.root))
 
     if args.cmd == "build":
-        BuildSnapshot(_EmptyPools(), _EmptyQuotes(), repo)(day)
+        if args.demo:
+            BuildSnapshot(_EmptyPools(), _EmptyQuotes(), snapshot_store(Path(args.root)))(day)
+        else:
+            build_snapshot_usecase(Path(args.root))(day)
         print(f"snapshot saved: {day}")
         return 0
 
     try:
-        print(BuildView(repo, HtmlRendererAdapter())(day)[:200])
+        print(build_view_usecase(Path(args.root))(day)[:200])
     except SnapshotNotFound as exc:
         _LOG.error("view failed day=%s reason=%s", day, exc)
         return 1

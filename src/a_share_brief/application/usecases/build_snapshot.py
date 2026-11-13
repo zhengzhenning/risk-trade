@@ -60,10 +60,7 @@ class BuildSnapshot:
         live = self._quotes.snapshot([s.code for s in stocks])
         alerts = self._alerts.unusual([entry.code for entry in stocks]) if self._alerts else {}
         merged = tuple(
-            Stock(base=_to_base(entry), alert=alerts.get(entry.code))
-            if entry.code in alerts
-            else (live.get(entry.code) or Stock(base=_to_base(entry)))
-            for entry in stocks
+            _merge(entry, live.get(entry.code), alerts.get(entry.code)) for entry in stocks
         )
         prev = self._repo.load(day)
         revision = prev.revision + 1 if prev else 1
@@ -114,3 +111,18 @@ def _ranking_of(briefing: Briefing | None, window: PoolWindow) -> PoolRanking | 
         if item.window is window:
             return item
     return None
+
+
+def _merge(entry, quoted: Stock | None, alert) -> Stock:
+    """合并股池条目、行情与异动，三者互不覆盖。
+
+    Args:
+        entry: 股池条目。
+        quoted: 行情聚合，可能为 None。
+        alert: 异动聚合，可能为 None。
+
+    Returns:
+        合并后的股票聚合。
+    """
+    base = quoted.base if quoted else _to_base(entry)
+    return Stock(base=base, quote=quoted.quote if quoted else None, alert=alert)
