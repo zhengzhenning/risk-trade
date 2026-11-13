@@ -9,6 +9,7 @@ from .pool import PoolDiff, PoolRanking
 from .stock import Stock
 
 
+@dataclass(frozen=True)
 class Phase:
     """威科夫阶段。"""
 

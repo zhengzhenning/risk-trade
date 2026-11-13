@@ -75,6 +75,7 @@ class Index:
     quote: IndexQuote | None = None
 
 
+@dataclass(frozen=True)
 class Bar:
     """日 K 线。"""
 

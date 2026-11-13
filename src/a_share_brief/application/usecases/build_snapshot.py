@@ -10,7 +10,7 @@ from datetime import date
 from ...domain.aggregates import Briefing, PoolRanking, PoolWindow, Stock, StockBase
 from ...domain.services.pool import diff
 from ...domain.services.security import board_of, exchange_of
-from ..ports import PoolPort, QuotePort, SnapshotRepo
+from ..ports import AlertPort, PoolPort, QuotePort, SnapshotRepo
 
 _LOG = logging.getLogger(__name__)
 
@@ -24,10 +24,17 @@ class BuildSnapshot:
         repo: 快照仓库端口，负责持久化与版本号
     """
 
-    def __init__(self, pools: PoolPort, quotes: QuotePort, repo: SnapshotRepo) -> None:
+    def __init__(
+        self,
+        pools: PoolPort,
+        quotes: QuotePort,
+        repo: SnapshotRepo,
+        alerts: AlertPort | None = None,
+    ) -> None:
         self._pools = pools
         self._quotes = quotes
         self._repo = repo
+        self._alerts = alerts
 
     def __call__(self, day: date) -> Briefing:
         """构建并保存快照。
@@ -47,7 +54,13 @@ class BuildSnapshot:
         d60_rank = PoolRanking(day=day, window=PoolWindow.D60, entries=tuple(d60_entries))
         stocks = month_entries + d60_entries
         live = self._quotes.snapshot([s.code for s in stocks])
-        merged = tuple(live.get(entry.code) or Stock(base=_to_base(entry)) for entry in stocks)
+        alerts = self._alerts.unusual([entry.code for entry in stocks]) if self._alerts else {}
+        merged = tuple(
+            Stock(base=_to_base(entry), alert=alerts.get(entry.code))
+            if entry.code in alerts
+            else (live.get(entry.code) or Stock(base=_to_base(entry)))
+            for entry in stocks
+        )
         prev = self._repo.load(day)
         revision = prev.revision + 1 if prev else 1
         prev_rank = _ranking_of(prev, PoolWindow.MONTH)
