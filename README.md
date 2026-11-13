@@ -3,6 +3,12 @@
 采集行情与要闻 → 固化快照 → 按日动态渲染看板。架构见 [docs/00_架构说明.md](docs/00_架构说明.md)，仓库约束见 [AGENTS.md](AGENTS.md)。
 
 ```bash
+./restart.sh          # 一键重启：API(8000) + 快照循环，并做健康检查
+./restart.sh status   # 只看状态
+./restart.sh stop     # 停止服务
+```
+
+```bash
 make install   # 安装依赖（含 dev）
 make test      # 内核测试 + 依赖方向守卫
 make demo      # 生成并渲染一份快照
