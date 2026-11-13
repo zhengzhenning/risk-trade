@@ -3,7 +3,7 @@
 import { computed, onMounted, ref } from "vue";
 import { IndexStrip, RankMatrix, StockPanel, ThemePanel } from "@brief/ui";
 import { createApi, createFetchTransport } from "@brief/api";
-import type { Briefing, IndexView, MatrixCell, StockView, ThemeView } from "@brief/core";
+import type { Briefing, IndexView, MatrixCell, PhaseView, StockView, ThemeView } from "@brief/core";
 
 const api = createApi(createFetchTransport({ baseUrl: "/" }));
 const indexes = ref<IndexView[]>([]);
@@ -11,6 +11,7 @@ const month = ref<{ dates: string[]; rows: (MatrixCell | null)[][] }>({ dates: [
 const d60 = ref<{ dates: string[]; rows: (MatrixCell | null)[][] }>({ dates: [], rows: [] });
 const stocks = ref<Record<string, StockView>>({});
 const themes = ref<ThemeView[]>([]);
+const phases = ref<PhaseView[]>([]);
 const selected = ref<StockView | null>(null);
 const status = ref("加载中…");
 
@@ -53,8 +54,14 @@ async function load(): Promise<void> {
   }
 }
 
-function select(cell: MatrixCell | null): void {
+async function select(cell: MatrixCell | null): Promise<void> {
   if (!cell) return;
+  try {
+    const detail = await api.stock(cell.code);
+    phases.value = detail.phases;
+  } catch {
+    phases.value = [];
+  }
   const base = stocks.value[cell.code] ?? { code: cell.code, name: cell.name, quote: null, alert: null };
   selected.value = { ...base, name: cell.name, context: { day: cell.day, range_pct: cell.range_pct } };
 }
@@ -84,7 +91,7 @@ onMounted(load);
         </view>
       </view>
       <view class="side">
-        <StockPanel :stock="selected" />
+        <StockPanel :stock="selected" :phases="phases" />
         <ThemePanel :themes="themes" />
       </view>
     </view>

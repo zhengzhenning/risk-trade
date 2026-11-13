@@ -57,6 +57,7 @@ def build_snapshot_usecase(root: Path) -> BuildSnapshot:
         alerts=EastmoneyAlertAdapter(),
         themes=theme_adapter,
         sectors=sectors_adapter,
+        klines=TencentKLineAdapter(),
         indexes=EastmoneyIndexAdapter(),
     )
 

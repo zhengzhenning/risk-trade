@@ -9,6 +9,8 @@ from ..domain.aggregates import Briefing
 from .snapshot_codec import (
     index_from_dict,
     index_to_dict,
+    phases_from_dict,
+    phases_to_dict,
     ranking_from_dict,
     ranking_to_dict,
     stock_from_dict,
@@ -44,6 +46,7 @@ class FileRepoAdapter:
             "rankings": [ranking_to_dict(item) for item in briefing.rankings],
             "stocks": [stock_to_dict(item) for item in briefing.stocks],
             "themes": [theme_to_dict(item) for item in briefing.themes],
+            "phases": phases_to_dict(briefing.phases),
         }
         self._path(briefing.day).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
@@ -67,4 +70,5 @@ class FileRepoAdapter:
             rankings=tuple(ranking_from_dict(item) for item in payload.get("rankings", [])),
             stocks=tuple(stock_from_dict(item) for item in payload.get("stocks", [])),
             themes=tuple(theme_from_dict(item) for item in payload.get("themes", [])),
+            phases=phases_from_dict(payload.get("phases") or {}),
         )

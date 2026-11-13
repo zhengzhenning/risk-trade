@@ -146,3 +146,10 @@ export interface ThemeView {
   logic: { trigger: string; diffusion: string; positioning: string; evidence: string[] } | null;
   members: ThemeMemberView[];
 }
+
+export interface PhaseView {
+  start: string;
+  end: string;
+  kind: "acc" | "wash" | "start" | "dist";
+  note: string;
+}

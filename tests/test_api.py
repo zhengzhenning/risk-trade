@@ -114,3 +114,22 @@ def test_themes_endpoint(tmp_path):
     assert payload["day"] == "2026-11-13"
     assert payload["themes"][0]["anchor"]["name"] == "闽发铝业"
     assert payload["themes"][0]["narrative"] == "铝价主线"
+
+
+def test_stock_detail_includes_phases(tmp_path):
+    from a_share_brief.domain.aggregates import Phase
+
+    repo = FileRepoAdapter(tmp_path)
+    stock = Stock(
+        base=StockBase(code="002578", name="闽发铝业", exchange=Exchange.SZ, board=Board.MAIN),
+        quote=StockQuote(code="002578", day=DAY, ts="2026-11-13T15:00:00+08:00", open=6.0,
+                         high=6.2, low=5.9, close=6.1, prev_close=6.0, change=0.1, pct=1.67),
+    )
+    repo.save(Briefing(day=DAY, stocks=(stock,),
+                       phases={"002578": (Phase(start="2026-10-26", end="2026-11-10", kind="start"),)}))
+    client = TestClient(create_app(tmp_path))
+
+    payload = client.get("/api/stock/002578").json()
+    assert payload["stock"]["base"]["name"] == "闽发铝业"
+    assert payload["phases"][0]["kind"] == "start"
+    assert client.get("/api/stock/600000").status_code == 404

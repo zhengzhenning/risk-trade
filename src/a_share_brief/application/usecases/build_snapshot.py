@@ -9,10 +9,12 @@ from datetime import date
 
 from ...domain.aggregates import Briefing, PoolRanking, PoolWindow
 from ...domain.services.pool import diff
+from ...domain.services.wyckoff import judge
 from ..mappers import build_themes, labeled, merge, with_logic, with_theme
 from ..ports import (
     AlertPort,
     IndexQuotePort,
+    KLinePort,
     PoolPort,
     QuotePort,
     SectorPort,
@@ -40,6 +42,7 @@ class BuildSnapshot:
         alerts: AlertPort | None = None,
         themes: ThemePort | None = None,
         sectors: SectorPort | None = None,
+        klines: KLinePort | None = None,
         indexes: IndexQuotePort | None = None,
         index_codes: tuple[str, ...] = ("000001", "399001", "000688"),
     ) -> None:
@@ -49,6 +52,7 @@ class BuildSnapshot:
         self._alerts = alerts
         self._themes = themes
         self._sectors = sectors
+        self._klines = klines
         self._indexes = indexes
         self._index_codes = index_codes
 
@@ -83,12 +87,14 @@ class BuildSnapshot:
         prev_rank = _ranking_of(prev, PoolWindow.MONTH)
         diffs = (diff(prev_rank, month_rank),)
         index_map = self._indexes.snapshot(self._index_codes, day=day) if self._indexes else {}
+        phases = _judge_phases(self._klines, [item.code for item in month_entries[:7]])
         briefing = Briefing(
             day=day,
             rankings=(month_rank, d60_rank),
             diffs=diffs,
             indexes=tuple(index_map[c] for c in self._index_codes if c in index_map),
             stocks=merged,
+            phases=phases,
             themes=with_logic(build_themes(self._themes, self._sectors, labeled(month_entries), month_entries),
                               month_entries),
             revision=revision,
@@ -114,3 +120,27 @@ def _ranking_of(briefing: Briefing | None, window: PoolWindow) -> PoolRanking | 
         if item.window is window:
             return item
     return None
+
+
+def _judge_phases(klines, codes: list[str]) -> dict[str, tuple]:
+    """为前七个股判定威科夫阶段。
+
+    Args:
+        klines: K 线端口，未注入时返回空。
+        codes: 股票代码列表。
+
+    Returns:
+        代码到阶段元组的映射。
+    """
+    if not klines:
+        return {}
+    out: dict[str, tuple] = {}
+    for code in codes:
+        try:
+            bars = tuple(klines.daily(code, bars=60))
+        except (OSError, ValueError):
+            continue
+        judged = judge(bars)
+        if judged:
+            out[code] = judged
+    return out

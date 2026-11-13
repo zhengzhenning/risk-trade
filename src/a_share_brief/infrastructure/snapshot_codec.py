@@ -117,3 +117,43 @@ def _convert(payload: dict[str, Any], entity: type) -> dict[str, Any]:
         if converter and result[name] is not None:
             result[name] = converter(result[name])
     return result
+
+
+def phases_to_dict(phases: dict[str, tuple]) -> dict[str, list[dict]]:
+    """阶段字典转 JSON 结构。
+
+    Args:
+        phases: 代码到阶段元组的映射。
+
+    Returns:
+        代码到阶段列表的映射。
+    """
+    return {
+        code: [
+            {"start": p.start, "end": p.end, "kind": p.kind,
+             "note": p.note, "tentative": p.tentative}
+            for p in items
+        ]
+        for code, items in phases.items()
+    }
+
+
+def phases_from_dict(payload: dict[str, list[dict]]) -> dict[str, tuple]:
+    """JSON 结构还原阶段字典。
+
+    Args:
+        payload: phases_to_dict 的输出。
+
+    Returns:
+        代码到阶段元组的映射。
+    """
+    from ..domain.aggregates import Phase
+
+    return {
+        code: tuple(
+            Phase(start=item["start"], end=item["end"], kind=item["kind"],
+                  note=item.get("note", ""), tentative=bool(item.get("tentative")))
+            for item in items
+        )
+        for code, items in payload.items()
+    }

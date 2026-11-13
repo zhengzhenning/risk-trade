@@ -13,6 +13,7 @@ from ..domain.services.pool import matrix as build_matrix
 from ..infrastructure.file_repo import FileRepoAdapter
 from ..infrastructure.snapshot_codec import index_to_dict, ranking_to_dict, stock_to_dict
 from .api_live import register_live
+from .api_stock import register_stock
 
 _WINDOWS = {"MONTH": PoolWindow.MONTH, "D60": PoolWindow.D60}
 
@@ -144,3 +145,5 @@ def register_routes(app: FastAPI, root: Path, repo: FileRepoAdapter) -> None:
         }
 
     register_live(app, root, repo, resolve)
+
+    register_stock(app, repo, resolve)
