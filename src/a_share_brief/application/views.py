@@ -60,6 +60,11 @@ def theme_to_view(theme: Theme) -> dict[str, Any]:
         "window": theme.window.value,
         "status": theme.status.value,
         "narrative": theme.narrative,
+        "logic": (
+            {"trigger": theme.logic.trigger, "diffusion": theme.logic.diffusion,
+             "positioning": theme.logic.positioning, "evidence": list(theme.logic.evidence)}
+            if theme.logic else None
+        ),
         "members": [
             {"code": m.code, "name": m.name, "is_anchor": m.is_anchor,
              "rank_in_pool": m.rank_in_pool, "range_pct": m.range_pct}

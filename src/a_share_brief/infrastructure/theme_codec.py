@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..domain.aggregates import PoolWindow, Theme, ThemeMember, ThemeStatus
+from ..domain.aggregates import MainUpLogic, PoolWindow, Theme, ThemeMember, ThemeStatus
 
 
 def theme_to_dict(theme: Theme) -> dict[str, Any]:
@@ -25,6 +25,11 @@ def theme_to_dict(theme: Theme) -> dict[str, Any]:
         "sector": theme.sector,
         "status": theme.status.value,
         "narrative": theme.narrative,
+        "logic": (
+            {"trigger": theme.logic.trigger, "diffusion": theme.logic.diffusion,
+             "positioning": theme.logic.positioning, "evidence": list(theme.logic.evidence)}
+            if theme.logic else None
+        ),
         "members": [
             {"code": m.code, "name": m.name, "is_anchor": m.is_anchor,
              "rank_in_pool": m.rank_in_pool, "range_pct": m.range_pct,
@@ -60,4 +65,8 @@ def theme_from_dict(payload: dict[str, Any]) -> Theme:
         status=ThemeStatus(payload.get("status", "BREWING")),
         narrative=payload.get("narrative", ""),
         members=members,
+        logic=(
+            MainUpLogic(**{**payload["logic"], "evidence": tuple(payload["logic"].get("evidence", []))})
+            if payload.get("logic") else None
+        ),
     )

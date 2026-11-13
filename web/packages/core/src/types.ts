@@ -143,5 +143,6 @@ export interface ThemeView {
   window: PoolWindow;
   status: ThemeStatus;
   narrative: string;
+  logic: { trigger: string; diffusion: string; positioning: string; evidence: string[] } | null;
   members: ThemeMemberView[];
 }

@@ -15,7 +15,12 @@ defineProps<{ themes: ThemeView[] }>();
         <text class="anchor">#{{ item.anchor.rank }} {{ item.anchor.name }}</text>
         <text class="count">{{ item.members.length }} 只</text>
       </view>
-      <text class="narrative">{{ item.narrative || "—" }}</text>
+      <view v-if="item.logic" class="logic">
+        <text class="logic-row"><text class="logic-key">触发</text>{{ item.logic.trigger }}</text>
+        <text class="logic-row"><text class="logic-key">扩散</text>{{ item.logic.diffusion }}</text>
+        <text class="logic-row"><text class="logic-key">卡位</text>{{ item.logic.positioning }}</text>
+      </view>
+      <text v-else class="narrative">{{ item.narrative || "—" }}</text>
       <view class="members">
         <text
           v-for="m in item.members.slice(0, 4)" :key="m.code" class="member"
@@ -40,6 +45,9 @@ defineProps<{ themes: ThemeView[] }>();
 .anchor { font-size: var(--fs-12); color: var(--accent, #8f6708); }
 .count { margin-left: auto; font-size: var(--fs-11); color: var(--faint); }
 .narrative { font-size: var(--fs-12); color: var(--sub); line-height: 1.6; }
+.logic { display: flex; flex-direction: column; gap: 2rpx; }
+.logic-row { font-size: var(--fs-12); color: var(--sub); line-height: 1.6; }
+.logic-key { display: inline-block; width: 64rpx; color: var(--faint); }
 .members { display: flex; flex-wrap: wrap; gap: 10rpx; }
 .member { font-size: var(--fs-11); color: var(--sub); }
 .member.anchor { color: var(--up); }
