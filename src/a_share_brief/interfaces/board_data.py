@@ -84,7 +84,7 @@ def build_themes(briefing: Briefing) -> list[dict[str, Any]]:
     return rows
 
 
-def render(html: str, briefing: Briefing, day: str) -> str:
+def render(html: str, briefing: Briefing, day: str, vp: dict | None = None) -> str:
     """把快照数据写回页面。
 
     Args:
@@ -112,11 +112,15 @@ def render(html: str, briefing: Briefing, day: str) -> str:
         "CONCEPTS": build_concepts(briefing, theme_of),
         "TIERS": build_tiers(briefing),
         "PEERS": build_peers(briefing, theme_of),
+        "VP": vp,
 
     }
     out = html
+    from datetime import datetime
+
+    stamp = datetime.now().strftime("%H:%M")
     out = re.sub(r'(<div class="nav-date[^"]*">)[^<]*(</div>)',
-                 rf'\g<1>{day} · 盘中\g<2>', out, count=1)
+                 rf'\g<1>{day} · 快照 {stamp}\g<2>', out, count=1)
     out = out.replace("实时数据不可用", "实时快照")
     for name, value in replacements.items():
         if value is None:

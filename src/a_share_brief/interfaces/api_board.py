@@ -7,7 +7,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
 from ..infrastructure.file_repo import FileRepoAdapter
+from ..infrastructure.tencent_kline import TencentKLineAdapter
 from .board_data import latest_archive, render
+from .board_vp import build_vp
 
 _POLL = """
 <script>
@@ -48,5 +50,6 @@ def register_board(app: FastAPI, archives: Path, store: Path) -> None:
         snapshot = repo.load(__import__("datetime").date.fromisoformat(day))
         if snapshot is None:
             raise HTTPException(status_code=404, detail="快照读取失败")
-        html = render(base.read_text(encoding="utf-8"), snapshot, day)
+        vp = build_vp(snapshot, day, TencentKLineAdapter())
+        html = render(base.read_text(encoding="utf-8"), snapshot, day, vp)
         return html.replace("</body>", (_POLL % snapshot.revision) + "</body>", 1)
