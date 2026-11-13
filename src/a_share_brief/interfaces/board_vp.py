@@ -1,7 +1,9 @@
 """威科夫块：按当日快照金额/阶段预生成，逐日缓存，避免页面重复抓 K 线。"""
 from __future__ import annotations
 
+import json
 import time
+from pathlib import Path
 from typing import Any
 
 from ..domain.aggregates import Briefing
@@ -10,7 +12,24 @@ from ..infrastructure.eastmoney_kline import EastmoneyKLineAdapter
 from ..infrastructure.fallback_kline import FallbackKLine
 from ..infrastructure.tencent_kline import TencentKLineAdapter
 
-_CACHE: dict[tuple[str, int], dict[str, Any]] = {}
+_CACHE: dict[str, dict[str, Any]] = {}
+_CACHE_DIR = Path("work/cache")
+
+
+def _load_disk(day: str) -> dict[str, Any] | None:
+    path = _CACHE_DIR / f"vp-{day}.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def _save_disk(day: str, payload: dict[str, Any]) -> None:
+    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    (_CACHE_DIR / f"vp-{day}.json").write_text(
+        json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
 
 def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
@@ -25,9 +44,10 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
         代码到 VP 数据的映射；抓取失败的标的跳过。
     """
     klines = klines or FallbackKLine(TencentKLineAdapter(), EastmoneyKLineAdapter())
-    key = (day, briefing.revision)
-    if key in _CACHE:
-        return _CACHE[key]
+    cached = _CACHE.get(day) or _load_disk(day)
+    if cached:
+        _CACHE[day] = cached
+        return cached
 
     codes = [entry.code for ranking in briefing.rankings for entry in ranking.entries][:7]
     out: dict[str, Any] = {}
@@ -81,5 +101,6 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
             },
         }
     _CACHE.clear()
-    _CACHE[key] = out
+    _CACHE[day] = out
+    _save_disk(day, out)
     return out
