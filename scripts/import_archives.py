@@ -76,7 +76,7 @@ def _entries(rows: list[dict], day: str, window: PoolWindow) -> list[PoolEntry]:
             name=cell.get("name") or cell["code"],
             rank=int(row.get("rank") or 0),
             window=window,
-            range_pct=_num(cell.get("month_pct") or cell.get("range_pct")),
+            range_pct=_num(cell.get("month_pct") or cell.get("d60_pct") or cell.get("range_pct")),
             pct=_num(cell.get("today_pct")),
             auction_pct=_num(cell.get("auction")),
         ))

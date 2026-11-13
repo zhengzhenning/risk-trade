@@ -4,6 +4,8 @@ import { computed } from "vue";
 import { rankColor, pct, type MatrixCell } from "@brief/core";
 
 const props = defineProps<{ dates: string[]; rows: (MatrixCell | null)[][] }>();
+const emit = defineEmits<{ (event: "tap-cell", cell: MatrixCell | null): void }>();
+const tap = (cell: MatrixCell | null) => emit("tap-cell", cell);
 const colors = computed(() => props.rows.map((_, index) => rankColor(index + 1)));
 
 function label(day: string): string {
@@ -30,6 +32,7 @@ function tone(value: number | undefined): string {
           :key="ci"
           class="mx-cell"
           :class="{ today: ci === dates.length - 1 }"
+          @tap="tap(cell)"
         >
           <text v-if="cell" class="mx-name">{{ cell.name }}</text>
           <text v-if="cell" class="mx-pct" :style="{ color: tone(cell.range_pct) }">

@@ -110,3 +110,20 @@ export interface LiveDigest {
   day: string;
   indexes: { code: string; name: string; close: number | null; change_pct: number | null }[];
 }
+
+export interface IndexView {
+  code: string;
+  name: string;
+  close: number;
+  change_pct: number;
+  amount: number;
+}
+
+export interface StockView {
+  code: string;
+  name: string;
+  quote: StockQuote | null;
+  alert: StockAlert | null;
+  /** 点击矩阵单元格时的历史上下文（日期与窗口涨幅）。 */
+  context?: { day: string; range_pct: number } | null;
+}
