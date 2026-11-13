@@ -4,7 +4,8 @@ from __future__ import annotations
 import argparse
 import logging
 import time
-from datetime import date
+from datetime import date, datetime
+from datetime import time as clock
 from pathlib import Path
 
 from .composition import build_snapshot_usecase
@@ -22,7 +23,10 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO,
                         format="ts=%(asctime)s level=%(levelname)s msg=%(message)s")
     root = Path(args.root)
+    opening, closing = clock(9, 15), clock(15, 5)
     while True:
+        now = datetime.now()
+        trading = now.weekday() < 5 and opening <= now.time() <= closing
         try:
             briefing = build_snapshot_usecase(root)(date.today())
             _LOG.info("snapshot refreshed day=%s rev=%d stocks=%d",
@@ -31,7 +35,8 @@ def main() -> None:
             _LOG.warning("snapshot refresh failed reason=%s", exc)
         if args.once:
             return
-        time.sleep(args.interval)
+        # 非交易时段只做一次收盘确认，随后放慢到 10 分钟
+        time.sleep(args.interval if trading else 600)
 
 
 if __name__ == "__main__":
