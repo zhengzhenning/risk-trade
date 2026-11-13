@@ -38,7 +38,12 @@ def build_stocks(briefing: Briefing, theme_of: dict[str, str]) -> list[dict[str,
     d60 = next((r for r in briefing.rankings if r.window.value == "D60"), None)
     d60_codes = {e.code for e in (d60.entries if d60 else ())}
     rows = []
+    seen: set[str] = set()
     for stock in briefing.stocks:
+        # 同一标的可能同时命中两个窗口，去重只保留名次更好的一条
+        if stock.base.code in seen:
+            continue
+        seen.add(stock.base.code)
         rows.append({
             "code": stock.base.code,
             "name": stock.base.name,

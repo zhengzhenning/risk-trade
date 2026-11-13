@@ -16,14 +16,20 @@ _POLL = """
 <script>
 (function () {
   window.__BRIEF_REV = %d;
+  var lastTouch = Date.now();
+  ["click", "keydown", "wheel", "touchstart"].forEach(function (name) {
+    document.addEventListener(name, function () { lastTouch = Date.now(); }, true);
+  });
   setInterval(async function () {
+    // 用户刚操作过（如切换个股）时不打断，等下一次静默再判断
+    if (Date.now() - lastTouch < 90000) return;
     try {
       var res = await fetch("/api/briefing", { headers: { "Accept": "application/json" } });
       if (!res.ok) return;
       var data = await res.json();
       if (data.revision !== window.__BRIEF_REV) location.reload();
     } catch (error) { /* 网络抖动保持当前页 */ }
-  }, 60000);
+  }, 15000);
 })();
 </script>
 """
