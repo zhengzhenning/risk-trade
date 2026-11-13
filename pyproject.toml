@@ -39,6 +39,8 @@ ignore = ["E501"]
 "src/a_share_brief/interfaces/api_routes.py" = ["UP045"]
 "src/a_share_brief/interfaces/api_stock.py" = ["UP045"]
 "src/a_share_brief/interfaces/api_aux.py" = ["UP045"]
+"src/a_share_brief/infrastructure/qingguo_proxy.py" = ["UP045"]
+"src/a_share_brief/infrastructure/proxy_client.py" = ["UP045"]
 
 [tool.ruff.format]
 quote-style = "double"
