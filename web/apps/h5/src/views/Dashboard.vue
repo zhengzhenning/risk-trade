@@ -24,8 +24,10 @@ onMounted(async () => {
 <template>
   <view class="page">
     <view class="kpi-row">
-      <KpiCard v-for="index in briefing?.indexes ?? []" :key="index.base.code"
-               :label="index.base.name" :value="index.quote?.change_pct ?? 0" suffix="%" />
+      <KpiCard
+        v-for="index in briefing?.indexes ?? []" :key="index.base.code"
+        :label="index.base.name" :value="index.quote?.change_pct ?? 0" suffix="%"
+      />
     </view>
     <RankMatrix :rows="rows" :dates="dates" />
   </view>

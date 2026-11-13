@@ -10,3 +10,11 @@ archives/live.html
 archives/history.html
 archives/unusual.json
 archives/unusual.json.tmp
+
+# 本地运行产物
+.venv/
+work/store/
+web/node_modules/
+web/*/node_modules/
+web/**/dist/
+web/**/node_modules/

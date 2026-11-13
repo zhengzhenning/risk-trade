@@ -4,17 +4,19 @@ import { computed } from "vue";
 import { rankColor, pct, type PoolEntry } from "@brief/core";
 
 const props = defineProps<{ rows: PoolEntry[][]; dates: string[] }>();
-const todayIndex = computed(() => props.dates.length - 1);
+const todayIndex = computed(() => Math.max(0, props.dates.length - 1));
+const toneOf = (entry: PoolEntry | undefined) => rankColor(entry?.rank ?? 1).ink;
+const colorOf = (value: number) => (value >= 0 ? "var(--up)" : "var(--down)");
 </script>
 
 <template>
   <scroll-view class="mx" scroll-x>
     <view class="mx-grid">
       <view v-for="(row, ri) in rows" :key="ri" class="mx-row">
-        <text class="mx-rank" :style="{ color: rankColor(ri + 1).ink }">#{{ ri + 1 }}</text>
+        <text class="mx-rank" :style="{ color: toneOf(row[0]) }">#{{ ri + 1 }}</text>
         <view v-for="(cell, ci) in row" :key="ci" class="mx-cell" :class="{ today: ci === todayIndex }">
           <text class="mx-name">{{ cell.name }}</text>
-          <text class="mx-pct" :style="{ color: cell.range_pct >= 0 ? 'var(--up)' : 'var(--down)' }">
+          <text class="mx-pct" :style="{ color: colorOf(cell.range_pct) }">
             {{ pct(cell.range_pct) }}
           </text>
         </view>

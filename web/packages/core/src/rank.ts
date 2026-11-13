@@ -9,7 +9,11 @@ export const RANK_COLORS = [
   { bg: "#475569", ink: "#475569", tint: "#eef1f5" },
 ] as const;
 
-export function rankColor(rank: number | null | undefined) {
-  if (!rank || rank < 1 || rank > RANK_COLORS.length) return RANK_COLORS[6];
-  return RANK_COLORS[rank - 1];
+export type RankColor = (typeof RANK_COLORS)[number];
+
+const FALLBACK: RankColor = { bg: "#475569", ink: "#475569", tint: "#eef1f5" };
+
+export function rankColor(rank: number | null | undefined): RankColor {
+  if (!rank || rank < 1 || rank > RANK_COLORS.length) return FALLBACK;
+  return RANK_COLORS[rank - 1] ?? FALLBACK;
 }
