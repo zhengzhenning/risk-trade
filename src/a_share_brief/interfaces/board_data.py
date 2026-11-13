@@ -119,7 +119,7 @@ def render(html: str, briefing: Briefing, day: str, vp: dict | None = None,
         "CONCEPTS": build_concepts(briefing, theme_of),
         "TIERS": build_tiers(briefing),
         "PEERS": build_peers(briefing, theme_of),
-        "VP": vp,
+        "VP": ({**blocks.get("VP", {}), **vp} if vp else None),
 
     }
     out = html
