@@ -15,7 +15,7 @@ _LOG = logging.getLogger("a_share_brief.live")
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default="work/store")
-    parser.add_argument("--interval", type=int, default=300)
+    parser.add_argument("--interval", type=int, default=120)
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
 
