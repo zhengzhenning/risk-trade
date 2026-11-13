@@ -7,10 +7,11 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from ...domain.aggregates import Briefing, PoolRanking, PoolWindow, Stock, StockBase
+from ...domain.aggregates import Briefing, PoolRanking, PoolWindow
 from ...domain.services.pool import diff
-from ...domain.services.security import board_of, exchange_of
-from ..ports import AlertPort, IndexQuotePort, PoolPort, QuotePort, SnapshotRepo
+from ...domain.services.theme_cluster import cluster_themes
+from ..mappers import labeled, merge, with_theme
+from ..ports import AlertPort, IndexQuotePort, PoolPort, QuotePort, SnapshotRepo, ThemePort
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class BuildSnapshot:
         quotes: QuotePort,
         repo: SnapshotRepo,
         alerts: AlertPort | None = None,
+        themes: ThemePort | None = None,
         indexes: IndexQuotePort | None = None,
         index_codes: tuple[str, ...] = ("000001", "399001", "000688"),
     ) -> None:
@@ -37,6 +39,7 @@ class BuildSnapshot:
         self._quotes = quotes
         self._repo = repo
         self._alerts = alerts
+        self._themes = themes
         self._indexes = indexes
         self._index_codes = index_codes
 
@@ -54,13 +57,17 @@ class BuildSnapshot:
         """
         month_entries = self._pools.month_top(10)
         d60_entries = self._pools.d60_top(7)
+        label_of = self._themes.themes_of([item.code for item in month_entries + d60_entries]) \
+            if self._themes else {}
+        month_entries = [with_theme(item, label_of) for item in month_entries]
+        d60_entries = [with_theme(item, label_of) for item in d60_entries]
         month_rank = PoolRanking(day=day, window=PoolWindow.MONTH, entries=tuple(month_entries))
         d60_rank = PoolRanking(day=day, window=PoolWindow.D60, entries=tuple(d60_entries))
         stocks = month_entries + d60_entries
         live = self._quotes.snapshot([s.code for s in stocks])
         alerts = self._alerts.unusual([entry.code for entry in stocks]) if self._alerts else {}
         merged = tuple(
-            _merge(entry, live.get(entry.code), alerts.get(entry.code)) for entry in stocks
+            merge(entry, live.get(entry.code), alerts.get(entry.code)) for entry in stocks
         )
         prev = self._repo.load(day)
         revision = prev.revision + 1 if prev else 1
@@ -73,26 +80,12 @@ class BuildSnapshot:
             diffs=diffs,
             indexes=tuple(index_map[c] for c in self._index_codes if c in index_map),
             stocks=merged,
+            themes=cluster_themes(labeled(month_entries), PoolWindow.MONTH),
             revision=revision,
         )
         self._repo.save(briefing)
         _LOG.info("snapshot saved day=%s revision=%d pools=%d stocks=%d", day, revision, len(stocks), len(merged))
         return briefing
-
-
-def _to_base(entry) -> StockBase:
-    """股池条目转股票基础数据（仅代码与名称，其余来自基础数据适配器）。
-
-    Args:
-        entry: 股池条目。
-
-    Returns:
-        最小可用的股票基础数据，交易所按代码前缀推断。
-    """
-    return StockBase(code=entry.code, name=entry.name,
-                     exchange=exchange_of(entry.code), board=board_of(entry.code))
-
-
 
 
 def _ranking_of(briefing: Briefing | None, window: PoolWindow) -> PoolRanking | None:
@@ -103,7 +96,7 @@ def _ranking_of(briefing: Briefing | None, window: PoolWindow) -> PoolRanking | 
         window: 目标窗口。
 
     Returns:
-        对应排名；快照为空或无该窗口时返回 None。
+        对应排名；无快照或无该窗口时返回 None。
     """
     if briefing is None:
         return None
@@ -111,18 +104,3 @@ def _ranking_of(briefing: Briefing | None, window: PoolWindow) -> PoolRanking | 
         if item.window is window:
             return item
     return None
-
-
-def _merge(entry, quoted: Stock | None, alert) -> Stock:
-    """合并股池条目、行情与异动，三者互不覆盖。
-
-    Args:
-        entry: 股池条目。
-        quoted: 行情聚合，可能为 None。
-        alert: 异动聚合，可能为 None。
-
-    Returns:
-        合并后的股票聚合。
-    """
-    base = quoted.base if quoted else _to_base(entry)
-    return Stock(base=base, quote=quoted.quote if quoted else None, alert=alert)

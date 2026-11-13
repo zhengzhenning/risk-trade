@@ -45,6 +45,14 @@ class AlertPort(Protocol):
     def unusual(self, codes: Iterable[str], day: date | None = None) -> dict[str, StockAlert]: ...
 
 
+@runtime_checkable
+class ThemePort(Protocol):
+    """题材端口：按代码取行业题材标签。"""
+
+    def themes_of(self, codes: Iterable[str]) -> dict[str, tuple[str, ...]]: ...
+
+
+@runtime_checkable
 class SnapshotRepo(Protocol):
     """快照仓库端口。"""
 

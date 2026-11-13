@@ -7,6 +7,7 @@ from ..application.usecases.build_snapshot import BuildSnapshot
 from ..application.usecases.build_view import BuildView
 from ..infrastructure.eastmoney import EastmoneyAdapter
 from ..infrastructure.eastmoney_alert import EastmoneyAlertAdapter
+from ..infrastructure.eastmoney_f10 import EastmoneyThemeAdapter
 from ..infrastructure.eastmoney_index import EastmoneyIndexAdapter
 from ..infrastructure.eastmoney_pool import EastmoneyPoolAdapter
 from ..infrastructure.fallback import FallbackQuotes
@@ -51,6 +52,7 @@ def build_snapshot_usecase(root: Path) -> BuildSnapshot:
         quotes=quotes_port(),
         repo=snapshot_store(root),
         alerts=EastmoneyAlertAdapter(),
+        themes=EastmoneyThemeAdapter(),
         indexes=EastmoneyIndexAdapter(),
     )
 
