@@ -83,3 +83,30 @@ export interface Briefing {
   themes: Theme[];
   stocks: { base: { code: string; name: string; board: string }; quote: StockQuote | null; alert: StockAlert | null }[];
 }
+
+export interface MatrixCell {
+  day: string;
+  rank: number;
+  code: string;
+  name: string;
+  range_pct: number;
+  is_new: boolean;
+}
+
+export interface MatrixRow {
+  rank: number;
+  cells: (MatrixCell | null)[];
+}
+
+export interface PoolMatrix {
+  window: PoolWindow;
+  dates: string[];
+  today: string | null;
+  rows: MatrixRow[];
+  tail: MatrixRow[];
+}
+
+export interface LiveDigest {
+  day: string;
+  indexes: { code: string; name: string; close: number | null; change_pct: number | null }[];
+}

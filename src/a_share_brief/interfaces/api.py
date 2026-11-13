@@ -14,7 +14,9 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
+from ..application.views import matrix_to_dict
 from ..domain.aggregates import PoolWindow
+from ..domain.services.pool import matrix as build_matrix
 from ..infrastructure.file_repo import FileRepoAdapter
 from ..infrastructure.snapshot_codec import (
     index_to_dict,
@@ -81,6 +83,26 @@ def create_app(store_root: Optional[Path] = None) -> FastAPI:
             "rankings": [ranking_to_dict(item) for item in snapshot.rankings],
             "stocks": [stock_to_dict(item) for item in snapshot.stocks],
         }
+
+    @app.get("/api/pool/history")
+    def pool_history(
+        window: str = Query("MONTH"),
+        days: int = Query(6, ge=1, le=30),
+    ) -> dict:
+        """跨日矩阵：最近 N 个交易日的名次分布。"""
+        target_window = _WINDOWS.get(window.upper())
+        if target_window is None:
+            raise HTTPException(status_code=400, detail=f"未知窗口: {window}")
+        available = _available_days(root)[-days:]
+        rankings = []
+        for day in available:
+            snapshot = repo.load(day)
+            if snapshot is None:
+                continue
+            rankings.extend(item for item in snapshot.rankings if item.window is target_window)
+        if not rankings:
+            raise HTTPException(status_code=404, detail=f"{window} 窗口无数据")
+        return matrix_to_dict(build_matrix(rankings, target_window, top_n=7, tail_n=10))
 
     @app.get("/api/pool/{window}")
     def pool(window: str, day: Optional[str] = Query(None, alias="date")) -> dict:

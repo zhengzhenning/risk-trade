@@ -75,3 +75,25 @@ def test_alert_and_live_stream(client):
     response = client.get("/api/live?ticks=1&interval=0.01")
     assert response.status_code == 200
     assert "data:" in response.text
+
+
+def test_pool_history_returns_matrix(tmp_path):
+    from a_share_brief.domain.aggregates import PoolEntry, PoolRanking, PoolWindow
+
+    repo = FileRepoAdapter(tmp_path)
+    for day, name, code in (
+        (date(2026, 11, 10), "闽发铝业", "002578"),
+        (date(2026, 11, 11), "东方海洋", "002086"),
+    ):
+        ranking = PoolRanking(day=day, window=PoolWindow.MONTH,
+                              entries=(PoolEntry(code=code, name=name, rank=1,
+                                                 window=PoolWindow.MONTH),))
+        repo.save(Briefing(day=day, rankings=(ranking,)))
+
+    client = TestClient(create_app(tmp_path))
+    payload = client.get("/api/pool/history?window=MONTH&days=6").json()
+
+    assert payload["dates"] == ["2026-11-10", "2026-11-11"]
+    assert payload["rows"][0]["cells"][0]["name"] == "闽发铝业"
+    assert payload["rows"][0]["cells"][1]["is_new"] is True
+    assert client.get("/api/pool/history?window=BAD").status_code == 400

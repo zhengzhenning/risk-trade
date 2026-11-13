@@ -3,11 +3,11 @@
 import { onMounted, ref } from "vue";
 import { KpiCard, RankMatrix } from "@brief/ui";
 import { createApi, createFetchTransport } from "@brief/api";
-import type { Briefing, PoolEntry } from "@brief/core";
+import type { Briefing, MatrixCell } from "@brief/core";
 
 const api = createApi(createFetchTransport({ baseUrl: "/" }));
 const indexes = ref<{ name: string; pct: number }[]>([]);
-const rows = ref<PoolEntry[][]>([]);
+const rows = ref<(MatrixCell | null)[][]>([]);
 const dates = ref<string[]>([]);
 
 onMounted(async () => {
@@ -18,10 +18,11 @@ onMounted(async () => {
     pct: item.quote?.change_pct ?? 0,
   }));
   const month = briefing.rankings.find((item) => item.window === "MONTH");
-  if (month) {
-    dates.value = [month.day];
-    rows.value = month.entries.map((entry) => [entry]);
-  }
+  dates.value = month ? [month.day] : [];
+
+  const matrix = await api.poolHistory("MONTH", 6);
+  dates.value = matrix.dates;
+  rows.value = matrix.rows.map((row) => row.cells);
 });
 </script>
 
