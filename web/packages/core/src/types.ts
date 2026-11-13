@@ -153,3 +153,66 @@ export interface PhaseView {
   kind: "acc" | "wash" | "start" | "dist";
   note: string;
 }
+
+export interface PriceBar {
+  day: string;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  volume: number;
+  pct: number;
+}
+
+export interface IndexHistory {
+  code: string;
+  name: string;
+  bars: PriceBar[];
+}
+
+export interface EtfSeriesPoint {
+  0: string;
+  1: number;
+  2: number;
+  3: number;
+}
+
+export interface EtfFund {
+  code: string;
+  name: string;
+  netIn1: number;
+  netIn5: number;
+  netIn20?: number;
+}
+
+export interface EtfPayload {
+  asOf: string;
+  types: Record<string, string>;
+  series: Record<string, [string, number, number, number][]>;
+  funds: EtfFund[];
+  industries?: unknown;
+}
+
+export interface CycleRound {
+  id: number;
+  name: string;
+  status: string;
+  ongoing: boolean;
+  lead: string;
+  start: { d: string; p: number };
+  peak: { d: string; p: number };
+  gain: number;
+  drawdown?: number;
+}
+
+export interface CycleSeries {
+  nm: string;
+  color: string;
+  data: number[];
+}
+
+export interface CyclePayload {
+  basis: string;
+  rounds: CycleRound[];
+  year: { asOf: string; dates: number[]; series: CycleSeries[]; marks?: number[] };
+}

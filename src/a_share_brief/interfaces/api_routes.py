@@ -60,7 +60,7 @@ def resolve_day(root: Path, day: Optional[str]) -> date:
     return days[-1]
 
 
-def register_routes(app: FastAPI, root: Path, repo: FileRepoAdapter) -> None:
+def register_routes(app: FastAPI, root: Path, repo: FileRepoAdapter, klines=None) -> None:
     """注册全部路由。
 
     Args:
@@ -146,4 +146,4 @@ def register_routes(app: FastAPI, root: Path, repo: FileRepoAdapter) -> None:
 
     register_live(app, root, repo, resolve)
 
-    register_stock(app, repo, resolve)
+    register_stock(app, repo, resolve, klines)

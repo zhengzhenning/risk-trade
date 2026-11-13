@@ -8,13 +8,16 @@ from collections.abc import Callable
 from ..domain.aggregates import Bar
 
 _HEADERS = {"User-Agent": "Mozilla/5.0", "Referer": "https://gu.qq.com/"}
-_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={symbol},day,,,{bars},qfq"
+_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={symbol},{period},,,{bars},qfq"
 Fetch = Callable[[str], str]
 
 
 def _default_fetch(url: str) -> str:
     request = urllib.request.Request(url, headers=_HEADERS)
     return urllib.request.urlopen(request, timeout=15).read().decode("utf-8", "ignore")
+
+
+_INDEX_MARKET = {"000001": "sh", "000688": "sh", "399001": "sz", "399006": "sz"}
 
 
 def symbol_of(code: str) -> str:
@@ -26,6 +29,9 @@ def symbol_of(code: str) -> str:
     Returns:
         沪市 ``sh`` 前缀，其余 ``sz``。
     """
+    market = _INDEX_MARKET.get(code)
+    if market:
+        return market + code
     return ("sh" if code.startswith("6") else "sz") + code
 
 
@@ -50,7 +56,7 @@ class TencentKLineAdapter:
             按时间升序的 K 线；接口无数据返回空列表。
         """
         symbol = symbol_of(code)
-        payload = json.loads(self._fetch(_URL.format(symbol=symbol, bars=bars)))
+        payload = json.loads(self._fetch(_URL.format(symbol=symbol, period="day", bars=bars)))
         block = ((payload.get("data") or {}).get(symbol)) or {}
         rows = block.get("qfqday") or block.get("day") or []
         bars: list[Bar] = []
@@ -62,6 +68,31 @@ class TencentKLineAdapter:
             bars.append(bar)
             prev_close = bar.close
         return bars
+
+
+    def weekly(self, code: str, bars: int = 52) -> list[Bar]:
+        """拉取周 K。
+
+        Args:
+            code: 6 位代码。
+            bars: 周数。
+
+        Returns:
+            按时间升序的周 K；接口无数据返回空列表。
+        """
+        symbol = symbol_of(code)
+        payload = json.loads(self._fetch(_URL.format(symbol=symbol, period="week", bars=bars)))
+        block = ((payload.get("data") or {}).get(symbol)) or {}
+        rows = block.get("qfqweek") or block.get("week") or []
+        result: list[Bar] = []
+        prev_close: float | None = None
+        for row in rows:
+            if len(row) < 6:
+                continue
+            bar = _to_bar(row, prev_close)
+            result.append(bar)
+            prev_close = bar.close
+        return result
 
 
 def _to_bar(row: list, prev_close: float | None) -> Bar:

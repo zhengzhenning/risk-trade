@@ -7,9 +7,10 @@ from fastapi import FastAPI, HTTPException, Query
 
 from ..infrastructure.file_repo import FileRepoAdapter
 from ..infrastructure.snapshot_codec import stock_to_dict
+from ..infrastructure.tencent_kline import TencentKLineAdapter
 
 
-def register_stock(app: FastAPI, repo: FileRepoAdapter, resolve) -> None:
+def register_stock(app: FastAPI, repo: FileRepoAdapter, resolve, klines: TencentKLineAdapter) -> None:
     """注册个股详情路由。
 
     Args:
@@ -32,5 +33,21 @@ def register_stock(app: FastAPI, repo: FileRepoAdapter, resolve) -> None:
             "phases": [
                 {"start": p.start, "end": p.end, "kind": p.kind, "note": p.note}
                 for p in snapshot.phases.get(code, ())
+            ],
+        }
+
+    @app.get("/api/stock/{code}/bars")
+    def stock_bars(code: str, period: str = Query("day"),
+                   bars: int = Query(60, ge=10, le=250)) -> dict:
+        rows = klines.weekly(code, bars) if period == "week" else klines.daily(code, bars)
+        if not rows:
+            raise HTTPException(status_code=502, detail="行情源不可用")
+        return {
+            "code": code,
+            "period": period,
+            "bars": [
+                {"day": bar.day, "open": bar.open, "close": bar.close,
+                 "high": bar.high, "low": bar.low, "volume": bar.volume, "pct": bar.pct}
+                for bar in rows
             ],
         }

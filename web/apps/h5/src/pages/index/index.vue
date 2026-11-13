@@ -1,9 +1,21 @@
 <script setup lang="ts">
 /** 看盘主屏：三个页签对齐静态看板（情绪周期 / ETF申赎 / 牛市复盘）。 */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { IndexStrip, RankMatrix, StockPanel, ThemePanel } from "@brief/ui";
+import { CandleChart, IndexStrip, PriceVolume, RankMatrix, RangeDistribution, StockPanel, ThemePanel } from "@brief/ui";
 import { createApi, createFetchTransport } from "@brief/api";
-import type { Briefing, IndexView, MatrixCell, PhaseView, StockView, ThemeView } from "@brief/core";
+import type {
+  Briefing,
+  CyclePayload,
+  EtfPayload,
+  IndexView,
+  MatrixCell,
+  PhaseView,
+  PriceBar,
+  StockView,
+  ThemeView,
+} from "@brief/core";
+import EtfView from "../../views/EtfView.vue";
+import HistoryView from "../../views/HistoryView.vue";
 
 const TABS = [
   { key: "cycle", label: "情绪周期" },
@@ -19,6 +31,11 @@ const d60 = ref<{ dates: string[]; rows: (MatrixCell | null)[][] }>({ dates: [],
 const stocks = ref<Record<string, StockView>>({});
 const themes = ref<ThemeView[]>([]);
 const phases = ref<PhaseView[]>([]);
+const bars = ref<PriceBar[]>([]);
+const period = ref<"day" | "week">("day");
+const indexBars = ref<PriceBar[]>([]);
+const etfPayload = ref<EtfPayload | null>(null);
+const cyclePayload = ref<CyclePayload | null>(null);
 const alertCodes = ref<string[]>([]);
 const selected = ref<StockView | null>(null);
 const status = ref("加载中…");
@@ -30,6 +47,12 @@ const totalAmount = computed(() =>
     .filter((item) => item.code === "000001" || item.code === "399001")
     .reduce((sum, item) => sum + (item.amount || 0), 0),
 );
+const themeMembers = computed(() => {
+  const code = selected.value?.code;
+  if (!code) return [];
+  const theme = themes.value.find((item) => item.members.some((m) => m.code === code));
+  return (theme?.members ?? []).map((m) => ({ name: m.name, range_pct: m.range_pct }));
+});
 const latest = computed(() => month.value.dates[month.value.dates.length - 1] ?? "");
 const alerts = computed(() =>
   alertCodes.value
@@ -57,19 +80,34 @@ async function load(): Promise<void> {
       .filter((item) => item.alert && ["TRIGGERED", "NEAR"].includes(item.alert.level))
       .map((item) => item.base.code);
 
-    const [m, d, t] = await Promise.all([
+    const [m, d, t, h] = await Promise.all([
       api.poolHistory("MONTH", 6),
       api.poolHistory("D60", 6),
       api.themes(day),
+      api.indexHistory("000001", 60).catch(() => ({ bars: [] })),
     ]);
+    indexBars.value = h.bars;
     themes.value = t.themes;
     month.value = { dates: m.dates, rows: m.rows.map((row) => row.cells) };
     d60.value = { dates: d.dates, rows: d.rows.map((row) => row.cells) };
     if (!selected.value) await select(month.value.rows[0]?.[month.value.dates.length - 1] ?? null);
+    if (!etfPayload.value) etfPayload.value = await api.etf().catch(() => null);
+    if (!cyclePayload.value) cyclePayload.value = await api.cycles().catch(() => null);
     status.value = `${latest.value} · rev ${briefing.revision}`;
     updatedAt.value = new Date().toLocaleTimeString("zh-CN", { hour12: false });
   } catch (error) {
     status.value = `加载失败：${String(error)}`;
+  }
+}
+
+async function switchPeriod(next: "day" | "week"): Promise<void> {
+  period.value = next;
+  if (!selected.value) return;
+  try {
+    const chart = await api.stockBars(selected.value.code, next, next === "week" ? 52 : 60);
+    bars.value = chart.bars;
+  } catch {
+    bars.value = [];
   }
 }
 
@@ -78,10 +116,15 @@ async function select(cell: MatrixCell | null): Promise<void> {
   const base = stocks.value[cell.code] ?? { code: cell.code, name: cell.name, quote: null, alert: null };
   selected.value = { ...base, name: cell.name, context: { day: cell.day, range_pct: cell.range_pct } };
   try {
-    const detail = await api.stock(cell.code);
+    const [detail, chart] = await Promise.all([
+      api.stock(cell.code),
+      api.stockBars(cell.code, period.value, period.value === "week" ? 52 : 60),
+    ]);
     phases.value = detail.phases;
+    bars.value = chart.bars;
   } catch {
     phases.value = [];
+    bars.value = [];
   }
 }
 
@@ -117,6 +160,7 @@ onBeforeUnmount(() => {
 
     <template v-if="tab === 'cycle'">
       <IndexStrip :items="indexes" />
+      <PriceVolume v-if="indexBars.length" name="上证指数" :bars="indexBars" />
       <view class="grid">
         <view class="col">
           <view class="card">
@@ -131,6 +175,17 @@ onBeforeUnmount(() => {
         <view class="side">
           <StockPanel :stock="selected" :phases="phases" />
           <view class="card">
+            <view class="card-head">
+              <text class="card-title">个股 K 线</text>
+              <text class="card-sub" @tap="switchPeriod(period === 'day' ? 'week' : 'day')">
+                切换{{ period === "day" ? "周 K" : "日 K" }}
+              </text>
+            </view>
+            <CandleChart v-if="bars.length" :bars="bars" :period="period" />
+            <text v-else class="empty">暂无 K 线</text>
+          </view>
+          <RangeDistribution :items="themeMembers" title="板块区间涨跌幅分布" />
+          <view class="card">
             <view class="card-head"><text class="card-title">异动预警</text><text class="card-sub">已触发 / 临近</text></view>
             <view v-if="!alerts.length" class="empty">今日无预警</view>
             <view v-for="item in alerts" :key="item.code" class="alert-row">
@@ -144,12 +199,8 @@ onBeforeUnmount(() => {
       </view>
     </template>
 
-    <view v-else class="placeholder">
-      <text class="ph-title">{{ tab === "etf" ? "ETF 申赎" : "牛市复盘" }}</text>
-      <text class="ph-desc">
-        静态看板已有此模块；网页端尚未接入（数据侧需补 ETF 名称映射与历史轮次接口）。
-      </text>
-    </view>
+    <EtfView v-else-if="tab === 'etf'" :payload="etfPayload" />
+    <HistoryView v-else :payload="cyclePayload" />
   </view>
 </template>
 

@@ -8,6 +8,9 @@ from typing import Optional
 from fastapi import FastAPI
 
 from ..infrastructure.file_repo import FileRepoAdapter
+from ..infrastructure.tencent_kline import TencentKLineAdapter
+from .api_aux import register_aux
+from .api_index import register_index
 from .api_routes import register_routes
 
 
@@ -22,5 +25,9 @@ def create_app(store_root: Optional[Path] = None) -> FastAPI:
     """
     root = Path(store_root or os.environ.get("BRIEF_STORE", "work/store"))
     app = FastAPI(title="A 股每日看板", version="0.1.0")
-    register_routes(app, root, FileRepoAdapter(root))
+    klines = TencentKLineAdapter()
+    repo = FileRepoAdapter(root)
+    register_routes(app, root, repo, klines)
+    register_index(app, klines)
+    register_aux(app, root)
     return app

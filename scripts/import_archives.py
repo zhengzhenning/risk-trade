@@ -224,6 +224,35 @@ def import_one(path: Path, repo: FileRepoAdapter) -> str | None:
     return day
 
 
+def import_aux(path: Path, out: Path) -> list[str]:
+    """导入 ETF 与牛市复盘等辅助数据。
+
+    Args:
+        path: 最新归档文件。
+        out: 输出目录。
+
+    Returns:
+        成功写出的文件名列表。
+    """
+    import subprocess
+
+    source = path.read_text(encoding="utf-8")
+    written: list[str] = []
+    etf = re.search(r"^const ETFFLOW = (.*?);\s*$", source, re.M | re.S)
+    if etf:
+        (out / "etf.json").write_text(etf.group(1), encoding="utf-8")
+        written.append("etf.json")
+
+    history = re.search(r"^const HISTORY = (.*?);\s*$", source, re.M | re.S)
+    if history:
+        script = "const HISTORY = " + history.group(1) + ";console.log(JSON.stringify(HISTORY));"
+        result = subprocess.run(["node", "-e", script], capture_output=True, text=True, check=False)
+        if result.returncode == 0 and result.stdout.strip():
+            (out / "history.json").write_text(result.stdout, encoding="utf-8")
+            written.append("history.json")
+    return written
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--archives", default="archives")
@@ -243,6 +272,9 @@ def main() -> None:
         else:
             skipped.append(path.name)
 
+    latest = sorted(Path(args.archives).glob("market-briefing-*.html"))[-1]
+    aux = import_aux(latest, Path(args.out))
+    print(f"辅助数据: {aux}（源 {latest.name}）")
     print(f"导入 {len(imported)} 天: {imported[0] if imported else '-'} → {imported[-1] if imported else '-'}")
     if skipped:
         print(f"跳过 {len(skipped)} 个: {skipped[:5]}")
