@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from ..infrastructure.file_repo import FileRepoAdapter
 from ..infrastructure.tencent_kline import TencentKLineAdapter
 from .api_aux import register_aux
+from .api_board import register_board
 from .api_index import register_index
 from .api_routes import register_routes
 
@@ -30,4 +31,5 @@ def create_app(store_root: Optional[Path] = None) -> FastAPI:
     register_routes(app, root, repo, klines)
     register_index(app, klines)
     register_aux(app, root)
+    register_board(app, Path(os.environ.get("BRIEF_ARCHIVES", "archives")), root)
     return app
