@@ -50,6 +50,8 @@ def register_board(app: FastAPI, archives: Path, store: Path) -> None:
         snapshot = repo.load(__import__("datetime").date.fromisoformat(day))
         if snapshot is None:
             raise HTTPException(status_code=404, detail="快照读取失败")
-        vp = build_vp(snapshot, day, TencentKLineAdapter())
+        klines = TencentKLineAdapter()
+        vp = build_vp(snapshot, day, klines)
+        # 指数卡小 K 线暂用归档序列：替换后模板 kline 渲染报错，回退以保稳定
         html = render(base.read_text(encoding="utf-8"), snapshot, day, vp)
         return html.replace("</body>", (_POLL % snapshot.revision) + "</body>", 1)

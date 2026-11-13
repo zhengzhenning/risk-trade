@@ -52,17 +52,18 @@ def append_matrix(
     return out
 
 
-def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str) -> dict[str, Any] | None:
+def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str,
+              series: dict[str, list[float]] | None = None,
+              dates: list[str] | None = None) -> dict[str, Any] | None:
     """更新大盘块：日期与指数当日值。"""
     if not base:
         return None
     out = json.loads(json.dumps(base))
     out["asOf"] = day
-    dates = list(out.get("dates") or [])
-    # 保持与 idx[].O 等长：只替换最后一天，不追加
-    if dates:
-        dates[-1] = day
-    out["dates"] = dates
+    base_dates = list(dates or out.get("dates") or [])
+    if base_dates:
+        base_dates[-1] = day
+    out["dates"] = base_dates
     window = dict(out.get("window") or {})
     if window:
         window["to"] = day
@@ -85,8 +86,12 @@ def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str) -> dict
         item["chg"] = round(quote.quote.change, 2)
         item["pct"] = round(quote.quote.change_pct, 2)
         item["amt"] = round(quote.quote.amount / 1e8, 1)
-        series = list(item.get("O") or [])
-        if series:
-            series[-1] = round(quote.quote.close, 2)
-            item["O"] = series
+        fresh = (series or {}).get(str(item.get("nm") or ""))
+        if fresh:
+            item["O"] = [round(value, 2) for value in fresh]
+        else:
+            values = list(item.get("O") or [])
+            if values:
+                values[-1] = round(quote.quote.close, 2)
+                item["O"] = values
     return out

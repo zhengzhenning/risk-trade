@@ -84,7 +84,8 @@ def build_themes(briefing: Briefing) -> list[dict[str, Any]]:
     return rows
 
 
-def render(html: str, briefing: Briefing, day: str, vp: dict | None = None) -> str:
+def render(html: str, briefing: Briefing, day: str, vp: dict | None = None,
+           index_series: dict | None = None) -> str:
     """把快照数据写回页面。
 
     Args:
@@ -107,7 +108,8 @@ def render(html: str, briefing: Briefing, day: str, vp: dict | None = None) -> s
         "THEMES": build_themes(briefing),
         "POOLCHG": append_matrix(blocks.get("POOLCHG"), briefing, day, "MONTH", "month_pct"),
         "D10CHG": append_matrix(blocks.get("D10CHG"), briefing, day, "D60", "d60_pct", top_n=7, tail_n=7),
-        "MKT": build_mkt(blocks.get("MKT"), briefing, day),
+        "MKT": build_mkt(blocks.get("MKT"), briefing, day,
+                         (index_series or {}).get("series"), (index_series or {}).get("dates")),
         "CATALYST": build_catalyst(briefing),
         "CONCEPTS": build_concepts(briefing, theme_of),
         "TIERS": build_tiers(briefing),
