@@ -28,10 +28,14 @@ def build_vp(briefing: Briefing, day: str, klines: TencentKLineAdapter) -> dict[
     codes = [entry.code for ranking in briefing.rankings for entry in ranking.entries][:7]
     out: dict[str, Any] = {}
     for code in dict.fromkeys(codes):
-        try:
-            bars = klines.daily(code, 60)
-        except (OSError, ValueError):
-            continue
+        bars = []
+        for _ in range(2):
+            try:
+                bars = klines.daily(code, 60)
+                if bars:
+                    break
+            except (OSError, ValueError):
+                bars = []
         if len(bars) < 10:
             continue
         phases = judge(tuple(bars))

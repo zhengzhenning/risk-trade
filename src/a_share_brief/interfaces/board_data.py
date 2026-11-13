@@ -125,7 +125,7 @@ def render(html: str, briefing: Briefing, day: str, vp: dict | None = None,
                  rf'\g<1>{day} · 快照 {stamp}\g<2>', out, count=1)
     out = out.replace("实时数据不可用", "实时快照")
     for name, value in replacements.items():
-        if value is None:
+        if value is None or (name == "VP" and not value):
             continue
         payload = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
         out = re.sub(rf"^const {name} = .*?;\s*$", f"const {name} = {payload};",
