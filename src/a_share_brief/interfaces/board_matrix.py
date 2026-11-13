@@ -53,7 +53,7 @@ def append_matrix(
 
 
 def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str,
-              series: dict[str, list[float]] | None = None,
+              series: dict[str, list[Any]] | None = None,
               dates: list[str] | None = None) -> dict[str, Any] | None:
     """更新大盘块：日期与指数当日值。"""
     if not base:
@@ -88,7 +88,11 @@ def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str,
         item["amt"] = round(quote.quote.amount / 1e8, 1)
         fresh = (series or {}).get(str(item.get("nm") or ""))
         if fresh:
-            item["O"] = [round(value, 2) for value in fresh]
+            item["O"] = [round(bar.open, 2) for bar in fresh]
+            item["C"] = [round(bar.close, 2) for bar in fresh]
+            item["H"] = [round(bar.high, 2) for bar in fresh]
+            item["L"] = [round(bar.low, 2) for bar in fresh]
+            item["V"] = [bar.volume for bar in fresh]
         else:
             values = list(item.get("O") or [])
             if values:
