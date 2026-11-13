@@ -7,10 +7,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
 from ..infrastructure.file_repo import FileRepoAdapter
-from ..infrastructure.tencent_kline import TencentKLineAdapter
 from .board_data import latest_archive, render
 from .board_index import build_index_bars
 from .board_vp import build_vp
+from .composition import kline_port
 
 _POLL = """
 <script>
@@ -57,7 +57,7 @@ def register_board(app: FastAPI, archives: Path, store: Path) -> None:
         snapshot = repo.load(__import__("datetime").date.fromisoformat(day))
         if snapshot is None:
             raise HTTPException(status_code=404, detail="快照读取失败")
-        klines = TencentKLineAdapter()
+        klines = kline_port()
         vp = build_vp(snapshot, day, klines)
         index_bars = build_index_bars(day, snapshot.revision, klines)
         html = render(base.read_text(encoding="utf-8"), snapshot, day, vp, index_bars)

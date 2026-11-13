@@ -55,6 +55,12 @@ fi
 echo "1/3 停止旧进程"
 stop_all
 
+if [ -n "${QG_KEY:-}" ] && [ -n "${QG_PASSWORD:-}" ]; then
+  echo "代理：已启用青果（东财走代理，腾讯直连兜底）"
+else
+  echo "代理：未配置 QG_KEY/QG_PASSWORD，直连抓取"
+fi
+
 echo "2/3 启动 API 与快照循环"
 PYTHONPATH=src nohup "$PY" -m uvicorn a_share_brief.interfaces.api:create_app \
   --factory --port "$PORT" > "$API_LOG" 2>&1 &
