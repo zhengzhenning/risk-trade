@@ -7,27 +7,28 @@ from ..domain.aggregates import Briefing
 
 
 def build_catalyst(briefing: Briefing) -> dict[str, Any]:
-    """主升催化：锚点主块 + 两行背景。"""
+    """主升催化：锚点主块 + 行业/资金背景行（字段对齐模板）。"""
     out: dict[str, Any] = {}
     for theme in briefing.themes:
         logic = theme.logic
-        chain = [
-            f"触发：{logic.trigger}" if logic and logic.trigger else "",
-            f"扩散：{logic.diffusion}" if logic and logic.diffusion else "",
-            f"卡位：{logic.positioning}" if logic and logic.positioning else "",
-        ]
+        chain = []
+        if logic and logic.trigger:
+            chain.append(f"触发：{logic.trigger}")
+        if logic and logic.diffusion:
+            chain.append(f"扩散：{logic.diffusion}")
+        if logic and logic.positioning:
+            chain.append(f"卡位：{logic.positioning}")
         rows: list[dict[str, Any]] = [{
             "kind": "main",
             "core": (logic.trigger if logic else "") or theme.narrative or theme.name,
-            "u": "",
-            "chain": [item for item in chain if item],
+            "chain": chain,
             "evid": "；".join(logic.evidence) if logic else "",
             "risk": "",
         }]
         if logic and logic.diffusion:
-            rows.append({"tag": "扩散", "t": logic.diffusion[:24], "n": logic.diffusion})
-        if logic and logic.positioning:
-            rows.append({"tag": "卡位", "t": logic.positioning[:24], "n": logic.positioning})
+            rows.append({"tag": "行业", "t": logic.diffusion, "n": logic.positioning})
+        if logic and logic.evidence:
+            rows.append({"tag": "资金", "t": "；".join(logic.evidence[:2]), "n": ""})
         out[theme.anchor_code] = rows
     return out
 

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ..domain.aggregates import Briefing
+from .board_blocks import build_catalyst
 from .board_matrix import append_matrix, build_mkt
 
 _BLOCK = re.compile(r"^const (\w+) = (.*?);\s*$", re.M | re.S)
@@ -107,7 +108,7 @@ def render(html: str, briefing: Briefing, day: str) -> str:
         "POOLCHG": append_matrix(blocks.get("POOLCHG"), briefing, day, "MONTH", "month_pct"),
         "D10CHG": append_matrix(blocks.get("D10CHG"), briefing, day, "D60", "d60_pct", top_n=7, tail_n=7),
         "MKT": build_mkt(blocks.get("MKT"), briefing, day),
-        # CATALYST/CONCEPTS/TIERS 的模板字段尚未完全对齐，先保留归档内容，避免半成品
+        "CATALYST": build_catalyst(briefing),
 
     }
     out = html
