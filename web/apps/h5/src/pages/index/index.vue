@@ -34,6 +34,8 @@ const phases = ref<PhaseView[]>([]);
 const bars = ref<PriceBar[]>([]);
 const period = ref<"day" | "week">("day");
 const indexBars = ref<PriceBar[]>([]);
+const indexCode = ref("000001");
+const indexName = ref("上证指数");
 const etfPayload = ref<EtfPayload | null>(null);
 const cyclePayload = ref<CyclePayload | null>(null);
 const alertCodes = ref<string[]>([]);
@@ -84,7 +86,7 @@ async function load(): Promise<void> {
       api.poolHistory("MONTH", 6),
       api.poolHistory("D60", 6),
       api.themes(day),
-      api.indexHistory("000001", 60).catch(() => ({ bars: [] })),
+      api.indexHistory(indexCode.value, 60).catch(() => ({ bars: [] })),
     ]);
     indexBars.value = h.bars;
     themes.value = t.themes;
@@ -97,6 +99,23 @@ async function load(): Promise<void> {
     updatedAt.value = new Date().toLocaleTimeString("zh-CN", { hour12: false });
   } catch (error) {
     status.value = `加载失败：${String(error)}`;
+  }
+}
+
+const INDEX_OPTIONS = [
+  { code: "000001", name: "上证", full: "上证指数" },
+  { code: "399001", name: "深证", full: "深证成指" },
+  { code: "000688", name: "科创50", full: "科创50" },
+];
+
+async function switchIndex(code: string): Promise<void> {
+  indexCode.value = code;
+  indexName.value = INDEX_OPTIONS.find((item) => item.code === code)?.full ?? code;
+  try {
+    const history = await api.indexHistory(code, 60);
+    indexBars.value = history.bars;
+  } catch {
+    indexBars.value = [];
   }
 }
 
@@ -159,8 +178,23 @@ onBeforeUnmount(() => {
     </view>
 
     <template v-if="tab === 'cycle'">
-      <IndexStrip :items="indexes" />
-      <PriceVolume v-if="indexBars.length" name="上证指数" :bars="indexBars" />
+      <view class="quad">
+        <IndexStrip :items="indexes" />
+        <view class="panorama">
+          <view class="index-tabs">
+            <text
+              v-for="item in INDEX_OPTIONS"
+              :key="item.code"
+              class="index-tab"
+              :class="{ active: indexCode === item.code }"
+              @tap="switchIndex(item.code)"
+            >
+              {{ item.name }}
+            </text>
+          </view>
+          <PriceVolume v-if="indexBars.length" :name="indexName" :bars="indexBars" />
+        </view>
+      </view>
       <view class="grid">
         <view class="col">
           <view class="card">
@@ -228,7 +262,16 @@ onBeforeUnmount(() => {
 .placeholder { background: var(--bg); border-radius: var(--radius); padding: 40rpx; display: flex; flex-direction: column; gap: 12rpx; }
 .ph-title { font-size: var(--fs-16); color: var(--ink); }
 .ph-desc { font-size: var(--fs-13); color: var(--sub); line-height: 1.7; }
-@media (min-width: 900px) {
+.quad { display: grid; gap: 16rpx; grid-template-columns: 1fr; }
+.panorama { display: flex; flex-direction: column; gap: 8rpx; }
+.index-tabs { display: flex; gap: 8rpx; }
+.index-tab { padding: 4rpx 14rpx; font-size: var(--fs-11); color: var(--sub); background: var(--bg); border-radius: 999rpx; }
+.index-tab.active { color: #fff; background: var(--ink); }
+@media (min-width: 1100px) {
+  .quad { grid-template-columns: 360px minmax(0, 1fr); align-items: start; }
+  .grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+}
+@media (min-width: 900px) and (max-width: 1099px) {
   .grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
 }
 </style>

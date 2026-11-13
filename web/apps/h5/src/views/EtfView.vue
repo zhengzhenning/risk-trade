@@ -36,6 +36,7 @@ const chart = computed(() => {
 });
 
 const funds = computed(() => (props.payload?.funds ?? []).slice(0, 6));
+const industries = computed(() => (props.payload?.industries ?? []).slice(0, 12));
 </script>
 
 <template>
@@ -58,6 +59,16 @@ const funds = computed(() => (props.payload?.funds ?? []).slice(0, 6));
         <svg viewBox="0 0 600 160" class="chart" preserveAspectRatio="none">
           <path :d="chart" fill="none" stroke="#3b66d4" stroke-width="1.6" />
         </svg>
+      </view>
+
+      <view v-if="industries.length" class="panel">
+        <view class="head"><text class="title">行业专区</text><text class="sub">行业 → 代表基金</text></view>
+        <view v-for="item in industries" :key="item.fund.code" class="row">
+          <text class="icat">{{ item.cat }}</text>
+          <text class="iname">{{ item.idx }}</text>
+          <text class="ifund">{{ item.fund.name }}</text>
+          <text class="fnet" :class="item.fund.netIn5 >= 0 ? 'up' : 'down'">{{ item.fund.netIn5.toFixed(1) }} 亿</text>
+        </view>
       </view>
 
       <view class="panel">
@@ -89,6 +100,9 @@ const funds = computed(() => (props.payload?.funds ?? []).slice(0, 6));
 .chart { width: 100%; height: 240rpx; }
 .row { display: flex; gap: 12rpx; align-items: baseline; padding: 8rpx 0; border-top: 1px solid var(--line); }
 .fname { font-size: var(--fs-13); color: var(--ink); }
+.icat { width: 80rpx; font-size: var(--fs-11); color: var(--faint); }
+.iname { width: 160rpx; font-size: var(--fs-12); color: var(--ink); }
+.ifund { flex: 1; font-size: var(--fs-12); color: var(--sub); }
 .fcode { font-size: var(--fs-11); color: var(--faint); }
 .fnet { margin-left: auto; font-size: var(--fs-13); font-variant-numeric: tabular-nums; }
 </style>

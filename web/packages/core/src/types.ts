@@ -185,12 +185,18 @@ export interface EtfFund {
   netIn20?: number;
 }
 
+export interface EtfIndustry {
+  cat: string;
+  idx: string;
+  fund: { code: string; name: string; netIn1: number; netIn5: number; netIn20: number; pct5: number };
+}
+
 export interface EtfPayload {
   asOf: string;
   types: Record<string, string>;
   series: Record<string, [string, number, number, number][]>;
   funds: EtfFund[];
-  industries?: unknown;
+  industries?: EtfIndustry[];
 }
 
 export interface CycleRound {
@@ -211,8 +217,22 @@ export interface CycleSeries {
   data: number[];
 }
 
+export interface CycleEvent {
+  d: string;
+  t: string;
+  src?: string;
+  url?: string;
+}
+
 export interface CyclePayload {
   basis: string;
   rounds: CycleRound[];
-  year: { asOf: string; dates: number[]; series: CycleSeries[]; marks?: number[] };
+  year: {
+    asOf: string;
+    dates: number[];
+    series: CycleSeries[];
+    marks?: number[];
+    events?: CycleEvent[];
+    rhythm?: string;
+  };
 }
