@@ -10,7 +10,7 @@ from datetime import date
 from ...domain.aggregates import Briefing, PoolRanking, PoolWindow, Stock, StockBase
 from ...domain.services.pool import diff
 from ...domain.services.security import board_of, exchange_of
-from ..ports import AlertPort, PoolPort, QuotePort, SnapshotRepo
+from ..ports import AlertPort, IndexQuotePort, PoolPort, QuotePort, SnapshotRepo
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,11 +30,15 @@ class BuildSnapshot:
         quotes: QuotePort,
         repo: SnapshotRepo,
         alerts: AlertPort | None = None,
+        indexes: IndexQuotePort | None = None,
+        index_codes: tuple[str, ...] = ("000001", "399001", "000688"),
     ) -> None:
         self._pools = pools
         self._quotes = quotes
         self._repo = repo
         self._alerts = alerts
+        self._indexes = indexes
+        self._index_codes = index_codes
 
     def __call__(self, day: date) -> Briefing:
         """构建并保存快照。
@@ -65,8 +69,15 @@ class BuildSnapshot:
         revision = prev.revision + 1 if prev else 1
         prev_rank = _ranking_of(prev, PoolWindow.MONTH)
         diffs = (diff(prev_rank, month_rank),)
-        briefing = Briefing(day=day, rankings=(month_rank, d60_rank), diffs=diffs,
-                            stocks=merged, revision=revision)
+        index_map = self._indexes.snapshot(self._index_codes, day=day) if self._indexes else {}
+        briefing = Briefing(
+            day=day,
+            rankings=(month_rank, d60_rank),
+            diffs=diffs,
+            indexes=tuple(index_map[c] for c in self._index_codes if c in index_map),
+            stocks=merged,
+            revision=revision,
+        )
         self._repo.save(briefing)
         _LOG.info("snapshot saved day=%s revision=%d pools=%d stocks=%d", day, revision, len(stocks), len(merged))
         return briefing
