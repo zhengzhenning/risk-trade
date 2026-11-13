@@ -1,0 +1,8 @@
+{
+  "name": "@brief/h5",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "vite build", "typecheck": "vue-tsc --noEmit" },
+  "dependencies": { "vue": "^3.4.0", "@brief/core": "workspace:*", "@brief/api": "workspace:*", "@brief/ui": "workspace:*", "@brief/design": "workspace:*" },
+  "devDependencies": { "vite": "^5.4.0", "@vitejs/plugin-vue": "^5.1.0", "vue-tsc": "^2.1.0", "typescript": "^5.6.0" }
+}

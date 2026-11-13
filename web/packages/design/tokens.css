@@ -1,0 +1,24 @@
+/* 设计令牌：三端共用，小程序通过 uni.scss 引入。 */
+:root {
+  --ink: #0f172a;
+  --sub: #4a5568;
+  --faint: #7b8794;
+  --line: #e6eaf0;
+  --bg: #ffffff;
+  --canvas: #f7f8fa;
+  --up: #d63450;
+  --down: #0b7a55;
+  --gold: #8f6708;
+  --radius: 8px;
+  --space: 8px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-22: 22px;
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0b1220; --canvas: #0f172a; --ink: #e6ecf5; --line: #243044; }
+}

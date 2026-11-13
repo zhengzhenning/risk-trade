@@ -1,0 +1,67 @@
+[project]
+name = "a-share-brief"
+version = "0.1.0"
+description = "A 股每日看板：采集 → 快照 → 动态渲染"
+requires-python = ">=3.9"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "httpx>=0.27",
+  "psycopg[binary]>=3.1",
+  "redis>=5.0",
+  "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.4", "mypy>=1.9", "import-linter>=2.0"]
+
+[project.scripts]
+a-share-brief = "a_share_brief.interfaces.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PT", "RET"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+
+[tool.importlinter]
+root_packages = ["a_share_brief"]
+
+# 依赖只允许向内：drivers → adapters → core
+[[tool.importlinter.contracts]]
+name = "领域层不依赖业务层与实现层"
+type = "forbidden"
+source_modules = ["a_share_brief.domain"]
+forbidden_modules = [
+  "a_share_brief.application",
+  "a_share_brief.infrastructure",
+  "a_share_brief.interfaces",
+]
+
+[[tool.importlinter.contracts]]
+name = "业务层不依赖实现层与入口层"
+type = "forbidden"
+source_modules = ["a_share_brief.application"]
+forbidden_modules = ["a_share_brief.infrastructure", "a_share_brief.interfaces"]
+
+[[tool.importlinter.contracts]]
+name = "实现层不依赖入口层"
+type = "forbidden"
+source_modules = ["a_share_brief.infrastructure"]
+forbidden_modules = ["a_share_brief.interfaces"]

@@ -1,0 +1,7 @@
+{
+  "name": "A股每日看板",
+  "appid": "__UNI__BRIEF001",
+  "mp-weixin": { "appid": "", "setting": { "urlCheck": false } },
+  "app-plus": { "usingComponents": true },
+  "h5": { "router": { "mode": "hash" } }
+}

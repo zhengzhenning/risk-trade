@@ -1,0 +1,19 @@
+{
+  "name": "@brief/miniapp",
+  "private": true,
+  "scripts": {
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "dev:h5": "uni",
+    "build:mp-weixin": "uni build -p mp-weixin"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-4020920240930001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-4020920240930001",
+    "vue": "^3.4.0",
+    "@brief/core": "workspace:*",
+    "@brief/api": "workspace:*",
+    "@brief/ui": "workspace:*",
+    "@brief/design": "workspace:*"
+  },
+  "devDependencies": { "vite": "^5.4.0" }
+}

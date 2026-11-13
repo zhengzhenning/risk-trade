@@ -1,0 +1,5 @@
+{
+  "pages": [{ "path": "pages/index/index", "style": { "navigationBarTitleText": "看板" } }],
+  "globalStyle": { "navigationBarTextStyle": "black", "navigationBarBackgroundColor": "#ffffff" },
+  "condition": { "current": 0 }
+}
