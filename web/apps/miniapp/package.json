@@ -13,7 +13,13 @@
     "@brief/core": "workspace:*",
     "@brief/api": "workspace:*",
     "@brief/ui": "workspace:*",
-    "@brief/design": "workspace:*"
+    "@brief/design": "workspace:*",
+    "@dcloudio/uni-components": "3.0.0-4020920240930001",
+    "@dcloudio/uni-h5": "3.0.0-4020920240930001"
   },
-  "devDependencies": { "vite": "^5.4.0" }
+  "devDependencies": {
+    "@dcloudio/vite-plugin-uni": "3.0.0-4020920240930001",
+    "vite": "^5.4.0",
+    "sass": "^1.77.0"
+  }
 }
