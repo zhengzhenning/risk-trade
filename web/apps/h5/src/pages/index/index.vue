@@ -12,6 +12,7 @@ const d60 = ref<{ dates: string[]; rows: (MatrixCell | null)[][] }>({ dates: [],
 const stocks = ref<Record<string, StockView>>({});
 const themes = ref<ThemeView[]>([]);
 const phases = ref<PhaseView[]>([]);
+const alertCodes = ref<string[]>([]);
 const selected = ref<StockView | null>(null);
 const status = ref("加载中…");
 
@@ -34,6 +35,9 @@ async function load(): Promise<void> {
       change_pct: item.quote?.change_pct ?? 0,
       amount: item.quote?.amount ?? 0,
     }));
+    alertCodes.value = briefing.stocks
+      .filter((item) => item.alert && ["TRIGGERED", "NEAR"].includes(item.alert.level))
+      .map((item) => item.base.code);
     stocks.value = Object.fromEntries(
       briefing.stocks.map((item) => [item.base.code, {
         code: item.base.code, name: item.base.name, quote: item.quote, alert: item.alert,
@@ -74,7 +78,7 @@ onMounted(load);
     <view class="topbar">
       <text class="title">A 股每日看板</text>
       <text class="status">{{ status }}</text>
-      <text class="amount">两市 {{ (totalAmount / 1e8).toFixed(0) }} 亿</text>
+      <text class="amount">两市 {{ (totalAmount / 1e8).toFixed(0) }} 亿 · 预警 {{ alertCodes.length }}</text>
     </view>
 
     <IndexStrip :items="indexes" />
@@ -83,11 +87,11 @@ onMounted(load);
       <view class="col">
         <view class="card">
           <view class="card-head"><text class="card-title">月度前七</text><text class="card-sub">列=交易日</text></view>
-          <RankMatrix :dates="month.dates" :rows="month.rows" @tap-cell="select" />
+          <RankMatrix :dates="month.dates" :rows="month.rows" :alert-codes="alertCodes" @tap-cell="select" />
         </view>
         <view class="card">
           <view class="card-head"><text class="card-title">近 60 日前七</text><text class="card-sub">窗口涨幅</text></view>
-          <RankMatrix :dates="d60.dates" :rows="d60.rows" @tap-cell="select" />
+          <RankMatrix :dates="d60.dates" :rows="d60.rows" :alert-codes="alertCodes" @tap-cell="select" />
         </view>
       </view>
       <view class="side">

@@ -3,10 +3,16 @@
 import { computed } from "vue";
 import { rankColor, pct, type MatrixCell } from "@brief/core";
 
-const props = defineProps<{ dates: string[]; rows: (MatrixCell | null)[][] }>();
+const props = defineProps<{
+  dates: string[];
+  rows: (MatrixCell | null)[][];
+  alertCodes?: string[];
+}>();
 const emit = defineEmits<{ (event: "tap-cell", cell: MatrixCell | null): void }>();
 const tap = (cell: MatrixCell | null) => emit("tap-cell", cell);
 const colors = computed(() => props.rows.map((_, index) => rankColor(index + 1)));
+const alerts = computed(() => new Set(props.alertCodes ?? []));
+const isAlert = (code: string | undefined) => (code ? alerts.value.has(code) : false);
 
 function label(day: string): string {
   return day.slice(5).replace("-", "/");
@@ -34,7 +40,10 @@ function tone(value: number | undefined): string {
           :class="{ today: ci === dates.length - 1 }"
           @tap="tap(cell)"
         >
-          <text v-if="cell" class="mx-name">{{ cell.name }}</text>
+          <view v-if="cell" class="mx-name-row">
+            <text v-if="isAlert(cell.code)" class="mx-dot" />
+            <text class="mx-name">{{ cell.name }}</text>
+          </view>
           <text v-if="cell" class="mx-pct" :style="{ color: tone(cell.range_pct) }">
             {{ pct(cell.range_pct) }}
           </text>
@@ -55,7 +64,9 @@ function tone(value: number | undefined): string {
 .mx-day { flex: 1 1 0; text-align: center; }
 .mx-cell { flex: 1 1 0; min-width: 96rpx; display: flex; flex-direction: column; }
 .mx-cell.today { background: var(--canvas); border-radius: var(--radius); }
+.mx-name-row { display: flex; align-items: center; gap: 6rpx; }
 .mx-name { font-size: var(--fs-13); color: var(--ink); }
+.mx-dot { width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--risk, #9f1239); flex: none; }
 .mx-pct { font-size: var(--fs-12); font-variant-numeric: tabular-nums; }
 .mx-empty { font-size: var(--fs-12); color: var(--faint); }
 </style>
