@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ..domain.aggregates import Briefing
-from .board_blocks import build_catalyst
+from .board_blocks import build_catalyst, build_concepts, build_peers, build_tiers
 from .board_matrix import append_matrix, build_mkt
 
 _BLOCK = re.compile(r"^const (\w+) = (.*?);\s*$", re.M | re.S)
@@ -109,6 +109,9 @@ def render(html: str, briefing: Briefing, day: str) -> str:
         "D10CHG": append_matrix(blocks.get("D10CHG"), briefing, day, "D60", "d60_pct", top_n=7, tail_n=7),
         "MKT": build_mkt(blocks.get("MKT"), briefing, day),
         "CATALYST": build_catalyst(briefing),
+        "CONCEPTS": build_concepts(briefing, theme_of),
+        "TIERS": build_tiers(briefing),
+        "PEERS": build_peers(briefing, theme_of),
 
     }
     out = html

@@ -34,28 +34,41 @@ def build_catalyst(briefing: Briefing) -> dict[str, Any]:
 
 
 def build_concepts(briefing: Briefing, theme_of: dict[str, str]) -> dict[str, Any]:
-    """个股题材与行业标签。"""
+    """个股行业与题材标签（F10 概念块）。"""
     out: dict[str, Any] = {}
     for stock in briefing.stocks:
-        theme = theme_of.get(stock.base.code)
-        labels = [label for label in stock.base.themes if label]
-        if theme and theme not in labels:
-            labels.append(theme)
+        industry = " / ".join(label for label in stock.base.industry if label)
+        style = [theme_of[stock.base.code]] if stock.base.code in theme_of else []
+        style += [label for label in stock.base.themes if label and label not in style]
         out[stock.base.code] = {
             "name": stock.base.name,
-            "industry": list(stock.base.industry),
-            "concepts": labels,
+            "industry": industry,
+            "biz": [],
+            "style": style,
         }
     return out
 
 
 def build_tiers(briefing: Briefing) -> dict[str, Any]:
-    """题材梯队：成员与名次。"""
-    out: dict[str, Any] = {}
-    for theme in briefing.themes:
-        out[theme.name] = [
+    """题材梯队：成员名次与区间涨幅。"""
+    return {
+        theme.name: [
             {"code": m.code, "name": m.name, "mp": round(m.range_pct, 2),
-             "anchor": m.is_anchor, "rk": m.rank_in_pool}
+             "anchor": m.is_anchor}
             for m in theme.members
         ]
+        for theme in briefing.themes
+    }
+
+
+def build_peers(briefing: Briefing, theme_of: dict[str, str]) -> dict[str, Any]:
+    """板块联动：以题材成员作为同行标的。"""
+    out: dict[str, Any] = {}
+    for theme in briefing.themes:
+        rows = [
+            {"code": m.code, "name": m.name, "pct": round(m.range_pct, 2), "turn": 0.0}
+            for m in theme.members
+        ]
+        for member in theme.members:
+            out[member.code] = {"board": theme.sector or theme.name, "rows": rows}
     return out
