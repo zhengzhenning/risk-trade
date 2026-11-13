@@ -1,4 +1,4 @@
-.PHONY: install test lint demo api api-test import clean
+.PHONY: install test lint demo api api-test import clean serve live stop board
 
 install:
 	python3 -m pip install -e ".[dev]"
@@ -24,3 +24,18 @@ api:
 
 clean:
 	rm -rf work/store .pytest_cache
+
+# 常驻服务（后台，日志在 /tmp）
+serve:
+	PYTHONPATH=src nohup .venv/bin/uvicorn a_share_brief.interfaces.api:create_app --factory --port 8000 > /tmp/brief_api.log 2>&1 & disown
+	@echo "http://127.0.0.1:8000/board"
+
+live:
+	PYTHONPATH=src nohup .venv/bin/python -m a_share_brief.interfaces.live_loop --root work/store --interval 120 > /tmp/brief_live.log 2>&1 & disown
+
+stop:
+	-pkill -f "uvicorn a_share_brief.interfaces.api"
+	-pkill -f "live_loop"
+
+board:
+	@curl -s -o /dev/null -w "board %{http_code}\n" http://127.0.0.1:8000/board
