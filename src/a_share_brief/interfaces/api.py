@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import time
 from collections.abc import Iterator
 from datetime import date
@@ -34,17 +35,18 @@ def _available_days(root: Path) -> list[date]:
     return sorted(days)
 
 
-def create_app(store_root: Path) -> FastAPI:
+def create_app(store_root: Optional[Path] = None) -> FastAPI:
     """创建 HTTP 应用。
 
     Args:
-        store_root: 快照存储目录。
+        store_root: 快照存储目录；缺省读环境变量 ``BRIEF_STORE``，再缺省 ``work/store``。
 
     Returns:
         FastAPI 应用实例。
     """
+    root = Path(store_root or os.environ.get("BRIEF_STORE", "work/store"))
     app = FastAPI(title="A 股每日看板", version="0.1.0")
-    repo = FileRepoAdapter(Path(store_root))
+    repo = FileRepoAdapter(root)
 
     def _resolve(day: Optional[str]) -> date:
         if day:
@@ -52,19 +54,19 @@ def create_app(store_root: Path) -> FastAPI:
                 return date.fromisoformat(day)
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=f"日期格式错误: {day}") from exc
-        days = _available_days(Path(store_root))
+        days = _available_days(root)
         if not days:
             raise HTTPException(status_code=404, detail="暂无快照")
         return days[-1]
 
     @app.get("/healthz")
     def healthz() -> dict:
-        days = _available_days(Path(store_root))
+        days = _available_days(root)
         return {"status": "ok", "days": len(days), "latest": days[-1].isoformat() if days else None}
 
     @app.get("/api/history")
     def history() -> dict:
-        return {"days": [d.isoformat() for d in _available_days(Path(store_root))]}
+        return {"days": [d.isoformat() for d in _available_days(root)]}
 
     @app.get("/api/briefing")
     def briefing(day: Optional[str] = Query(None, alias="date")) -> dict:

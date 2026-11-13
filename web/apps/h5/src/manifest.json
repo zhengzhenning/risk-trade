@@ -1,0 +1,5 @@
+{
+  "name": "A股每日看板",
+  "appid": "__UNI__BRIEFH5",
+  "h5": { "router": { "mode": "hash" } }
+}

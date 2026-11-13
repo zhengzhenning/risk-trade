@@ -1,12 +1,11 @@
 import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
+import uni from "@dcloudio/vite-plugin-uni";
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [uni()],
   server: {
     proxy: {
       "/api": { target: "http://127.0.0.1:8000", changeOrigin: true },
-      "/events": { target: "http://127.0.0.1:8000", changeOrigin: true },
     },
   },
 });

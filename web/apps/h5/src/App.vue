@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import Dashboard from "./views/Dashboard.vue";
+import "./uni.scss";
 </script>
 
 <template>
-  <Dashboard />
+  <slot />
 </template>

@@ -11,7 +11,10 @@ export interface ApiConfig {
 export function createFetchTransport(config: ApiConfig): HttpTransport {
   return {
     async get<T>(path: string, query?: Record<string, string>): Promise<T> {
-      const url = new URL(path, config.baseUrl);
+      const base = config.baseUrl.startsWith("/")
+        ? `${globalThis.location?.origin ?? ""}${config.baseUrl}`
+        : config.baseUrl;
+      const url = new URL(path, base);
       Object.entries(query ?? {}).forEach(([k, v]) => url.searchParams.set(k, v));
       const token = config.token?.();
       const response = await fetch(url, {
