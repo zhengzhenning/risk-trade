@@ -7,6 +7,7 @@ from datetime import date
 from .market import Index
 from .pool import PoolDiff, PoolRanking
 from .stock import Stock
+from .theme import Theme
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,7 @@ class Briefing:
     diffs: tuple[PoolDiff, ...] = ()
     indexes: tuple[Index, ...] = ()
     stocks: tuple[Stock, ...] = ()
+    themes: tuple[Theme, ...] = ()
     phases: dict[str, tuple[Phase, ...]] = field(default_factory=dict)
     revision: int = 1
 

@@ -31,6 +31,8 @@ from a_share_brief.domain.aggregates import (
     Stock,
     StockBase,
     StockQuote,
+    Theme,
+    ThemeMember,
 )
 from a_share_brief.domain.services.security import board_of, exchange_of
 from a_share_brief.infrastructure.file_repo import FileRepoAdapter
@@ -110,9 +112,10 @@ def _stocks(rows: list[dict], day: str) -> tuple[Stock, ...]:
             pct=_num(row.get("pct")),
             turnover=_num(row.get("hs")),
         )
+        themes = (row.get("theme"),) if row.get("theme") else ()
         stocks.append(Stock(
             base=StockBase(code=code, name=row.get("name") or code,
-                           exchange=exchange_of(code), board=board),
+                           exchange=exchange_of(code), board=board, themes=themes),
             quote=quote,
         ))
     return tuple(stocks)
@@ -138,6 +141,49 @@ def _indexes(items: list[dict], day: str) -> tuple[Index, ...]:
             quote=quote,
         ))
     return tuple(indexes)
+
+
+def _themes(blocks: dict, stocks: tuple[Stock, ...], day: str) -> tuple[Theme, ...]:
+    """按个股题材标签聚类，锚点取当日排名最高者。
+
+    Args:
+        blocks: 归档数据块。
+        stocks: 当日个股（含题材标签）。
+        day: 交易日。
+
+    Returns:
+        题材聚合列表，按锚点名次排序。
+    """
+    theme_of = {s.base.code: s.base.themes[0] for s in stocks if s.base.themes}
+    if not theme_of:
+        return ()
+    narratives = {item.get("name"): item.get("desc", "") for item in blocks.get("THEMES") or []}
+    pools = blocks.get("POOLCHG") or {}
+    ranks: dict[str, int] = {}
+    for row in pools.get("rankRows") or []:
+        cell = (row.get("cells") or {}).get(day) or {}
+        if cell.get("code") in theme_of:
+            ranks[cell["code"]] = int(row.get("rank") or 99)
+
+    grouped: dict[str, list[str]] = {}
+    for code, name in theme_of.items():
+        grouped.setdefault(name, []).append(code)
+
+    themes: list[Theme] = []
+    for name, codes in grouped.items():
+        codes.sort(key=lambda c: ranks.get(c, 99))
+        anchor = codes[0]
+        members = tuple(
+            ThemeMember(code=code, name=next(s.base.name for s in stocks if s.base.code == code),
+                        is_anchor=code == anchor, rank_in_pool=ranks.get(code))
+            for code in codes
+        )
+        themes.append(Theme(
+            id=name, name=name, anchor_code=anchor,
+            anchor_name=next(s.base.name for s in stocks if s.base.code == anchor),
+            rank=ranks.get(anchor, 99), narrative=narratives.get(name, ""), members=members,
+        ))
+    return tuple(sorted(themes, key=lambda t: t.rank))
 
 
 def import_one(path: Path, repo: FileRepoAdapter) -> str | None:
@@ -172,6 +218,7 @@ def import_one(path: Path, repo: FileRepoAdapter) -> str | None:
         rankings=rankings,
         indexes=indexes,
         stocks=stocks,
+        themes=_themes(blocks, stocks, day),
         revision=1,
     ))
     return day

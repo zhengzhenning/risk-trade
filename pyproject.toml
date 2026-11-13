@@ -36,6 +36,7 @@ ignore = ["E501"]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B011"]
 "src/a_share_brief/interfaces/api.py" = ["UP045"]
+"src/a_share_brief/interfaces/api_routes.py" = ["UP045"]
 
 [tool.ruff.format]
 quote-style = "double"

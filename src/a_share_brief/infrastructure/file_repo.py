@@ -14,6 +14,7 @@ from .snapshot_codec import (
     stock_from_dict,
     stock_to_dict,
 )
+from .theme_codec import theme_from_dict, theme_to_dict
 
 
 class FileRepoAdapter:
@@ -42,6 +43,7 @@ class FileRepoAdapter:
             "indexes": [index_to_dict(item) for item in briefing.indexes],
             "rankings": [ranking_to_dict(item) for item in briefing.rankings],
             "stocks": [stock_to_dict(item) for item in briefing.stocks],
+            "themes": [theme_to_dict(item) for item in briefing.themes],
         }
         self._path(briefing.day).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
@@ -64,4 +66,5 @@ class FileRepoAdapter:
             indexes=tuple(index_from_dict(item) for item in payload.get("indexes", [])),
             rankings=tuple(ranking_from_dict(item) for item in payload.get("rankings", [])),
             stocks=tuple(stock_from_dict(item) for item in payload.get("stocks", [])),
+            themes=tuple(theme_from_dict(item) for item in payload.get("themes", [])),
         )

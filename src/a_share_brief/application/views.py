@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..domain.aggregates import PoolMatrix, RankCell
+from ..domain.aggregates import PoolMatrix, RankCell, Theme
 
 
 def _cell(item: RankCell | None) -> dict[str, Any] | None:
@@ -41,4 +41,28 @@ def matrix_to_dict(matrix: PoolMatrix) -> dict[str, Any]:
         "today": matrix.today.isoformat() if matrix.today else None,
         "rows": _rows(matrix.rows),
         "tail": _rows(matrix.tail),
+    }
+
+
+def theme_to_view(theme: Theme) -> dict[str, Any]:
+    """题材聚合转接口视图。
+
+    Args:
+        theme: 题材聚合。
+
+    Returns:
+        含锚点、成员与叙述的字典。
+    """
+    return {
+        "id": theme.id,
+        "name": theme.name,
+        "anchor": {"code": theme.anchor_code, "name": theme.anchor_name, "rank": theme.rank},
+        "window": theme.window.value,
+        "status": theme.status.value,
+        "narrative": theme.narrative,
+        "members": [
+            {"code": m.code, "name": m.name, "is_anchor": m.is_anchor,
+             "rank_in_pool": m.rank_in_pool, "range_pct": m.range_pct}
+            for m in theme.members
+        ],
     }

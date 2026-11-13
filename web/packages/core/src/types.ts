@@ -127,3 +127,21 @@ export interface StockView {
   /** 点击矩阵单元格时的历史上下文（日期与窗口涨幅）。 */
   context?: { day: string; range_pct: number } | null;
 }
+
+export interface ThemeMemberView {
+  code: string;
+  name: string;
+  is_anchor: boolean;
+  rank_in_pool: number | null;
+  range_pct: number;
+}
+
+export interface ThemeView {
+  id: string;
+  name: string;
+  anchor: { code: string; name: string; rank: number };
+  window: PoolWindow;
+  status: ThemeStatus;
+  narrative: string;
+  members: ThemeMemberView[];
+}

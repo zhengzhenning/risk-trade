@@ -97,3 +97,20 @@ def test_pool_history_returns_matrix(tmp_path):
     assert payload["rows"][0]["cells"][0]["name"] == "闽发铝业"
     assert payload["rows"][0]["cells"][1]["is_new"] is True
     assert client.get("/api/pool/history?window=BAD").status_code == 400
+
+
+def test_themes_endpoint(tmp_path):
+    from a_share_brief.domain.aggregates import Theme, ThemeMember
+
+    repo = FileRepoAdapter(tmp_path)
+    theme = Theme(id="铝（有色）", name="铝（有色）", anchor_code="002578", anchor_name="闽发铝业",
+                  rank=1, narrative="铝价主线",
+                  members=(ThemeMember(code="002578", name="闽发铝业", is_anchor=True,
+                                       rank_in_pool=1),))
+    repo.save(Briefing(day=DAY, themes=(theme,)))
+    client = TestClient(create_app(tmp_path))
+
+    payload = client.get("/api/themes").json()
+    assert payload["day"] == "2026-11-13"
+    assert payload["themes"][0]["anchor"]["name"] == "闽发铝业"
+    assert payload["themes"][0]["narrative"] == "铝价主线"

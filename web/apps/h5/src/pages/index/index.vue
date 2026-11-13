@@ -1,15 +1,16 @@
 <script setup lang="ts">
 /** 浏览器看盘主屏：指数条 + 双窗口矩阵 + 个股面板。 */
 import { computed, onMounted, ref } from "vue";
-import { IndexStrip, RankMatrix, StockPanel } from "@brief/ui";
+import { IndexStrip, RankMatrix, StockPanel, ThemePanel } from "@brief/ui";
 import { createApi, createFetchTransport } from "@brief/api";
-import type { Briefing, IndexView, MatrixCell, StockView } from "@brief/core";
+import type { Briefing, IndexView, MatrixCell, StockView, ThemeView } from "@brief/core";
 
 const api = createApi(createFetchTransport({ baseUrl: "/" }));
 const indexes = ref<IndexView[]>([]);
 const month = ref<{ dates: string[]; rows: (MatrixCell | null)[][] }>({ dates: [], rows: [] });
 const d60 = ref<{ dates: string[]; rows: (MatrixCell | null)[][] }>({ dates: [], rows: [] });
 const stocks = ref<Record<string, StockView>>({});
+const themes = ref<ThemeView[]>([]);
 const selected = ref<StockView | null>(null);
 const status = ref("加载中…");
 
@@ -37,7 +38,12 @@ async function load(): Promise<void> {
         code: item.base.code, name: item.base.name, quote: item.quote, alert: item.alert,
       }]),
     );
-    const [m, d] = await Promise.all([api.poolHistory("MONTH", 6), api.poolHistory("D60", 6)]);
+    const [m, d, t] = await Promise.all([
+      api.poolHistory("MONTH", 6),
+      api.poolHistory("D60", 6),
+      api.themes(day),
+    ]);
+    themes.value = t.themes;
     month.value = { dates: m.dates, rows: m.rows.map((row) => row.cells) };
     select(month.value.rows[0]?.[month.value.dates.length - 1] ?? null);
     d60.value = { dates: d.dates, rows: d.rows.map((row) => row.cells) };
@@ -79,6 +85,7 @@ onMounted(load);
       </view>
       <view class="side">
         <StockPanel :stock="selected" />
+        <ThemePanel :themes="themes" />
       </view>
     </view>
   </view>
@@ -96,6 +103,7 @@ onMounted(load);
 .card-head { display: flex; align-items: baseline; gap: 12rpx; padding-bottom: 8rpx; }
 .card-title { font-size: var(--fs-14); color: var(--ink); }
 .card-sub { font-size: var(--fs-11); color: var(--faint); }
+.side { display: flex; flex-direction: column; gap: 16rpx; }
 @media (min-width: 900px) {
   .grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
 }
