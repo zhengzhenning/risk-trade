@@ -78,7 +78,8 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
         phases = judge(tuple(bars))
         closes = [bar.close for bar in bars]
         out[code] = {
-            "k": [[bar.day, bar.open, bar.close, bar.high, bar.low, bar.volume, bar.pct, bar.turnover]
+            # 模板约定：r[3]=最低、r[4]=最高
+            "k": [[bar.day, bar.open, bar.close, bar.low, bar.high, bar.volume, bar.pct, bar.turnover]
                   for bar in bars],
             "phases": [{"a": p.start, "b": p.end, "k": p.kind, "note": p.note,
                         "tent": p.tentative} for p in phases],
