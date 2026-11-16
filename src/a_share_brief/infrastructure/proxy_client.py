@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 import time
 import urllib.request
 from collections.abc import Callable
@@ -9,6 +10,7 @@ from typing import Optional
 
 from .qingguo_proxy import ProxyLease, QingguoProxyPool
 
+_LOG = logging.getLogger(__name__)
 Fetch = Callable[[str, Optional[str]], str]
 
 
@@ -68,6 +70,7 @@ class ProxyHttpClient:
         self._backoff = backoff
         self._max_rotations = max_rotations
         self._rotations = 0
+        self._consecutive_failures = 0
         self.stats = {"requests": 0, "reused": 0, "rotations": 0, "failures": 0}
 
     def get(self, url: str) -> str:
@@ -90,13 +93,20 @@ class ProxyHttpClient:
 
         for attempt in range(self._retries + 1):
             self.stats["requests"] += 1
+            if self.stats["requests"] % 20 == 0:
+                _LOG.info("proxy stats requests=%d rotations=%d failures=%d",
+                          self.stats["requests"], self.stats["rotations"], self.stats["failures"])
             try:
-                return self._fetch(url, proxy)
+                text = self._fetch(url, proxy)
+                self._consecutive_failures = 0
+                return text
             except (OSError, ValueError):
                 if attempt < self._retries:
                     time.sleep(self._backoff * (2 ** attempt))
                     continue
-                if lease and self._pool and self._rotations < self._max_rotations:
+                self._consecutive_failures += 1
+                if (lease and self._pool and self._rotations < self._max_rotations
+                        and self._consecutive_failures >= 2):
                     self._pool.report_bad(lease)
                     self.stats["rotations"] += 1
                     self._rotations += 1

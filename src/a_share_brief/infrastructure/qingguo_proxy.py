@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 import urllib.parse
@@ -9,6 +10,8 @@ import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Optional
+
+_LOG = logging.getLogger(__name__)
 
 _EXTRACT = "https://share.proxy.qg.net/get?key={key}&password={password}&num=1"
 Fetch = Callable[[str], str]
@@ -99,6 +102,7 @@ class QingguoProxyPool:
         if not ip or not port.isdigit():
             return None
         self._lease = ProxyLease(ip=ip, port=int(port), acquired_at=now, ttl=self.ttl)
+        _LOG.info("proxy lease acquired ip=%s ttl=%.0fs", ip, self.ttl)
         return self._lease
 
     def report_bad(self, lease: Optional[ProxyLease]) -> None:

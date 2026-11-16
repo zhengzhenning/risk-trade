@@ -1,4 +1,4 @@
-.PHONY: install test lint demo api api-test import clean serve live stop board
+.PHONY: install test lint demo api api-test import clean serve live stop board proxy-stats
 
 install:
 	python3 -m pip install -e ".[dev]"
@@ -39,3 +39,11 @@ stop:
 
 board:
 	@curl -s -o /dev/null -w "board %{http_code}\n" http://127.0.0.1:8000/board
+
+proxy-stats:
+	@echo "=== 青果 IP 消耗（新租约次数） ==="
+	@grep -h "proxy lease acquired" /tmp/brief_api.log /tmp/brief_live.log 2>/dev/null | wc -l | tr -d " "
+	@echo "=== 最近 5 个租约 ==="
+	@grep -h "proxy lease acquired" /tmp/brief_api.log /tmp/brief_live.log 2>/dev/null | tail -5
+	@echo "=== 请求汇总（每 20 次一行） ==="
+	@grep -h "proxy stats" /tmp/brief_api.log /tmp/brief_live.log 2>/dev/null | tail -5

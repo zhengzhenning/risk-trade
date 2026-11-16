@@ -46,8 +46,13 @@ def proxy_client() -> ProxyHttpClient | None:
     proxy = settings.proxy
     if not proxy.enabled or not proxy.key or not proxy.password:
         return None
-    return ProxyHttpClient(QingguoProxyPool(key=proxy.key, password=proxy.password,
-                                            ttl=float(proxy.session_ttl_seconds)))
+    return ProxyHttpClient(
+        QingguoProxyPool(key=proxy.key, password=proxy.password,
+                         ttl=float(proxy.session_ttl_seconds)),
+        retries=1,      # 同一 IP 重试 1 次；连续失败才换 IP
+        backoff=0.4,
+        max_rotations=1,
+    )
 
 
 def quotes_port() -> FallbackQuotes:
