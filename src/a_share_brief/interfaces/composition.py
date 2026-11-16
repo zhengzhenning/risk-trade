@@ -40,13 +40,14 @@ def proxy_client() -> ProxyHttpClient | None:
     Returns:
         配了 ``QG_KEY`` 与 ``QG_PASSWORD`` 时返回代理客户端，否则 None（直连）。
     """
-    import os
+    from ..infrastructure.config import load_settings
 
-    key = os.environ.get("QG_KEY", "")
-    password = os.environ.get("QG_PASSWORD", "")
-    if not key or not password:
+    settings = load_settings()
+    proxy = settings.proxy
+    if not proxy.enabled or not proxy.key or not proxy.password:
         return None
-    return ProxyHttpClient(QingguoProxyPool(key=key, password=password))
+    return ProxyHttpClient(QingguoProxyPool(key=proxy.key, password=proxy.password,
+                                            ttl=float(proxy.session_ttl_seconds)))
 
 
 def quotes_port() -> FallbackQuotes:

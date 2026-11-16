@@ -7,6 +7,7 @@ from datetime import date, datetime
 from datetime import time as clock
 from pathlib import Path
 
+from ..infrastructure.config import load_settings
 from .composition import build_snapshot_usecase
 
 _LOG = logging.getLogger("a_share_brief.live")
@@ -24,7 +25,7 @@ def refresh_once(root: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default="work/store")
+    parser.add_argument("--root", default=str(load_settings().store_root))
     parser.add_argument("--interval", type=int, default=120, help="交易时段间隔（秒）")
     parser.add_argument("--closed-interval", type=int, default=1800, help="收盘后静默间隔（秒）")
     parser.add_argument("--once", action="store_true")

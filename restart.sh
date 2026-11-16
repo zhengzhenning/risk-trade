@@ -55,10 +55,11 @@ fi
 echo "1/3 停止旧进程"
 stop_all
 
-if [ -n "${QG_KEY:-}" ] && [ -n "${QG_PASSWORD:-}" ]; then
-  echo "代理：已启用青果（东财走代理，腾讯直连兜底）"
+CFG="config/settings.json"
+if [ -f "$CFG" ] && grep -q '"enabled"[[:space:]]*:[[:space:]]*true' "$CFG"; then
+  echo "代理：读取 ${CFG}，青果已启用（东财走代理）"
 else
-  echo "代理：未配置 QG_KEY/QG_PASSWORD，直连抓取"
+  echo "代理：未启用（${CFG} 缺失或 enabled=false），直连抓取"
 fi
 
 echo "2/3 启动 API 与快照循环"

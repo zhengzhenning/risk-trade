@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 from typing import Any
 
@@ -52,15 +51,10 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
     codes = [entry.code for ranking in briefing.rankings for entry in ranking.entries][:7]
     out: dict[str, Any] = {}
     for code in dict.fromkeys(codes):
-        bars = []
-        for attempt in range(3):
-            try:
-                bars = klines.daily(code, 60)
-                if bars:
-                    break
-            except (OSError, ValueError):
-                bars = []
-            time.sleep(0.3 * (attempt + 1))
+        try:
+            bars = klines.daily(code, 60)
+        except Exception:  # 单只失败跳过，代理层已有自己的重试
+            bars = []
         if len(bars) < 10:
             # K 线源不可用：用快照收盘价造一根占位 K，保证 Tab 与前七一致
             quote = next((x.quote for x in briefing.stocks if x.base.code == code), None)

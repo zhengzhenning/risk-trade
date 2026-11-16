@@ -1,0 +1,11 @@
+{
+  "store_root": "work/store",
+  "archives": "archives",
+  "proxy": {
+    "enabled": true,
+    "provider": "qingguo",
+    "key": "<AuthKey>",
+    "password": "<AuthPwd>",
+    "session_ttl_seconds": 120
+  }
+}
