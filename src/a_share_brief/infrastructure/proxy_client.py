@@ -106,7 +106,7 @@ class ProxyHttpClient:
                     continue
                 self._consecutive_failures += 1
                 if (lease and self._pool and self._rotations < self._max_rotations
-                        and self._consecutive_failures >= 2):
+                        and self._consecutive_failures >= 1):
                     self._pool.report_bad(lease)
                     self.stats["rotations"] += 1
                     self._rotations += 1

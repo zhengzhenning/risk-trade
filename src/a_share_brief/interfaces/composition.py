@@ -51,7 +51,7 @@ def proxy_client() -> ProxyHttpClient | None:
                          ttl=float(proxy.session_ttl_seconds)),
         retries=1,      # 同一 IP 重试 1 次；连续失败才换 IP
         backoff=0.4,
-        max_rotations=1,
+        max_rotations=2,
     )
 
 

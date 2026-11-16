@@ -43,14 +43,14 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
         代码到 VP 数据的映射；抓取失败的标的跳过。
     """
     klines = klines or FallbackKLine(TencentKLineAdapter(), EastmoneyKLineAdapter())
-    cached = _CACHE.get(day) or _load_disk(day)
-    if cached:
-        _CACHE[day] = cached
-        return cached
+    cached = dict(_CACHE.get(day) or _load_disk(day) or {})
 
     codes = [entry.code for ranking in briefing.rankings for entry in ranking.entries][:7]
     out: dict[str, Any] = {}
     for code in dict.fromkeys(codes):
+        if len((cached.get(code) or {}).get("k") or []) >= 10:
+            out[code] = cached[code]        # 已有真实数据，直接复用
+            continue
         try:
             bars = klines.daily(code, 60)
         except Exception:  # 单只失败跳过，代理层已有自己的重试
@@ -94,7 +94,12 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
                 "hi": f"{max(bar.high for bar in bars):.2f}",
             },
         }
+    # 与已有缓存合并：新抓的覆盖旧的，失败标的保留旧的真实数据
+    out = {**cached, **out}
     _CACHE.clear()
     _CACHE[day] = out
-    _save_disk(day, out)
+    # 只落盘真实 K 线，占位（<10 根）不覆盖缓存
+    real = {code: vp for code, vp in out.items() if len(vp.get("k") or []) >= 10}
+    if real:
+        _save_disk(day, real)
     return out
