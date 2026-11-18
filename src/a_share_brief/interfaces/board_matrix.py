@@ -53,6 +53,7 @@ def append_matrix(
 
 
 def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str,
+              overlay: dict[str, tuple[float, float]] | None = None,
               series: dict[str, list[Any]] | None = None,
               dates: list[str] | None = None) -> dict[str, Any] | None:
     """更新大盘块：日期与指数当日值。"""
@@ -81,6 +82,12 @@ def build_mkt(base: dict[str, Any] | None, briefing: Briefing, day: str,
     for item in out.get("idx") or []:
         quote = match(str(item.get("nm") or ""))
         if quote is None or quote.quote is None:
+            continue
+        name = str(item.get("nm") or "")
+        if overlay and name in overlay:
+            close, pct = overlay[name]
+            item["close"] = round(close, 2)
+            item["pct"] = round(pct, 2)
             continue
         item["close"] = round(quote.quote.close, 2)
         item["chg"] = round(quote.quote.change, 2)

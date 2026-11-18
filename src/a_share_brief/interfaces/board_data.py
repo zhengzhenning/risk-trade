@@ -31,7 +31,8 @@ def read_blocks(html: str) -> dict[str, Any]:
     return blocks
 
 
-def build_stocks(briefing: Briefing, theme_of: dict[str, str]) -> list[dict[str, Any]]:
+def build_stocks(briefing: Briefing, theme_of: dict[str, str],
+                 quotes: dict[str, float] | None = None) -> list[dict[str, Any]]:
     """组装个股行数据。"""
     month = next((r for r in briefing.rankings if r.window.value == "MONTH"), None)
     rank_of = {e.code: e.rank for e in (month.entries if month else ())}
@@ -49,7 +50,7 @@ def build_stocks(briefing: Briefing, theme_of: dict[str, str]) -> list[dict[str,
             "name": stock.base.name,
             "pool": "month" if stock.base.code in rank_of else "d60",
             "rk": rank_of.get(stock.base.code),
-            "pct": round(stock.quote.pct, 2) if stock.quote else 0.0,
+            "pct": round((quotes or {}).get(stock.base.code, stock.quote.pct if stock.quote else 0.0), 2),
             "hs": round(stock.quote.turnover, 2) if stock.quote else None,
             "jj": 0.0,
             "top": stock.base.code in rank_of and stock.base.code in d60_codes,
@@ -90,7 +91,8 @@ def build_themes(briefing: Briefing) -> list[dict[str, Any]]:
 
 
 def render(html: str, briefing: Briefing, day: str, vp: dict | None = None,
-           index_series: dict | None = None) -> str:
+           index_series: dict | None = None, quotes: dict[str, float] | None = None,
+           indexes: dict[str, tuple[float, float]] | None = None) -> str:
     """把快照数据写回页面。
 
     Args:
@@ -108,12 +110,12 @@ def render(html: str, briefing: Briefing, day: str, vp: dict | None = None,
         for member in theme.members
     }
     replacements: dict[str, Any] = {
-        "STOCKS": build_stocks(briefing, theme_of),
+        "STOCKS": build_stocks(briefing, theme_of, quotes),
         "ALERTS": build_alerts(briefing),
         "THEMES": build_themes(briefing),
         "POOLCHG": append_matrix(blocks.get("POOLCHG"), briefing, day, "MONTH", "month_pct"),
         "D10CHG": append_matrix(blocks.get("D10CHG"), briefing, day, "D60", "d60_pct", top_n=7, tail_n=7),
-        "MKT": build_mkt(blocks.get("MKT"), briefing, day,
+        "MKT": build_mkt(blocks.get("MKT"), briefing, day, indexes,
                          (index_series or {}).get("bars"), (index_series or {}).get("dates")),
         "CATALYST": build_catalyst(briefing),
         "CONCEPTS": build_concepts(briefing, theme_of),

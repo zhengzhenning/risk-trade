@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,8 @@ from ..infrastructure.fallback_kline import FallbackKLine
 from ..infrastructure.tencent_kline import TencentKLineAdapter
 
 _CACHE: dict[str, dict[str, Any]] = {}
+_CACHE_AT: dict[str, float] = {}
+TTL_SECONDS = 180.0
 _CACHE_DIR = Path("work/cache")
 
 
@@ -43,7 +46,10 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
         代码到 VP 数据的映射；抓取失败的标的跳过。
     """
     klines = klines or FallbackKLine(TencentKLineAdapter(), EastmoneyKLineAdapter())
-    cached = dict(_CACHE.get(day) or _load_disk(day) or {})
+    fresh = (day in _CACHE and time.time() - _CACHE_AT.get(day, 0) < TTL_SECONDS)
+    # 过期后不再拿旧 K 线复用，只作为抓取失败时的兜底
+    cached = dict(_CACHE.get(day) or {}) if fresh else {}
+    fallback = {} if fresh else dict(_load_disk(day) or {})
 
     codes = [entry.code for ranking in briefing.rankings for entry in ranking.entries][:7]
     out: dict[str, Any] = {}
@@ -95,10 +101,11 @@ def build_vp(briefing: Briefing, day: str, klines=None) -> dict[str, Any]:
                 "hi": f"{max(bar.high for bar in bars):.2f}",
             },
         }
-    # 与已有缓存合并：新抓的覆盖旧的，失败标的保留旧的真实数据
-    out = {**cached, **out}
+    # 新抓的覆盖旧的；失败标的用磁盘里的旧数据兜底
+    out = {**fallback, **cached, **out}
     _CACHE.clear()
     _CACHE[day] = out
+    _CACHE_AT[day] = time.time()
     # 只落盘真实 K 线，占位（<10 根）不覆盖缓存
     real = {code: vp for code, vp in out.items() if len(vp.get("k") or []) >= 10}
     if real:
