@@ -15,6 +15,9 @@ def save(root: Path, name: str, rows: list[dict[str, Any]]) -> None:
         name: 分片名（quotes/index/pool/alert/theme）。
         rows: 采集结果。
     """
+    if not rows:
+        # 统一策略：空结果不覆盖最近一次成功值
+        return
     target = Path(root) / f"{name}.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     payload = {"captured_at": datetime.now().isoformat(timespec="seconds"), "rows": rows}
@@ -31,6 +34,9 @@ def load(root: Path, name: str) -> dict[str, Any] | None:
     Returns:
         分片内容；不存在或损坏返回 None。
     """
+    if not rows:
+        # 统一策略：空结果不覆盖最近一次成功值
+        return
     target = Path(root) / f"{name}.json"
     if not target.exists():
         return None
