@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..application.usecases.build_snapshot import BuildSnapshot
 from ..application.usecases.build_view import BuildView
+from ..infrastructure.cached_theme import CachedThemeAdapter
 from ..infrastructure.eastmoney import EastmoneyAdapter
 from ..infrastructure.eastmoney_alert import EastmoneyAlertAdapter
 from ..infrastructure.eastmoney_f10 import EastmoneyThemeAdapter
@@ -75,7 +76,9 @@ def build_snapshot_usecase(root: Path) -> BuildSnapshot:
     Returns:
         已注入真实适配器的用例。
     """
-    theme_adapter = EastmoneyThemeAdapter()
+    client = proxy_client()
+    theme_inner = EastmoneyThemeAdapter(fetch=client.get) if client else EastmoneyThemeAdapter()
+    theme_adapter = CachedThemeAdapter(theme_inner)
     sectors_adapter = EastmoneySectorAdapter()
     return BuildSnapshot(
         pools=EastmoneyPoolAdapter(),
