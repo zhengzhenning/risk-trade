@@ -1,4 +1,4 @@
-"""按业务拆分的采集循环：每个任务独立频率、独立失败退避。"""
+"""定时任务：每个业务一个任务，独立频率与失败退避。"""
 from __future__ import annotations
 
 import logging
@@ -9,11 +9,11 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Callable
 
-from ..application.collectors import alert as alert_usecase
-from ..application.collectors import indexes as index_usecase
-from ..application.collectors import pool as pool_usecase
-from ..application.collectors import quotes as quotes_usecase
-from ..application.collectors import theme as theme_usecase
+from ..application.tasks import alert as alert_usecase
+from ..application.tasks import indexes as index_usecase
+from ..application.tasks import pool as pool_usecase
+from ..application.tasks import quotes as quotes_usecase
+from ..application.tasks import theme as theme_usecase
 from ..infrastructure.eastmoney_alert import EastmoneyAlertAdapter
 from ..infrastructure.eastmoney_f10 import EastmoneyThemeAdapter
 from ..infrastructure.eastmoney_index import EastmoneyIndexAdapter
