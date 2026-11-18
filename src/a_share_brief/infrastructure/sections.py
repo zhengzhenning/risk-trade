@@ -34,9 +34,6 @@ def load(root: Path, name: str) -> dict[str, Any] | None:
     Returns:
         分片内容；不存在或损坏返回 None。
     """
-    if not rows:
-        # 统一策略：空结果不覆盖最近一次成功值
-        return
     target = Path(root) / f"{name}.json"
     if not target.exists():
         return None

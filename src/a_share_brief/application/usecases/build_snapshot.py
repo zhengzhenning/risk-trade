@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from datetime import date
 
 from ...domain.aggregates import Briefing, PoolRanking, PoolWindow
@@ -81,6 +82,12 @@ class BuildSnapshot:
         alerts = self._alerts.unusual([entry.code for entry in stocks]) if self._alerts else {}
         merged = tuple(
             merge(entry, live.get(entry.code), alerts.get(entry.code)) for entry in stocks
+        )
+        # F10 标签回写个股，保证题材标签不依赖聚类结果
+        merged = tuple(
+            replace(stock, base=replace(stock.base,
+                                        themes=tuple(label_of.get(stock.base.code, stock.base.themes))))
+            for stock in merged
         )
         prev = self._repo.load(day)
         revision = prev.revision + 1 if prev else 1
