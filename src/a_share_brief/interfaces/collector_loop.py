@@ -9,6 +9,11 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Callable
 
+from ..application.collectors import alert as alert_usecase
+from ..application.collectors import indexes as index_usecase
+from ..application.collectors import pool as pool_usecase
+from ..application.collectors import quotes as quotes_usecase
+from ..application.collectors import theme as theme_usecase
 from ..infrastructure.eastmoney_alert import EastmoneyAlertAdapter
 from ..infrastructure.eastmoney_f10 import EastmoneyThemeAdapter
 from ..infrastructure.eastmoney_index import EastmoneyIndexAdapter
@@ -44,36 +49,23 @@ def collect_quotes() -> list[dict]:
     codes = _codes()
     if not codes:
         return []
-    quotes = quotes_port().snapshot(codes)
-    return [{"code": code, "pct": round(stock.quote.pct, 2) if stock.quote else None}
-            for code, stock in quotes.items()]
+    return quotes_usecase.collect(quotes_port(), codes)
 
 
 def collect_pool() -> list[dict]:
-    adapter = EastmoneyPoolAdapter()
-    month, d60 = adapter.month_top(10), adapter.d60_top(7)
-    return [{"window": "MONTH", "entries": [(e.rank, e.code, e.name, e.range_pct) for e in month]},
-            {"window": "D60", "entries": [(e.rank, e.code, e.name, e.range_pct) for e in d60]}]
+    return pool_usecase.collect(EastmoneyPoolAdapter())
 
 
 def collect_index() -> list[dict]:
-    indexes = EastmoneyIndexAdapter().snapshot(["000001", "399001", "000688"])
-    return [{"name": item.base.name,
-             "close": item.quote.close if item.quote else None,
-             "pct": item.quote.change_pct if item.quote else None}
-            for item in indexes.values()]
+    return index_usecase.collect(EastmoneyIndexAdapter())
 
 
 def collect_alert() -> list[dict]:
-    alerts = EastmoneyAlertAdapter().unusual(_codes())
-    return [{"code": code,
-             "level": alert.level.value if alert and alert.level else None}
-            for code, alert in alerts.items()]
+    return alert_usecase.collect(EastmoneyAlertAdapter(), _codes())
 
 
 def collect_theme() -> list[dict]:
-    themes = EastmoneyThemeAdapter().themes_of(_codes())
-    return [{"code": code, "labels": list(labels)} for code, labels in themes.items()]
+    return theme_usecase.collect(EastmoneyThemeAdapter(), _codes())
 
 
 def build_tasks() -> list[Task]:
