@@ -31,3 +31,24 @@ def test_kline_and_index_and_alert_ports_available():
 def test_usecases_are_wired(tmp_path):
     assert isinstance(build_snapshot_usecase(tmp_path), BuildSnapshot)
     assert isinstance(build_view_usecase(tmp_path), BuildView)
+
+
+def test_proxy_clients_share_one_pool(monkeypatch):
+    import threading
+
+    from a_share_brief.infrastructure.qingguo_proxy import QingguoProxyPool
+    from a_share_brief.interfaces import composition
+
+    pool = QingguoProxyPool(key="k", fetch=lambda url: "10.0.0.1:8080")
+    monkeypatch.setattr(composition, "_proxy_pool", lambda: pool)
+
+    first = composition.proxy_client()
+    assert first is composition.proxy_client()      # 同线程复用同一客户端
+    assert first.pool is pool                       # 共用进程级租约池
+
+    other = []
+    thread = threading.Thread(target=lambda: other.append(composition.proxy_client()))
+    thread.start()
+    thread.join()
+    assert other[0] is not first                    # 客户端线程本地
+    assert other[0].pool is pool                    # 租约池仍共用

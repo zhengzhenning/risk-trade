@@ -79,18 +79,39 @@ def build_tasks() -> list[Task]:
     ]
 
 
-def _trading_now() -> bool:
-    now = datetime.now()
-    return now.weekday() < 5 and (9, 15) <= (now.hour, now.minute) <= (15, 5)
+OPENING = (9, 15)
+LUNCH = (11, 30)
+AFTERNOON = (13, 0)
+CLOSING = (15, 5)
+
+
+def _trading_now(now: datetime | None = None) -> bool:
+    """是否处于连续竞价时段；午休（11:30–13:00）不采集。
+
+    Args:
+        now: 判定时刻，缺省取当前时间。
+
+    Returns:
+        交易日且处于上午或下午竞价时段返回 True。
+    """
+    moment = now or datetime.now()
+    if moment.weekday() >= 5:
+        return False
+    stamp = (moment.hour, moment.minute)
+    return OPENING <= stamp <= LUNCH or AFTERNOON <= stamp <= CLOSING
 
 
 def _loop(task: Task) -> None:
     backoff = task.interval
+    closed = False
     while True:
         if not _trading_now():
-            _LOG.info("market closed, skip name=%s", task.name)
-            time.sleep(1800)
+            if not closed:
+                _LOG.info("market closed, skip name=%s", task.name)
+                closed = True
+            time.sleep(60)
             continue
+        closed = False
         try:
             rows = task.run()
             save(SECTIONS, task.name, rows)

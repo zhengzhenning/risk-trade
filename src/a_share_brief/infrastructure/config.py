@@ -13,7 +13,7 @@ class ProxySettings:
     """代理配置。"""
 
     enabled: bool = False
-    provider: str = "qingguo"
+    provider: str = ""
     key: str = ""
     password: str = ""
     session_ttl_seconds: int = 120
@@ -50,7 +50,7 @@ def load_settings(path: Path | None = None) -> Settings:
         archives=Path(raw.get("archives") or "archives"),
         proxy=ProxySettings(
             enabled=bool(proxy.get("enabled", False)),
-            provider=str(proxy.get("provider") or "qingguo"),
+            provider=str(proxy.get("provider") or ""),
             key=str(proxy.get("key") or ""),
             password=str(proxy.get("password") or ""),
             session_ttl_seconds=int(proxy.get("session_ttl_seconds") or 120),

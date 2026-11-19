@@ -1,6 +1,8 @@
 """组合根：唯一装配依赖的地方，用例不感知具体实现。"""
 from __future__ import annotations
 
+import threading
+from functools import lru_cache
 from pathlib import Path
 
 from ..application.usecases.build_snapshot import BuildSnapshot
@@ -35,25 +37,45 @@ def snapshot_store(root: Path) -> FileRepoAdapter:
     return FileRepoAdapter(root)
 
 
-def proxy_client() -> ProxyHttpClient | None:
-    """按环境变量决定是否走代理。
+_LOCAL = threading.local()
+
+
+@lru_cache(maxsize=1)
+def _proxy_pool() -> QingguoProxyPool | None:
+    """进程级唯一代理池：所有任务、所有线程共用同一租约。
 
     Returns:
-        配了 ``QG_KEY`` 与 ``QG_PASSWORD`` 时返回代理客户端，否则 None（直连）。
+        配置了代理时返回池，否则 None（直连）。
     """
     from ..infrastructure.config import load_settings
 
-    settings = load_settings()
-    proxy = settings.proxy
+    proxy = load_settings().proxy
     if not proxy.enabled or not proxy.key or not proxy.password:
         return None
-    return ProxyHttpClient(
-        QingguoProxyPool(key=proxy.key, password=proxy.password,
-                         ttl=float(proxy.session_ttl_seconds)),
-        retries=1,      # 同一 IP 重试 1 次；连续失败才换 IP
-        backoff=0.4,
-        max_rotations=2,
-    )
+    return QingguoProxyPool(key=proxy.key, password=proxy.password,
+                            ttl=float(proxy.session_ttl_seconds))
+
+
+def proxy_client() -> ProxyHttpClient | None:
+    """返回当前线程的代理客户端，所有客户端共用进程级租约。
+
+    Returns:
+        配置了代理时返回客户端，否则 None（直连）。
+    """
+    pool = _proxy_pool()
+    if pool is None:
+        return None
+    client = getattr(_LOCAL, "client", None)
+    if client is None or client.pool is not pool:
+        client = ProxyHttpClient(
+            pool,
+            retries=1,          # 同一 IP 重试 1 次
+            backoff=0.4,
+            max_rotations=1,    # 单次取数最多换 1 个 IP
+            rotate_after=2,     # 连续失败 2 次才换，避免抖动烧 IP
+        )
+        _LOCAL.client = client
+    return client
 
 
 def quotes_port() -> FallbackQuotes:

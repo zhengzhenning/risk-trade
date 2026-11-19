@@ -47,6 +47,8 @@ class ProxyHttpClient:
         fetch: 底层取数函数，参数为 (url, proxy)，便于测试。
         retries: 同一 IP 的最大尝试次数。
         backoff: 退避基数（秒）。
+        max_rotations: 单次取数允许的换 IP 次数。
+        rotate_after: 连续失败多少次才换 IP，避免单次抖动就消耗一个 IP。
     """
 
     def __init__(
@@ -56,6 +58,7 @@ class ProxyHttpClient:
         retries: int = 1,
         backoff: float = 0.5,
         max_rotations: int = 1,
+        rotate_after: int = 2,
     ) -> None:
         self._pool = pool
         auth = None
@@ -69,9 +72,15 @@ class ProxyHttpClient:
         self._retries = retries
         self._backoff = backoff
         self._max_rotations = max_rotations
+        self._rotate_after = max(1, rotate_after)
         self._rotations = 0
-        self._consecutive_failures = 0
+        self._streak = 0
         self.stats = {"requests": 0, "reused": 0, "rotations": 0, "failures": 0}
+
+    @property
+    def pool(self) -> Optional[QingguoProxyPool]:
+        """当前客户端绑定的代理池。"""
+        return self._pool
 
     def get(self, url: str) -> str:
         """取页面文本。
@@ -94,29 +103,43 @@ class ProxyHttpClient:
         for attempt in range(self._retries + 1):
             self.stats["requests"] += 1
             if self.stats["requests"] % 20 == 0:
-                _LOG.info("proxy stats requests=%d rotations=%d failures=%d",
-                          self.stats["requests"], self.stats["rotations"], self.stats["failures"])
+                _LOG.info("proxy stats requests=%d extracts=%d rotations=%d failures=%d",
+                          self.stats["requests"], self._pool.extracts if self._pool else 0,
+                          self.stats["rotations"], self.stats["failures"])
             try:
                 text = self._fetch(url, proxy)
-                self._consecutive_failures = 0
+                self._streak = 0
                 return text
             except (OSError, ValueError):
                 if attempt < self._retries:
                     time.sleep(self._backoff * (2 ** attempt))
                     continue
-                self._consecutive_failures += 1
-                if (lease and self._pool and self._rotations < self._max_rotations
-                        and self._consecutive_failures >= 1):
+                self._streak += 1
+                if self._can_rotate(lease):
                     self._pool.report_bad(lease)
                     self.stats["rotations"] += 1
                     self._rotations += 1
+                    self._streak = 0
                     try:
-                        return self.get(url)  # 换 IP 后重试一次
+                        return self.get(url)  # 连续失败达标才换 IP 重试一次
                     finally:
                         self._rotations -= 1
                 self.stats["failures"] += 1
                 raise
         raise OSError(f"抓取失败: {url}")
+
+    def _can_rotate(self, lease: Optional[ProxyLease]) -> bool:
+        """是否允许换 IP：连续失败达标且未超出单次取数配额。
+
+        Args:
+            lease: 本次使用的租约。
+
+        Returns:
+            可换 IP 返回 True。
+        """
+        return (lease is not None and self._pool is not None
+                and self._rotations < self._max_rotations
+                and self._streak >= self._rotate_after)
 
     def get_or_scrape(self, url: str, scraper: Callable[[str], Optional[str]]) -> Optional[str]:
         """接口失败后降级到网页抓取。

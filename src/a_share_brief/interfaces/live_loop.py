@@ -13,7 +13,36 @@ from .composition import build_snapshot_usecase
 _LOG = logging.getLogger("a_share_brief.live")
 
 OPENING = clock(9, 15)
+LUNCH = clock(11, 30)
+AFTERNOON = clock(13, 0)
 CLOSING = clock(15, 5)
+
+
+def _trading(now: datetime) -> bool:
+    """是否处于竞价时段；午休（11:30–13:00）不算交易时段。
+
+    Args:
+        now: 判定时刻。
+
+    Returns:
+        交易日的上午或下午时段返回 True。
+    """
+    if now.weekday() >= 5:
+        return False
+    stamp = now.time()
+    return OPENING <= stamp <= LUNCH or AFTERNOON <= stamp <= CLOSING
+
+
+def _in_lunch(now: datetime) -> bool:
+    """是否处于午休，用于把休眠缩短到 1 分钟以便 13:00 准时恢复。
+
+    Args:
+        now: 判定时刻。
+
+    Returns:
+        工作日午休返回 True。
+    """
+    return now.weekday() < 5 and LUNCH < now.time() < AFTERNOON
 
 
 def refresh_once(root: Path) -> None:
@@ -39,7 +68,7 @@ def main() -> None:
     while True:
         now = datetime.now()
         today = now.date()
-        trading = now.weekday() < 5 and OPENING <= now.time() <= CLOSING
+        trading = _trading(now)
 
         if trading:
             try:
@@ -61,7 +90,8 @@ def main() -> None:
                     _LOG.warning("closed refresh failed reason=%s", exc)
             if args.once:
                 return
-            _sleep = args.closed_interval
+            # 午休只睡 1 分钟，保证 13:00 准时恢复；其余时段按收盘间隔静默
+            _sleep = 60 if _in_lunch(now) else args.closed_interval
 
         import time as _time
 

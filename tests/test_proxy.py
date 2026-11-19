@@ -61,3 +61,79 @@ def test_client_falls_back_to_scraper():
 
     client = ProxyHttpClient(fetch=boom, retries=0)
     assert client.get_or_scrape("https://api", lambda url: "web-fallback") == "web-fallback"
+
+
+def test_repeated_requests_consume_one_ip():
+    calls = {"n": 0}
+
+    def fake_extract(url: str) -> str:
+        calls["n"] += 1
+        return f"10.0.0.{calls['n']}:8080"
+
+    pool = QingguoProxyPool(key="k", fetch=fake_extract)
+    client = ProxyHttpClient(pool=pool, fetch=lambda url, proxy: "ok", retries=0)
+    for _ in range(10):
+        assert client.get("https://example.com/api") == "ok"
+    assert pool.extracts == 1                   # 10 次请求只提取 1 个 IP
+    assert calls["n"] == 1
+
+
+def test_rotation_needs_two_consecutive_failures():
+    calls = {"n": 0}
+
+    def fake_extract(url: str) -> str:
+        calls["n"] += 1
+        return f"10.0.0.{calls['n']}:8080"
+
+    def boom(url: str, proxy: str | None) -> str:
+        raise OSError("429")
+
+    pool = QingguoProxyPool(key="k", fetch=fake_extract)
+    client = ProxyHttpClient(pool=pool, fetch=boom, retries=0, backoff=0, rotate_after=2)
+
+    with contextlib.suppress(OSError):
+        client.get("https://example.com/api")   # 第 1 次失败：不换 IP
+    assert pool.extracts == 1
+
+    with contextlib.suppress(OSError):
+        client.get("https://example.com/api")   # 连续第 2 次失败：才换 1 个 IP
+    assert pool.extracts == 2
+    assert client.stats["rotations"] == 1
+
+
+def test_bad_ip_expires_after_cooldown():
+    calls = {"n": 0}
+
+    def fake_extract(url: str) -> str:
+        calls["n"] += 1
+        return "10.0.0.2:8080"
+
+    pool = QingguoProxyPool(key="k", fetch=fake_extract, bad_ttl=0)
+    pool.report_bad(pool.acquire())
+    assert pool.acquire().ip == "10.0.0.2"
+    assert calls["n"] == 2                      # 冷却期 0 秒，允许重新提取
+
+
+def test_concurrent_requests_share_one_lease():
+    import threading
+
+    calls = {"n": 0}
+
+    def fake_extract(url: str) -> str:
+        calls["n"] += 1
+        return f"10.0.0.{calls['n']}:8080"
+
+    pool = QingguoProxyPool(key="k", fetch=fake_extract)
+    clients = [ProxyHttpClient(pool=pool, fetch=lambda url, proxy: "ok", retries=0)
+               for _ in range(8)]
+
+    def run(client: ProxyHttpClient) -> None:
+        for _ in range(20):
+            client.get("https://example.com/api")
+
+    threads = [threading.Thread(target=run, args=(client,)) for client in clients]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert pool.extracts == 1                   # 8 线程 160 次请求仍只 1 个 IP
